@@ -36,7 +36,8 @@ flowchart TD
   H02["H-20261125-italo-02 Convite do Arthur no GitHub (falhou)"]
   H03["H-20261125-italo-03 Time Direct Response no n8n"]
   H04["H-20261126-italo-01 Acessos ao GitHub registrados"]
-  H01 --> H02 --> H04
+  H05["H-20261126-italo-02 Plano de ação criado"]
+  H01 --> H02 --> H04 --> H05
   C01 --> H03
 
   %% Pendências abertas
@@ -106,6 +107,7 @@ flowchart TD
 | H-20261125-italo-02 | Tentativa de convidar `ArthurSantosss` pela API do GitHub (falhou). | H-20261125-italo-01 | — | — | P-10 |
 | H-20261125-italo-03 | 8 workflows `Direct Response` criados no n8n (`localhost:5678`), Tráfego sempre PAUSED, país padrão Portugal. | C-01 | — | — | P-12 |
 | H-20261126-italo-01 | `Italomelo01` virou colaborador; `ArthurSantosss` já aparece como colaborador; Claude GitHub App ainda não instalada no repositório. | H-20261125-italo-02 | — | P-10 | P-11 |
+| H-20261126-italo-02 | Plano de ação editável criado em `plano/PLANO-DE-ACAO.md` (fases 0 a 9, cobre P-01 a P-12 e E-01 a E-07). | H-20261126-italo-01 | — | — | — |
 
 ### Pendências
 
