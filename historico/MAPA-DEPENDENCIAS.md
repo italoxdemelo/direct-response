@@ -33,6 +33,11 @@ flowchart TD
   %% Repositório
   H01["H-20261125-italo-01 Repositório criado + histórico iniciado"]
   C07 --> H01
+  H02["H-20261125-italo-02 Convite do Arthur no GitHub (falhou)"]
+  H03["H-20261125-italo-03 Time Direct Response no n8n"]
+  H04["H-20261126-italo-01 Acessos ao GitHub registrados"]
+  H01 --> H02 --> H04
+  C01 --> H03
 
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
@@ -44,6 +49,14 @@ flowchart TD
   P07{{"P-07 Entregáveis reais confirmados"}}
   P08{{"P-08 Aprovação da copy final pelo Arthur"}}
   P09{{"P-09 Acessos Hotmart / Meta Ads / pixel"}}
+  P10{{"P-10 Convidar ArthurSantosss no GitHub ✅"}}
+  P11{{"P-11 Claude GitHub App no repositório"}}
+  P12{{"P-12 Preencher credenciais DR no n8n"}}
+  H02 --> P10
+  H04 --> P10
+  H04 --> P11
+  H03 --> P12
+  P09 --> P12
 
   C06 --> P01 & P02 & P03 & P04 & P05 & P06 & P07
   P01 & P02 & P03 & P04 & P05 & P06 & P07 --> P08
@@ -90,6 +103,9 @@ flowchart TD
 | Nó | Resumo | Continua | Depende de | Resolve | Abre |
 |---|---|---|---|---|---|
 | H-20261125-italo-01 | Repositório criado, contexto importado, sistema de histórico iniciado. | C-07 | — | — | P-01 a P-09 (registradas a partir do contexto) |
+| H-20261125-italo-02 | Tentativa de convidar `ArthurSantosss` pela API do GitHub (falhou). | H-20261125-italo-01 | — | — | P-10 |
+| H-20261125-italo-03 | 8 workflows `Direct Response` criados no n8n (`localhost:5678`), Tráfego sempre PAUSED, país padrão Portugal. | C-01 | — | — | P-12 |
+| H-20261126-italo-01 | `Italomelo01` virou colaborador; `ArthurSantosss` já aparece como colaborador; Claude GitHub App ainda não instalada no repositório. | H-20261125-italo-02 | — | P-10 | P-11 |
 
 ### Pendências
 
@@ -104,6 +120,9 @@ flowchart TD
 | P-07 | Entregáveis reais: gravações 12 meses, grupo WhatsApp, guia de compras. | ⏳ aberta | Arthur | P-08, E-03 | §5.7 |
 | P-08 | Aprovação da copy final (depende de P-01 a P-07 preenchidas). | ⏳ aberta | Arthur | E-01, E-04 | §3 item 11; regra do Construtor |
 | P-09 | Acessos à Hotmart, Meta Ads e pixel (ainda não pedidos nem configurados). | ⏳ aberta | Arthur / amigo | E-01, E-03 | §2 regras transversais |
+| P-10 | Convidar `ArthurSantosss` como colaborador do repositório (a API bloqueou). | ✅ resolvida em H-20261126-italo-01 | italoxdemelo (dono) | — | H-20261125-italo-02 |
+| P-11 | Instalar a Claude GitHub App em `italoxdemelo` com acesso a `direct-response`, para o Claude registrar sem usar o navegador. | ⏳ aberta | Italo | — | H-20261126-italo-01 |
+| P-12 | Preencher no n8n as credenciais `DR · xAI Grok`, `DR · Meta (token de sistema)` e `DR · Hotmart` (valores nunca no Git). | ⏳ aberta | Italo / Arthur | workflows do n8n (E-01 a E-06 automatizados) | H-20261125-italo-03 |
 
 Ao fechar uma pendência: troque `⏳ aberta` por `✅ resolvida em H-...` e, no grafo, adicione a seta `Hxx --> Pxx`.
 
