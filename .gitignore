@@ -1,0 +1,22 @@
+# Segredos e credenciais (Hotmart, Meta Ads, pixel, servidor)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets/
+
+# Dados de clientes / exports
+exports/
+*.csv.private
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Configuração local de agentes
+.claude/settings.local.json
