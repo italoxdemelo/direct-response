@@ -48,6 +48,7 @@ Não precisam de entrada: leitura, perguntas, correção de erro de digitação 
 | `contexto/` | Pacote de contexto original (25/11/2026). Instantâneo do ponto de partida. | **Não.** Fica como registro. Mudanças de estado vão para o histórico. |
 | `historico/CHANGELOG.md` | Log de decisões e mudanças, entrada mais recente no topo. | Só acrescentar. Não apague nem reescreva entradas antigas; para corrigir, crie entrada nova que a "corrige". |
 | `historico/MAPA-DEPENDENCIAS.md` | Grafo de como as ações e pendências se ligam. | Sim, a cada entrada. |
+| `plano/PLANO-DE-ACAO.md` | Plano de ação com as tarefas de cada fase, quem faz, status e quem fez. | Sim: marque status, "Feito por", data e evidência ao concluir uma tarefa, e acrescente uma linha no registro do fim. |
 | `historico/MODELO-ENTRADA.md` | Modelo da entrada. | Só com entrada no histórico explicando a mudança. |
 | `AGENTS.md` / `CLAUDE.md` | Estas regras. | Só com entrada no histórico. |
 
