@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261126-italo-02 — Criar o plano de ação editável
+
+- **Data/hora:** 2026-11-26 00:30 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/PLANO-DE-ACAO.md`, com 10 fases (0 a 9) que vão da organização do repositório até a ativação das campanhas pelo Arthur. Cada tarefa tem as colunas Depende de, Responsável, Status, Feito por, Data e Evidência, e no fim há um "Registro de quem fez o quê". As tarefas saem das pendências P-01 a P-12 e das etapas E-01 a E-07 do mapa, mais o que falta no n8n (credenciais `DR · xAI Grok`, `DR · Meta (token de sistema)`, `DR · Hotmart`; `copy_aprovada`, `preco_aprovado`, `pixel_id`, `ad_account_id`). Acrescentada a linha de `plano/` na tabela do mapa do repositório em `AGENTS.md` e na estrutura do `README.md`.
+- **Por quê:** o Italo pediu um plano de ação para colocar o projeto em prática, num documento editável onde o time marque o que já foi feito e quem fez.
+- **Arquivos tocados:** `plano/PLANO-DE-ACAO.md`, `AGENTS.md`, `README.md`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261126-italo-01
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** o plano não tem senhas, tokens nem IDs de conta; nenhum preço, data ou número foi decidido nele (só tarefas e quem decide).
+- **Próximo passo:** Italo e Arthur revisam o plano e mesclam o PR. Depois, o Arthur começa pela fase 1 e o Italo pela fase 2, em paralelo.
+
 ### H-20261126-italo-01 — Liberar acesso do Claude ao repositório no GitHub
 
 - **Data/hora:** 2026-11-26 (America/Bahia UTC-3), entre 00:03 e 00:20
