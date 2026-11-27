@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-02 — Fichas de operação da oferta, sem fechar decisão
+
+- **Data/hora:** 2026-11-27 00:35 (America/Bahia UTC-3)
+- **Autor:** grok — Cursor (Grok)
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criada a pasta `operacao/` com o brief de P-01 a P-07 e a D-09 (estrutura das aulas contra o payload do plano, com o alerta dos 1000 centavos de exemplo), a folha de mecanismo em branco, a auditoria da copy pela equação de valor, o roteiro da esteira Hotmart sem preços, a lista do que a página não herda das aulas, o anexo aos 7 itens do Revisor, a ficha de métricas de Portugal marcada como pós-V-04, e as notas para o Italo aplicar no gerador quando o código entrar no repo. Aviso de precedência no topo de `aulas/Aulas - Índice e Playbook.md`. `README.md`, `AGENTS.md`, `CLAUDE.md` e a regra do Cursor apontam para `operacao/`. Nenhum ok foi preenchido. P-01 a P-09 seguem abertas. A D-09 segue aberta. `contexto/` e o fluxo n8n não foram alterados. O plano continua só na branch `plano/H-20261126-italo-02`; aqui ele é citado, não copiado.
+- **Por quê:** o Arthur aprovou implementar, neste PR, as melhorias da análise do plano que não mexem no gerador nem em `contexto/`.
+- **Arquivos tocados:** `operacao/decisoes-arthur.md`, `operacao/mecanismo.md`, `operacao/auditoria-copy.md`, `operacao/funil-hotmart.md`, `operacao/pagina-proibicoes.md`, `operacao/anexo-revisor.md`, `operacao/metricas-pt.md`, `operacao/notas-para-o-gerador.md`, `aulas/Aulas - Índice e Playbook.md`, `README.md`, `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/aulas-playbook.mdc`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-01
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** os oito arquivos de `operacao/` deixam data, canal e decisão em branco. Não há preço, lance, token nem ID de conta. A D-09 apresenta as duas opções e não escolhe. O anexo nomeia os 7 itens do plano e diz que aviso não reprova.
+- **Próximo passo:** o Arthur preenche o ok em `operacao/decisoes-arthur.md` (P-01 a P-07 e D-09) quando decidir. O Italo aplica `operacao/notas-para-o-gerador.md` quando o gerador entrar no repositório.
+
 ### H-20261127-grok-01 — Importar as aulas de direct response e ligar o playbook às regras
 
 - **Data/hora:** 2026-11-27 00:12 (America/Bahia UTC-3)

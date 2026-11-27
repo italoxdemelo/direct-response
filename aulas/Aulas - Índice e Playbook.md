@@ -5,6 +5,8 @@ status: ativo
 ---
 # Aulas — Índice e Playbook consolidado
 
+> **Precedência neste repositório.** `AGENTS.md` seções 3 e 8 vencem a seção "Como aplicar" de qualquer nota e vencem o que este playbook sugere quando os dois divergirem. Número dito na aula é referência de aula, não métrica desta oferta. Preço, formato, garantia, copy e a estrutura de tráfego (D-09) só com o ok do Arthur. O que já está preparado para ele responder está em `operacao/`.
+
 Mapa das 11 aulas de direct response/low ticket do segundo cérebro, com **notas detalhadas** (feitas pelo Grok Bot em 26/11/2026 a partir das transcrições completas em `raw/aulas/`) e o **playbook consolidado por tema**. Convive com o índice do Claude Code, [Aulas](Aulas.md) (trilha, números de referência, divergências) e com as 11 notas-resumo dele (colunas "Resumo" abaixo). Nada foi apagado ou sobrescrito.
 
 > **Como o Grok Bot usa isto**: quando o Arthur perguntar sobre oferta, promessa, mecanismo, copy/VSL, criativos, funil/upsell, métricas, Bid Cap/escala, o Grok Bot consulta primeiro este índice → o "Playbook" (visão geral) → a nota detalhada do tema, e cita a aula e o professor. **Números só como ditos nas aulas**; se não está na aula, diz que não está. Quando professores divergem, mostra as duas posições (seção "Divergências"). Ao opinar sobre uma oferta do Arthur, aplica a seção "Como aplicar" de cada nota.

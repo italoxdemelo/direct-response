@@ -13,7 +13,7 @@ Este projeto é tocado por **duas pessoas em máquinas diferentes** (uma delas r
    1. `historico/CHANGELOG.md` — pelo menos as **5 entradas mais recentes** e todas as que tratem do mesmo assunto da tarefa atual (busque pelo nome da oferta, do agente ou do arquivo).
    2. `historico/MAPA-DEPENDENCIAS.md` — veja se a tarefa está **bloqueada** por alguma pendência (`P-xx`) ainda aberta.
    3. `contexto/00-LEIA-PRIMEIRO.md` — objetivo, time, regras de cada agente e pendências originais.
-   4. Se a tarefa for oferta, promessa, mecanismo, copy, VSL, criativo, página, upsell, funil, Bid Cap, CBO, métrica ou escala: `aulas/Aulas - Índice e Playbook.md` e a nota detalhada do tema (seção 8). As seções 3 e 8 prevalecem sobre a tática da aula quando divergirem.
+   4. Se a tarefa for oferta, promessa, mecanismo, copy, VSL, criativo, página, upsell, funil, Bid Cap, CBO, métrica ou escala: `aulas/Aulas - Índice e Playbook.md`, a nota detalhada do tema e a ficha correspondente em `operacao/` (seção 8). As seções 3 e 8 prevalecem sobre a tática da aula quando divergirem.
 3. **Diga em uma linha** qual entrada anterior a sua ação continua ou de qual ela depende (ex.: "continua H-20261125-italo-01, bloqueada por P-02"). Se a ação depender de uma pendência aberta, **não execute**: pergunte à pessoa.
 
 ## 2. Depois de qualquer ação que mude arquivos, decisões ou estado externo
@@ -54,6 +54,7 @@ O que as aulas acrescentam a cada agente, e onde a aula diverge destas regras, e
 | `historico/MODELO-ENTRADA.md` | Modelo da entrada. | Só com entrada no histórico explicando a mudança. |
 | `AGENTS.md` / `CLAUDE.md` | Estas regras. | Só com entrada no histórico. |
 | `aulas/` | Notas das 11 aulas e o playbook (26/11/2026). Consulta dos agentes. | Sim, com entrada no histórico. Não apague nota antiga; para corrigir, acrescente. |
+| `operacao/` | Briefs e fichas da oferta Pilates 50+ (decisões em aberto, mecanismo, funil, métricas). Não decide no lugar do Arthur. | Sim, com entrada no histórico. Não preencher ok que o Arthur não deu. |
 | `.cursor/rules/` | Atalho para o Cursor ler o playbook. | Só junto com a regra correspondente em `AGENTS.md`. |
 
 ## 6. Conflitos de merge no histórico
@@ -68,7 +69,7 @@ Responda e registre em **português**. A copy para Portugal segue PT-PT (ver `co
 
 As 11 aulas que o Arthur selecionou (Germano Morandi / mentoria Escale, com Guilherme Franklin, Guilherme Asvi, Allanzord e Balaclava) estão em `aulas/`. Índice e trilha: `aulas/Aulas.md`. Playbook por tema, com a tabela de divergências entre professores: `aulas/Aulas - Índice e Playbook.md`. Nota curta na raiz de `aulas/`; versão aprofundada em `aulas/Detalhado/`. As transcrições (`raw/aulas/`) não estão neste repositório. `contexto/` continua o instantâneo de 25/11/2026 e não se edita.
 
-**Como usar.** Leia o playbook e a nota detalhada do tema, cite a aula e o professor, e mostre as duas posições quando os professores divergem. Número dito na aula é **referência de aula, não verificado** nesta oferta. Não complete o que a aula não diz.
+**Como usar.** Leia o playbook e a nota detalhada do tema, cite a aula e o professor, e mostre as duas posições quando os professores divergem. Número dito na aula é **referência de aula, não verificado** nesta oferta. Não complete o que a aula não diz. Para a oferta Pilates 50+ Portugal, leia também `operacao/` (decisões em aberto, mecanismo em branco, auditoria da copy, esteira sem preço, proibições da página, anexo do Revisor, métricas pós-V-04 e notas ao gerador). Essas fichas não fecham P-01 a P-09 nem a D-09.
 
 | Trabalho | Onde ler primeiro |
 |---|---|

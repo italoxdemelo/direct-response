@@ -33,7 +33,8 @@ flowchart TD
   %% Repositório
   H01["H-20261125-italo-01 Repositório criado + histórico iniciado"]
   H02["H-20261127-grok-01 Aulas importadas + playbook nas regras"]
-  C07 --> H01 --> H02
+  H03["H-20261127-grok-02 Fichas de operacao, sem fechar decisão"]
+  C07 --> H01 --> H02 --> H03
 
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
@@ -67,12 +68,17 @@ flowchart TD
   E02 & E03 & E04 --> E05
   E05 --> E06 --> E07
 
-  %% O playbook orienta estas etapas e não as desbloqueia
+  %% O playbook e as fichas orientam estas etapas e não as desbloqueiam
   H02 -.-> E01
   H02 -.-> E03
   H02 -.-> E04
   H02 -.-> E05
   H02 -.-> E06
+  H03 -.-> E01
+  H03 -.-> E03
+  H03 -.-> E04
+  H03 -.-> E05
+  H03 -.-> E06
 ```
 
 > O GitHub renderiza este bloco como diagrama. Num editor sem Mermaid, use a tabela abaixo, que tem a mesma informação.
@@ -99,6 +105,7 @@ flowchart TD
 |---|---|---|---|---|---|
 | H-20261125-italo-01 | Repositório criado, contexto importado, sistema de histórico iniciado. | C-07 | — | — | P-01 a P-09 (registradas a partir do contexto) |
 | H-20261127-grok-01 | 11 aulas e o playbook importados; agentes passam a consultá-los. Regras antigas mantidas; divergências anotadas em `AGENTS.md` §8. | H-20261125-italo-01 | — | — | — |
+| H-20261127-grok-02 | Fichas em `operacao/` (decisões, mecanismo, auditoria, funil, proibições, anexo do Revisor, métricas, notas ao gerador) e aviso de precedência no playbook. Não fecha P-01 a P-09 nem escolhe a D-09. Não mexe em `contexto/` nem no n8n. | H-20261127-grok-01 | — | — | — |
 
 ### Pendências
 

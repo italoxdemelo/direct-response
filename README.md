@@ -28,6 +28,7 @@ Este repositório é a memória compartilhada do projeto: o contexto de partida,
 │   ├── Aulas - Índice e Playbook.md   playbook por tema; consulta dos agentes
 │   ├── *.md                   notas-resumo
 │   └── Detalhado/             notas aprofundadas, uma por aula
+├── operacao/                  fichas da oferta Pilates 50+ (decisões em aberto; não edita contexto/)
 └── contexto/                  pacote original de 25/11/2026 (não editar)
     ├── 00-LEIA-PRIMEIRO.md    objetivo, time de 7 agentes, regras, linha do tempo, pendências
     ├── 01-ofertas-radar.md    as 10 ofertas mineradas pelo Radar (BR → PT)
@@ -64,7 +65,22 @@ Notas em pt-BR das 11 aulas de low ticket que o Arthur separou em 26/11/2026 (Ge
 | Playbook por tema (oferta, promessa, mecanismo, copy, VSL, criativo, página, funil, Bid Cap, métrica, escala) | [Aulas — Índice e Playbook](aulas/Aulas%20-%20%C3%8Dndice%20e%20Playbook.md) |
 | Nota aprofundada de cada aula | `aulas/Detalhado/` |
 
-O playbook junta o que os professores disseram e aponta onde eles divergem entre si. Onde a aula diverge da regra do projeto (prova social, preço riscado, saúde, garantia, campanha pausada), fica a regra do projeto, registrada na seção 8 de `AGENTS.md`. Números citados nas aulas não são métrica desta oferta.
+O playbook junta o que os professores disseram e aponta onde eles divergem entre si. Onde a aula diverge da regra do projeto (prova social, preço riscado, saúde, garantia, campanha pausada), fica a regra do projeto, registrada na seção 8 de `AGENTS.md`. Números citados nas aulas não são métrica desta oferta. O aviso no topo do playbook repete essa precedência.
+
+## Operação da oferta Pilates 50+
+
+Fichas para o time preencher com o Arthur. Nenhuma decisão está tomada. Não substituem o plano técnico do n8n, que está em `plano/PLANO-DE-ACAO.md` na branch `plano/H-20261126-italo-02`.
+
+| Para quê | Arquivo |
+|---|---|
+| P-01 a P-07 e a D-09 (tráfego), com espaço para o ok | [Decisões do Arthur](operacao/decisoes-arthur.md) |
+| Mecanismo em branco, com regra de prova | [Folha de mecanismo](operacao/mecanismo.md) |
+| Equação de valor da copy atual, sem reescrever | [Auditoria da copy](operacao/auditoria-copy.md) |
+| Esteira no painel da Hotmart, preços em branco | [Roteiro do funil](operacao/funil-hotmart.md) |
+| O que a página não herda das aulas | [Proibições](operacao/pagina-proibicoes.md) |
+| Avisos ao lado dos 7 itens do Revisor (não são um segundo portão) | [Anexo do Revisor](operacao/anexo-revisor.md) |
+| Métricas de Portugal, só depois de V-04 | [Ficha de métricas](operacao/metricas-pt.md) |
+| O que o Italo aplica no gerador quando o código entrar no repo | [Notas para o gerador](operacao/notas-para-o-gerador.md) |
 
 ## Sobre o conteúdo
 
