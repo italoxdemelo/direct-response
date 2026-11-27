@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-01 — Reescrever o plano de ação como especificação técnica do fluxo no n8n
+
+- **Data/hora:** 2026-11-27 00:30 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** correção
+- **O que mudou:** `plano/PLANO-DE-ACAO.md` foi reescrito. Deixou de ser uma lista de tarefas de gestão e virou a especificação técnica do fluxo Direct Response no n8n, para outra IA entender e construir: ambiente e IDs dos 8 workflows, credenciais (só nomes e permissões), contrato de dados (`config`, `estado`, saída de etapa e regra de aprovação), padrão comum das etapas e, para cada workflow de 00 a 07, gatilho, nós em ordem com tipo e configuração, formato de saída do agente, verificações por código, limites, lacunas e como testar. Inclui tratamento de erros, critério de "funcionando perfeitamente" e o backlog (decisões D-01 a D-08, construção T-01 a T-09, validação V-01 a V-04) com colunas de status e quem fez. A descrição de `plano/` no `AGENTS.md` e no `README.md` foi ajustada.
+- **Por quê:** o Italo disse que o plano de 26/11 não era o que ele queria: precisa de um plano para a outra IA entender como cada etapa do fluxo no n8n deve ser construída e arquitetada.
+- **Arquivos tocados:** `plano/PLANO-DE-ACAO.md`, `AGENTS.md`, `README.md`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261126-italo-02 (corrige o conteúdo do plano)
+- **Depende de:** H-20261125-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** a especificação foi escrita a partir do código gerador e dos JSON exportados dos workflows (`automacoes/direct-response-n8n` no PC do Italo), lidos em 2026-11-27. Nenhuma chave, token ou ID de conta foi copiado; as credenciais aparecem só pelo nome. O endpoint de produtos da Hotmart está marcado como "a confirmar".
+- **Próximo passo:** Italo e Arthur fecham D-01 a D-08; a IA de construção começa por T-01 (trazer o gerador para o repositório) e T-02 (erros).
+
 ### H-20261126-italo-02 — Criar o plano de ação editável
 
 - **Data/hora:** 2026-11-26 00:30 (America/Bahia UTC-3)
