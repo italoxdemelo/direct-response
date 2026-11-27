@@ -11,7 +11,7 @@ Legenda dos nós:
 | `P-NN` | **Pendência**: decisão ou acesso que falta. Bloqueia o que aponta para ela. |
 | `E-NN` | **Etapa futura** do fluxo do time, ainda não feita. Quando acontecer, vira uma entrada `H-...` e aponta para cá. |
 
-Setas: `A --> B` quer dizer **"B depende de A"** (A tem de existir ou estar resolvido antes de B).
+Setas: `A --> B` quer dizer **"B depende de A"** (A tem de existir ou estar resolvido antes de B). Seta tracejada (`-.->`) quer dizer **consulta**: B lê A quando acontecer, e A não desbloqueia B.
 
 ---
 
@@ -32,7 +32,8 @@ flowchart TD
 
   %% Repositório
   H01["H-20261125-italo-01 Repositório criado + histórico iniciado"]
-  C07 --> H01
+  H02["H-20261127-grok-01 Aulas importadas + playbook nas regras"]
+  C07 --> H01 --> H02
 
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
@@ -65,6 +66,13 @@ flowchart TD
   E03 --> E01
   E02 & E03 & E04 --> E05
   E05 --> E06 --> E07
+
+  %% O playbook orienta estas etapas e não as desbloqueia
+  H02 -.-> E01
+  H02 -.-> E03
+  H02 -.-> E04
+  H02 -.-> E05
+  H02 -.-> E06
 ```
 
 > O GitHub renderiza este bloco como diagrama. Num editor sem Mermaid, use a tabela abaixo, que tem a mesma informação.
@@ -90,6 +98,7 @@ flowchart TD
 | Nó | Resumo | Continua | Depende de | Resolve | Abre |
 |---|---|---|---|---|---|
 | H-20261125-italo-01 | Repositório criado, contexto importado, sistema de histórico iniciado. | C-07 | — | — | P-01 a P-09 (registradas a partir do contexto) |
+| H-20261127-grok-01 | 11 aulas e o playbook importados; agentes passam a consultá-los. Regras antigas mantidas; divergências anotadas em `AGENTS.md` §8. | H-20261125-italo-01 | — | — | — |
 
 ### Pendências
 
@@ -111,10 +120,10 @@ Ao fechar uma pendência: troque `⏳ aberta` por `✅ resolvida em H-...` e, no
 
 | Nó | Etapa | Agente | Depende de | Regra crítica |
 |---|---|---|---|---|
-| E-01 | Montar e publicar página com pixel e UTM | Construtor | P-08, P-09, E-03 (link do checkout) | Só copy aprovada pelo Arthur. |
-| E-02 | Conferir que o PageView dispara | Construtor / Revisor | E-01 | Antes de qualquer anúncio. |
-| E-03 | Produto, checkout em €, bumps e upsells na Hotmart | Funil | P-02, P-03, P-07, P-09 | Preço só com ok do Arthur. |
-| E-04 | Criativos (vídeo e imagem) | Claquete | P-08 | Sem prova social falsa nem claims proibidos. |
-| E-05 | Revisão final, checklist de 7 itens | Revisor | E-02, E-03, E-04 | Só aprova a 100%, com evidência. |
-| E-06 | Subir campanhas | Tráfego | E-05 | **Sempre pausadas**; conferir pela API. |
+| E-01 | Montar e publicar página com pixel e UTM | Construtor | P-08, P-09, E-03 (link do checkout). Consulta H-20261127-grok-01 (anatomia da página). | Só copy aprovada pelo Arthur. |
+| E-02 | Conferir que o PageView dispara | Construtor / Revisor | E-01 | Antes de qualquer anúncio. Connect rate não substitui isto. |
+| E-03 | Produto, checkout em €, bumps e upsells na Hotmart | Funil | P-02, P-03, P-07, P-09. Consulta H-20261127-grok-01 (esteira de upsell). | Preço só com ok do Arthur. |
+| E-04 | Criativos (vídeo e imagem) | Claquete | P-08. Consulta H-20261127-grok-01 (gancho, corpo, CTA). | Sem prova social falsa nem claims proibidos. |
+| E-05 | Revisão final, checklist de 7 itens | Revisor | E-02, E-03, E-04. Consulta H-20261127-grok-01 (10 dicas e funil de 5 etapas, como auditoria extra). | Só aprova a 100%, com evidência. |
+| E-06 | Subir campanhas | Tráfego | E-05. Consulta H-20261127-grok-01 (CBO e Bid Cap, as duas escolas). | **Sempre pausadas**; conferir pela API. Quem ativa é o Arthur. |
 | E-07 | Ativar campanhas | Arthur | E-06 | Só o Arthur ativa. |
