@@ -10,7 +10,7 @@ Este repositório é a memória compartilhada do projeto: o contexto de partida,
 |---|---|
 | Uma IA (Claude, Codex etc.) | `AGENTS.md` (ou `CLAUDE.md`). Ele manda ler o histórico antes de qualquer ação. |
 | Uma pessoa entrando agora | `contexto/00-LEIA-PRIMEIRO.md` e depois `historico/CHANGELOG.md`. |
-| Alguém querendo saber o que falta fazer e quem fez o quê | `plano/PLANO-DE-ACAO.md`. |
+| Uma IA ou pessoa que vai construir ou mexer no fluxo do n8n | `plano/PLANO-DE-ACAO.md` (arquitetura de cada etapa e o que falta). |
 | Alguém querendo saber o que está travado | `historico/MAPA-DEPENDENCIAS.md`, nas tabelas de pendências (`P-xx`) e de etapas futuras (`E-xx`). |
 
 ## Estrutura
@@ -20,7 +20,7 @@ Este repositório é a memória compartilhada do projeto: o contexto de partida,
 ├── AGENTS.md                  regras para qualquer IA (ler/atualizar histórico, regras do projeto, segredos)
 ├── CLAUDE.md                  aponta para AGENTS.md + resumo obrigatório
 ├── plano/
-│   └── PLANO-DE-ACAO.md       tarefas por fase, responsável, status e quem fez o quê
+│   └── PLANO-DE-ACAO.md       especificação técnica do fluxo no n8n + backlog com status
 ├── historico/
 │   ├── CHANGELOG.md           log de decisões, entradas datadas, mais recente no topo
 │   ├── MAPA-DEPENDENCIAS.md   grafo e tabelas de como as ações e pendências se ligam
