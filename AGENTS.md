@@ -48,6 +48,7 @@ Não precisam de entrada: leitura, perguntas, correção de erro de digitação 
 | `contexto/` | Pacote de contexto original (25/11/2026). Instantâneo do ponto de partida. | **Não.** Fica como registro. Mudanças de estado vão para o histórico. |
 | `historico/CHANGELOG.md` | Log de decisões e mudanças, entrada mais recente no topo. | Só acrescentar. Não apague nem reescreva entradas antigas; para corrigir, crie entrada nova que a "corrige". |
 | `historico/MAPA-DEPENDENCIAS.md` | Grafo de como as ações e pendências se ligam. | Sim, a cada entrada. |
+| `plano/PLANO-DE-ACAO.md` | Especificação técnica do fluxo no n8n (como cada etapa é construída) e backlog com status e quem fez. | Sim. Ler antes de mexer no n8n; ao concluir uma tarefa D/T/V, marque status, "Feito por", data e a entrada `H-...`. |
 | `historico/MODELO-ENTRADA.md` | Modelo da entrada. | Só com entrada no histórico explicando a mudança. |
 | `AGENTS.md` / `CLAUDE.md` | Estas regras. | Só com entrada no histórico. |
 
