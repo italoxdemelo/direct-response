@@ -1,0 +1,608 @@
+{
+  "name": "Direct Response · 04 Funil (Hotmart)",
+  "nodes": [
+    {
+      "id": "3d8dee56-a372-46ea-88c9-351abc66869c",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "11a8b2e0-6bf6-48c7-9e86-69f2172ac041",
+      "name": "Pré-requisitos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'funil';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!String(cfg.preco_aprovado || '').trim()) faltando.push('preco_aprovado (o dono aprova o preço)');\nif (!(estado.construtor && estado.construtor.saida && estado.construtor.saida.html)) faltando.push('página do Construtor');\nif (!cfg.hotmart_checkout_url) faltando.push('hotmart_checkout_url');\nif (!cfg.hotmart_product_id) faltando.push('hotmart_product_id');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+      }
+    },
+    {
+      "id": "c6835086-4582-40c5-89cd-d0774850ccb1",
+      "name": "Pode rodar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "723d3b09-0b08-4b77-b983-9de765c8c810",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "8c48224a-0997-4b0c-a846-dc8f7c0b8334",
+      "name": "Bloqueado / pulada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        520
+      ],
+      "parameters": {
+        "jsCode": "const p = $json;\nconst ETAPA = 'funil';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Funil',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+      }
+    },
+    {
+      "id": "99ed1b9f-0881-48aa-9a87-a567fb8f73a4",
+      "name": "Sobre este agente",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ],
+      "parameters": {
+        "content": "## Funil (Hotmart)\nCria o produto, o checkout na moeda local, os bumps e os upsells na Hotmart, e coloca o link do checkout nos botões da página.\n\n**Fluxo:** integração → GROK BOT orienta → Funil trabalha → verificações por código → GROK BOT supervisiona → saída para o Coordenador.\n\nO prompt completo com as regras está no nó **Agente · Funil** (System Message).",
+        "width": 520,
+        "height": 300,
+        "color": 4
+      }
+    },
+    {
+      "id": "3494cf11-05f3-429d-a9d9-05de0963b95b",
+      "name": "Hotmart · token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api-sec-vlc.hotmart.com/security/oauth/token?grant_type=client_credentials",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "JdJX6JrDCzccgQQ3",
+          "name": "DR · Hotmart"
+        }
+      }
+    },
+    {
+      "id": "e7b3b3c2-90b3-40cf-8fe9-9947a730e68d",
+      "name": "Hotmart · produtos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://developers.hotmart.com/products/api/v1/products",
+        "options": {
+          "timeout": 60000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            }
+          ]
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "id": "af212b37-a315-42f3-8326-2298b4b07f8e",
+      "name": "Checkout · conferir",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Entrada').first().json.config.hotmart_checkout_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "id": "1a4278f5-2aeb-45a3-b060-995e764df65d",
+      "name": "Dados da etapa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Entrada').first().json.config;\nconst tok = $('Hotmart · token').first().json;\nconst prod = $('Hotmart · produtos').first().json;\nconst chk = $('Checkout · conferir').first().json;\nconst lista = Array.isArray(prod.items) ? prod.items : (Array.isArray(prod.data) ? prod.data : []);\nconst alvo = String(cfg.hotmart_product_id || '');\nconst achado = lista.find(p => String(p.id) === alvo || String(p.ucode) === alvo) || null;\nconst corpo = typeof chk.body === 'string' ? chk.body : '';\nconst preco = String(cfg.preco_aprovado || '').replace(/[^\\d,\\.]/g, '');\nreturn [{ json: {\n  dados: {\n    pais: cfg.nome_pais, moeda: cfg.moeda, preco_aprovado: cfg.preco_aprovado,\n    produto_hotmart: achado, produtos_na_conta: lista.slice(0, 20).map(p => ({ id: p.id, nome: p.name, status: p.status })),\n    checkout_url: cfg.hotmart_checkout_url, checkout_status_http: chk.statusCode || null,\n    entregaveis_confirmados: cfg.entregaveis_confirmados || [], oferta: cfg.oferta_escolhida\n  },\n  verificacoes: {\n    hotmart_api_autenticou: !!tok.access_token,\n    produto_existe_na_hotmart: !!achado,\n    checkout_no_ar: chk.statusCode === 200\n  },\n  avisos: {\n    checkout_mostra_preco_no_html: preco ? corpo.includes(preco) : false,\n    nota: 'O checkout da Hotmart desenha o preço por JavaScript; se este aviso vier false, confira o preço no navegador.'\n  }\n} }];"
+      }
+    },
+    {
+      "id": "5450465f-a632-410e-9919-5fde7a57e0f1",
+      "name": "Grok (xAI)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        1880,
+        560
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "3fed1984-f0c3-46a7-9a97-5b3d67154440",
+      "name": "Grok · briefing",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'CONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nESTADO DO PROJETO (resumo):\\n' + JSON.stringify($('Entrada').first().json.estado || {}).slice(0, 6000) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json).slice(0, 15000) }}",
+        "options": {
+          "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (produto e checkout na Hotmart) você orienta o agente Funil (Hotmart) antes de ele trabalhar.\nPapel do agente: Cria o produto, o checkout na moeda local, os bumps e os upsells na Hotmart, e coloca o link do checkout nos botões da página.\n\nCom base na configuração, no estado do projeto e nos dados da integração, escreva um briefing curto e objetivo para o agente: o que fazer agora, o que observar nos dados, o que é proibido nesta etapa e o critério de pronto. Aponte dados que estão faltando ou não verificados.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em no máximo 12 linhas numeradas.",
+          "maxIterations": 4
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "ee39d070-ee72-49a1-9454-94ad335d7906",
+      "name": "Agente · Funil",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1840,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
+        "options": {
+          "systemMessage": "Você é o Funil, responsável pela Hotmart.\nMissão: deixar o produto e o checkout prontos na moeda local do destino, com order bumps e upsell, e o link do checkout nos botões da página.\n\nO que você recebe: a configuração (preço aprovado, moeda, país), o resultado das chamadas à API da Hotmart e a verificação do link de checkout.\nImportante: a API pública da Hotmart não cria produto, checkout, bump nem upsell. Isso é feito no painel da Hotmart. Por isso você entrega a ficha exata de configuração para o painel e diz o que a verificação automática confirmou ou não.\n\nRegras do Funil:\n- Use somente o preço aprovado que estiver na configuração. Sem preço aprovado, não proponha preço final: devolva pendência.\n- Sem preço riscado de/por. Moeda local do destino.\n- Bumps e upsells só com entregáveis que o dono confirmou que existem; caso contrário, marque como sugestão a confirmar.\n- Garantia/reembolso de acordo com a regra do país de destino (na UE, direito de livre resolução de 14 dias em compras digitais, salvo regra explícita no checkout).\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"produto\":{\"nome\":\"\",\"formato\":\"\",\"preco\":\"\",\"moeda\":\"\",\"garantia\":\"\"},\"checkout\":{\"url\":\"\",\"idioma\":\"\",\"verificado\":false},\"order_bumps\":[{\"nome\":\"\",\"preco\":\"\",\"status\":\"confirmado|a confirmar\"}],\"upsells\":[{\"nome\":\"\",\"preco\":\"\",\"status\":\"\"}],\"passos_no_painel\":[],\"pendencias\":[]}",
+          "maxIterations": 4
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "86dabc0e-355b-4d0e-969e-6594aa9f435f",
+      "name": "Link do checkout nos botões",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2140,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst e = $('Entrada').first().json;\nconst saida = parseJSON($json.output);\nconst url = String(e.config.hotmart_checkout_url || '');\nlet html = String((e.estado.construtor && e.estado.construtor.saida && e.estado.construtor.saida.html) || '');\nconst antes = (html.match(/\\{\\{CHECKOUT_URL\\}\\}/g) || []).length;\nhtml = html.split('{{CHECKOUT_URL}}').join(url);\nreturn [{ json: { html, arquivo: e.estado.construtor.saida.arquivo, saida, verificacoes: {\n  saida_do_agente_em_json: !saida.erro_parse,\n  botoes_com_link_do_checkout: antes > 0 && url.length > 10 && !html.includes('{{CHECKOUT_URL}}'),\n  sem_preco_riscado_na_ficha: !PRECO_RISCADO.test(JSON.stringify(saida))\n} } }];"
+      }
+    },
+    {
+      "id": "1fcf08bf-20ff-4c73-aabb-26fed2103021",
+      "name": "HTML → arquivo",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2360,
+        300
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "html",
+        "options": {
+          "fileName": "index.html"
+        }
+      }
+    },
+    {
+      "id": "77d8384a-0f01-425b-9cbe-a5ee8c2d323a",
+      "name": "Regravar index.html",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2580,
+        300
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Link do checkout nos botões').first().json.arquivo }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "4565d513-2c04-443b-b548-0b5085af943d",
+      "name": "Conferência pós-agente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2800,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const l = $('Link do checkout nos botões').first().json;\nreturn [{ json: { saida: Object.assign({}, l.saida, { html: l.html, arquivo: l.arquivo }), verificacoes: Object.assign({}, l.verificacoes, { pagina_regravada_no_disco: !$json.error }) } }];"
+      }
+    },
+    {
+      "id": "4c335501-0745-4081-a774-53ebbeb8c775",
+      "name": "Grok · supervisão",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3020,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'DADOS BRUTOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 20000) + '\\n\\nVERIFICAÇÕES AUTOMÁTICAS (código):\\n' + JSON.stringify(Object.assign({}, $('Dados da etapa').first().json.verificacoes, $('Conferência pós-agente').first().json.verificacoes)) + '\\n\\nSAÍDA DO AGENTE:\\n' + JSON.stringify($('Conferência pós-agente').first().json.saida).slice(0, 25000) }}",
+        "options": {
+          "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (produto e checkout na Hotmart) você fiscaliza a entrega do agente Funil (Hotmart).\nPapel do agente: Cria o produto, o checkout na moeda local, os bumps e os upsells na Hotmart, e coloca o link do checkout nos botões da página.\n\nVocê recebe: os dados brutos da integração, as verificações automáticas feitas por código e a saída do agente.\nVerifique: (1) se a entrega cumpre o papel; (2) se algum número, data, preço, depoimento ou prova social NÃO aparece nos dados brutos (isso é dado inventado e reprova); (3) se alguma regra do time foi quebrada; (4) se as verificações automáticas falharam.\nSe qualquer verificação automática falhou, você não pode aprovar.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"nota\":0,\"problemas\":[],\"orientacao_para_o_agente\":\"\",\"proximo_passo\":\"\"}",
+          "maxIterations": 4
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "905d7ffc-2d0d-4deb-9ce0-dce45cf01b96",
+      "name": "Grok (xAI) supervisor",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        3060,
+        560
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "450a669e-7731-4aa8-9a7c-d9a00d2ffac0",
+      "name": "Saída da etapa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3320,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'funil';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Funil',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+      }
+    },
+    {
+      "id": "263089c6-7e20-4b9c-ab56-4d658a047005",
+      "name": "Falha do modelo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3320,
+        600
+      ],
+      "parameters": {
+        "jsCode": "const ETAPA = 'funil';\nconst e = $json.error || {};\nconst msg = String((e && (e.message || e.description)) || (typeof e === 'string' ? e : '') || 'erro desconhecido').slice(0, 500);\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Funil',\n  aprovado: false, seguir: false, pulada: false, bloqueado: false,\n  motivo: 'falha do modelo (Grok/xAI) depois de 3 tentativas: ' + msg,\n  falhas_automaticas: ['modelo_respondeu'], verificacoes: { modelo_respondeu: false },\n  em: new Date().toISOString()\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Pré-requisitos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pré-requisitos": {
+      "main": [
+        [
+          {
+            "node": "Pode rodar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pode rodar?": {
+      "main": [
+        [
+          {
+            "node": "Hotmart · token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bloqueado / pulada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hotmart · token": {
+      "main": [
+        [
+          {
+            "node": "Hotmart · produtos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hotmart · produtos": {
+      "main": [
+        [
+          {
+            "node": "Checkout · conferir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checkout · conferir": {
+      "main": [
+        [
+          {
+            "node": "Dados da etapa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados da etapa": {
+      "main": [
+        [
+          {
+            "node": "Grok · briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok · briefing": {
+      "main": [
+        [
+          {
+            "node": "Agente · Funil",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok (xAI)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Grok · briefing",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Agente · Funil",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link do checkout nos botões": {
+      "main": [
+        [
+          {
+            "node": "HTML → arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML → arquivo": {
+      "main": [
+        [
+          {
+            "node": "Regravar index.html",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Regravar index.html": {
+      "main": [
+        [
+          {
+            "node": "Conferência pós-agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente · Funil": {
+      "main": [
+        [
+          {
+            "node": "Link do checkout nos botões",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok (xAI) supervisor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Grok · supervisão",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conferência pós-agente": {
+      "main": [
+        [
+          {
+            "node": "Grok · supervisão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok · supervisão": {
+      "main": [
+        [
+          {
+            "node": "Saída da etapa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "rUNQVY24WtvxDK5l"
+  }
+}

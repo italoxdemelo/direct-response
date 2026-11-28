@@ -7,6 +7,81 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-07 — Publicar no n8n o gerador com 99 Erros, estado e Tráfego sem duplicar
+
+- **Data/hora:** 2026-11-27 22:16 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** ação externa
+- **O que mudou:** A 1.ª tentativa de publicar (`node tools/gerar.mjs`) criou o `99 Erros` e parou no Radar com `PUT /workflows/ZEwHqbQbTRpqwbZm -> 400: "The selected error workflow has no published version."`: o n8n 2.x exige que o *Error workflow* tenha versão publicada (ativa). O gerador foi corrigido para ativar o `99 Erros` logo depois de criá-lo ou atualizá-lo (o gatilho de erro não dispara sozinho). Com a correção, a 2.ª execução ainda recebeu o mesmo 400 logo após ativar; a 3.ª saiu inteira (o `99 Erros` já estava publicado). Publicados: 99 Erros `rUNQVY24WtvxDK5l`, 01 Radar `ZEwHqbQbTRpqwbZm`, 02 Headline `HcVTPRfIrVr5pEpS`, 03 Construtor `dIRHcPq6GOQjGjlf`, 04 Funil `4ZrBWdTNmlj5cnez`, 05 Claquete `b0Mtxcsxf2hZPAQZ`, 06 Revisor `cqkhx6Mc2PENjylp`, 07 Tráfego `8nsN0jKDEmNyID9M`, 00 Coordenador `WiHxKHcgbaLG7iFy` (inativo, gatilho manual); tag `Direct Response` `rD9Y1ZKqaz3Oh8nn`. Os JSON regravados em `n8n/workflows/` (inclusive `99-erros.json` e `ids.json`) entram no repositório; só têm IDs internos do n8n, nenhuma chave.
+- **Por quê:** fechar a publicação de C-02, C-03 e C-04 (T-02, T-03, T-07).
+- **Arquivos tocados:** `n8n/tools/gerar.mjs`, `n8n/workflows/*.json`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`, `plano/PLANO-DE-ACAO.md`
+- **Continua:** H-20261127-italo-06
+- **Depende de:** H-20261127-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs` passou; `checar.mjs` ok nos 9 JSON (00: 38 nós, 01: 16, 02: 15, 03: 19, 04: 20, 05: 17, 06: 17, 07: 27, 99: 6). Pela API (`GET /api/v1/workflows/<id>`): os 8 workflows têm `settings.errorWorkflow = rUNQVY24WtvxDK5l`; os 7 sub-workflows estão ativos com a versão atual publicada e só com o gatilho `executeWorkflowTrigger` (o Tráfego inclusive); o `99 Erros` está ativo com o `errorTrigger`; o Coordenador segue inativo. O Coordenador não foi rodado.
+- **Próximo passo:** forçar um erro (chave xAI errada) quando a chave existir, e conferir que o `99 Erros` grava o arquivo em `erros\`. Numa instalação nova, se o 1.º `gerar.mjs` der o mesmo 400, rodar de novo.
+
+### H-20261127-italo-06 — Evitar campanha duplicada no Tráfego e paginar o Radar (código)
+
+- **Data/hora:** 2026-11-27 23:10 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** mudança de arquivo
+- **O que mudou:** No gerador (`n8n/tools/`): o Tráfego agora procura a campanha pelo nome (`GET /{act}/campaigns` com `filtering name EQUAL`) antes de criar. Se já existe, reutiliza a campanha e os conjuntos e **não cria nem altera nada** (nem reforça PAUSED, porque o Arthur pode já ter ativado). O nome da campanha deixou de vir do modelo: é `config.campanha_nome` ou `DR | <oferta> | <país>`, senão a busca não acharia nada. O Radar pagina a Ad Library pelo cursor `after` (até 25 páginas de 200 por consulta) e agrupa as páginas por consulta. Testes novos em `testar-codigos.mjs`.
+- **Por quê:** tarefa C-04 / T-07.
+- **Arquivos tocados:** `n8n/tools/codigos.mjs`, `n8n/tools/gerar.mjs`, `n8n/tools/prompts.mjs`, `n8n/tools/testar-codigos.mjs`, `n8n/README.md`, `plano/PLANO-DE-ACAO.md`, `plano/DIVISAO-TAREFAS.md`
+- **Continua:** H-20261127-italo-05
+- **Depende de:** H-20261127-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs` passou (inclui reutilização de campanha, nome fixo e 3 páginas de 2 consultas); `gerar.mjs --so-json` + `checar.mjs` ok nos 9 workflows. **Não verificado contra a API real:** os nomes dos parâmetros de paginação do nó HTTP do n8n 2.46 e o filtro por nome da Graph API precisam ser conferidos na primeira rodada com credencial (V-02).
+- **Próximo passo:** publicar no n8n do PC (`node tools/gerar.mjs`) e testar o Tráfego só com conta de teste ou com o Arthur ciente.
+
+### H-20261127-italo-05 — Guardar o estado entre rodadas e congelar a copy aprovada (código)
+
+- **Data/hora:** 2026-11-27 23:00 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** mudança de arquivo
+- **O que mudou:** O coordenador lê `<pasta_saida>\<slug>\estado.json` no início (se não existir, começa vazio) e grava as etapas da rodada no fim. Etapas salvas entram marcadas `de_rodada_anterior`; uma etapa pulada mantém a entrega salva. Toda saída de etapa ganhou `saida_hash` (versão). Novo campo `copy_aprovada_hash`: com ele igual à versão da copy, o Headline Killer não gera de novo (fica "congelada") e Construtor e Claquete só rodam com essa versão. O Tráfego não aceita aprovação do Revisor de rodada anterior. O relatório mostra a versão da copy e, se o modelo falhar, sai montado por código.
+- **Por quê:** tarefa C-03 / T-03 (risco R-5: o Construtor podia publicar uma copy que ninguém aprovou).
+- **Arquivos tocados:** `n8n/tools/codigos.mjs`, `n8n/tools/gerar.mjs`, `n8n/tools/testar-codigos.mjs`, `n8n/README.md`, `plano/PLANO-DE-ACAO.md`, `plano/DIVISAO-TAREFAS.md`
+- **Continua:** H-20261127-italo-04
+- **Depende de:** H-20261127-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs` passou (estado salvo, primeira rodada sem arquivo, etapa congelada mantida, hash estável, relatório de reserva). **Não verificado no n8n:** leitura do arquivo pelo `extractFromFile` quando ele ainda não existe.
+- **Próximo passo:** publicar no n8n do PC. A aprovação da copy passa a ser: o Arthur aprova a versão mostrada no relatório e o Italo põe `copy_aprovada: true` e `copy_aprovada_hash`.
+
+### H-20261127-italo-04 — Criar o workflow de erros e as repetições dos nós Grok e HTTP (código)
+
+- **Data/hora:** 2026-11-27 22:50 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Novo workflow `Direct Response · 99 Erros` no gerador (gatilho de erro, grava um arquivo por erro na pasta `erros` do n8n, Telegram opcional desativado), ligado como *Error workflow* dos outros 8. Nós Grok: 3 tentativas com 5 s; nas etapas, a falha final vai para o nó `Falha do modelo` (etapa reprovada com motivo) em vez de derrubar a rodada; no coordenador, a rodada segue até o relatório. HTTP: 3 tentativas em leituras (GET) e no token da Hotmart; POST de criação na Meta continua **sem** repetição.
+- **Por quê:** tarefa C-02 / T-02 (risco R-4: uma falha da xAI derrubava a rodada sem aviso).
+- **Arquivos tocados:** `n8n/tools/codigos.mjs`, `n8n/tools/gerar.mjs`, `n8n/tools/testar-codigos.mjs`, `n8n/README.md`, `plano/PLANO-DE-ACAO.md`, `plano/DIVISAO-TAREFAS.md`
+- **Continua:** H-20261127-italo-03
+- **Depende de:** H-20261127-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs` passou (falha do modelo e alerta de erro); `gerar.mjs --so-json` gerou 9 workflows e `checar.mjs` deu ok em todos. Ainda não publicado no n8n: os JSON em `n8n/workflows/` continuam sendo a exportação de 26/11 até o próximo `gerar.mjs` no PC.
+- **Próximo passo:** publicar no n8n do PC e forçar um erro (chave da xAI errada) para ver o arquivo de erro aparecer (critério 6 da seção 14 do plano).
+
+### H-20261127-italo-03 — Trazer o código gerador do fluxo n8n para o repositório
+
+- **Data/hora:** 2026-11-27 22:30 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Copiado para `n8n/` o gerador que estava só no PC do Italo (`Downloads\claude\automacoes\direct-response-n8n`): `README.md`, `tools/` (`gerar.mjs`, `prompts.mjs`, `codigos.mjs`, `checar.mjs`, `testar-codigos.mjs`) e `workflows/` (os 8 JSON exportados em 26/11 + `ids.json`). Conferido antes que nenhum arquivo tem chave, token ou senha: as credenciais aparecem só pelo nome e pelo ID interno do n8n; `act_1234567890` é exemplo de formato.
+- **Por quê:** tarefa C-01 / T-01 de `plano/DIVISAO-TAREFAS.md` (risco R-2: o gerador não tinha versionamento e a outra máquina não tinha a fonte). O Italo pediu para o Claude começar as suas tarefas.
+- **Arquivos tocados:** `n8n/**`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`, `plano/PLANO-DE-ACAO.md`, `plano/DIVISAO-TAREFAS.md`
+- **Continua:** H-20261127-italo-02
+- **Depende de:** H-20261125-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `node n8n/tools/checar.mjs` (8 workflows ok) e `node n8n/tools/testar-codigos.mjs` ("TODOS OS TESTES PASSARAM") rodados na cópia do repositório em 2026-11-27 (V-01).
+- **Próximo passo:** a partir de agora, a fonte da verdade do gerador é `n8n/` neste repositório; a pasta do PC passa a ser só cópia de trabalho. Claude segue com C-02 a C-04.
+
 ### H-20261127-italo-02 — Avaliar a estrutura do projeto e dividir tarefas entre Claude e Grok
 
 - **Data/hora:** 2026-11-27 22:00 (America/Bahia UTC-3)

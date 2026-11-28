@@ -1,0 +1,154 @@
+{
+  "name": "Direct Response · 99 Erros",
+  "nodes": [
+    {
+      "id": "ea3fb49b-1620-4e1d-8d21-08094d61c3a4",
+      "name": "Erro em workflow DR",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "16597303-ed63-4578-9ea3-9500e99199f6",
+      "name": "Montar alerta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const ex = $json.execution || {};\nconst wf = $json.workflow || {};\nconst err = ex.error || {};\nconst quando = new Date().toISOString();\nconst msg = String(err.message || err.description || 'sem mensagem').slice(0, 800);\nconst texto = ['⚠️ Erro no fluxo Direct Response',\n  'Workflow: ' + (wf.name || '?'),\n  'Nó: ' + (ex.lastNodeExecuted || (err.node && err.node.name) || '?'),\n  'Erro: ' + msg,\n  'Execução: ' + (ex.url || ex.id || '?'),\n  'Quando: ' + quando].join('\\n');\nconst nome = 'erro-' + quando.replace(/[:.]/g, '-') + '.json';\nconst registro = JSON.stringify({ quando, workflow: wf.name || null, workflow_id: wf.id || null, no: ex.lastNodeExecuted || null, erro: msg, execucao: ex.url || ex.id || null, modo: ex.mode || null }, null, 2);\nreturn [{ json: { texto, registro, nome_arquivo: nome, arquivo: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response\\\\erros' + '\\\\' + nome } }];"
+      }
+    },
+    {
+      "id": "197d9a58-55ef-4457-bce5-8253aac97213",
+      "name": "Alerta → arquivo",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "registro",
+        "options": {
+          "fileName": "={{ $json.nome_arquivo }}"
+        }
+      }
+    },
+    {
+      "id": "998b3d7a-5507-477f-ba78-6b2990b281d5",
+      "name": "Gravar erro no disco",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Montar alerta').first().json.arquivo }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "04c471a2-bb9f-4457-b944-d457a18b2215",
+      "name": "Enviar alerta no Telegram (opcional)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "chatId": "COLE_AQUI_O_CHAT_ID",
+        "text": "={{ $('Montar alerta').first().json.texto }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "disabled": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "HhIgeNHoT7zTSUiM",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "1a60ad4a-a498-4283-80bb-a9998968bfc5",
+      "name": "Sobre os erros",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ],
+      "parameters": {
+        "content": "## 99 Erros\nRecebe o erro de qualquer workflow Direct Response (configurado como *Error workflow* em todos).\nGrava um arquivo por erro na pasta `erros` e, se ligado, avisa no Telegram (ative o nó e ponha o chat ID).\nNão guarda chave nem token: só workflow, nó, mensagem e link da execução.",
+        "width": 520,
+        "height": 240,
+        "color": 3
+      }
+    }
+  ],
+  "connections": {
+    "Erro em workflow DR": {
+      "main": [
+        [
+          {
+            "node": "Montar alerta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar alerta": {
+      "main": [
+        [
+          {
+            "node": "Alerta → arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerta → arquivo": {
+      "main": [
+        [
+          {
+            "node": "Gravar erro no disco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gravar erro no disco": {
+      "main": [
+        [
+          {
+            "node": "Enviar alerta no Telegram (opcional)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

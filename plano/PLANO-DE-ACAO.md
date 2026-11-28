@@ -45,7 +45,7 @@
 | Tag dos workflows | `Direct Response` (a API do n8n não cria pastas; a tag faz esse papel) |
 | Prefixo dos nomes | `Direct Response · ` |
 | Modelo do GROK BOT | `grok-4` (xAI), temperatura 0.2, nó `@n8n/n8n-nodes-langchain.lmChatXAiGrok` |
-| Código-fonte gerador | `Downloads\claude\automacoes\direct-response-n8n\` no PC do Italo (ainda **fora** deste repositório, ver tarefa T-01) |
+| Código-fonte gerador | `n8n/` neste repositório (desde `H-20261127-italo-03`); cópia de trabalho em `Downloads\claude\automacoes\direct-response-n8n\` no PC do Italo |
 | Saída de páginas | `Downloads\claude\canal-dark-n8n\data\direct-response\<slug>\index.html` (pasta que o n8n consegue escrever) |
 
 ### 1.1 Workflows e IDs no n8n
@@ -62,10 +62,11 @@ IDs internos do n8n (não são segredo; servem para o `Execute Workflow` do coor
 | `Direct Response · 05 Claquete (criativos)` | `b0Mtxcsxf2hZPAQZ` | Execute Workflow Trigger | sim |
 | `Direct Response · 06 Revisor` | `cqkhx6Mc2PENjylp` | Execute Workflow Trigger | sim |
 | `Direct Response · 07 Tráfego (gestor, sempre PAUSADO)` | `8nsN0jKDEmNyID9M` | Execute Workflow Trigger | sim |
+| `Direct Response · 99 Erros` | `rUNQVY24WtvxDK5l` | Error Trigger | sim (o n8n 2.x exige; é o *Error workflow* dos outros 8) |
 
 Os sub-workflows ficam publicados porque o n8n 2.x só deixa chamar sub-workflow publicado. Como o único gatilho deles é o `Execute Workflow Trigger`, eles **não disparam sozinhos**.
 
-Configurações do coordenador: `executionOrder: v1`, `saveManualExecutions: true`, `callerPolicy: workflowsFromSameOwner`.
+Configurações de todos os workflows: `executionOrder: v1`, `saveManualExecutions: true`, `callerPolicy: workflowsFromSameOwner`, `errorWorkflow: <ID do 99 Erros>`.
 
 ### 1.2 Credenciais (só nomes; os valores ficam no n8n)
 
@@ -124,6 +125,7 @@ Tudo que trafega entre coordenador e etapas é **um único item** JSON com duas 
 | `ofertas_br[]` | lista de objetos `{nome, page_id_br, url_pagina, preco_br, anuncios_ativos_br, anuncio_mais_antigo_br, print_br}` | Pilates 50+ | Radar (prints) | 01 |
 | `oferta_escolhida` | `{nome, slug, url_pagina_original}` | Pilates 50+, `pilates50-pt` | Arthur | 02–07 |
 | `copy_aprovada` | bool | `false` | **só o Arthur** | 03, 05 |
+| `copy_aprovada_hash` | texto, ex. `v1a2b3c4d` | vazio | **só o Arthur** (o Italo copia do relatório) | 02 (congela), 03, 05 |
 | `preco_aprovado` | texto, ex. `'14,90 €'` | vazio | **só o Arthur** | 04, 06 |
 | `entregaveis_confirmados` | lista | vazia | Arthur | 04 |
 | `pixel_id` | texto | vazio | Arthur/Italo | 03, 06, 07 |
@@ -133,6 +135,7 @@ Tudo que trafega entre coordenador e etapas é **um único item** JSON com duas 
 | `hotmart_product_id` | texto | vazio | Arthur | 04 |
 | `hotmart_checkout_url` | URL | vazio | Arthur | 04, 06 |
 | `ad_account_id` | `act_<número>` | vazio | Arthur | 07 |
+| `campanha_nome` | texto | vazio = `DR \| <oferta> \| <país>` | Arthur | 07 (é por ele que o fluxo não duplica) |
 | `orcamento_diario_centavos` | inteiro | `1000` (valor de exemplo do gerador, **não aprovado**) | **só o Arthur** | 07 |
 | `publico` | texto | `mulheres 50+ em Portugal` | Arthur | 07 |
 | `modelo_imagem` | texto | `grok-2-image` | Italo | 05 |
@@ -200,7 +203,8 @@ Todos os sub-workflows 01–07 seguem o mesmo esqueleto. As seções de cada eta
 | 8 | `Agente · <Nome>` | `agent` (2.2) | system message = prompt do agente (`tools/prompts.mjs`), sempre terminando em "Responda somente em JSON válido"; texto = briefing + config + `dados` (40.000 chars) |
 | 9 | *pós-agente* | `code` (+ HTTP/arquivo) | `parseJSON` da saída do agente e verificações por código. Último nó da cadeia devolve `{saida, verificacoes, avisos?}` |
 | 10 | `Grok · supervisão` | `agent` (2.2) + `Grok (xAI) supervisor` | system message = `supervisorRevisao(etapa)`; recebe dados brutos, verificações e saída. Responde JSON `{aprovado, nota, problemas, orientacao_para_o_agente, proximo_passo}`. **Não pode aprovar se alguma verificação falhou** |
-| 11 | `Saída da etapa` | `code` | aplica a regra de aprovação da seção 3.3 e devolve a saída de etapa |
+| 11 | `Saída da etapa` | `code` | aplica a regra de aprovação da seção 3.3 e devolve a saída de etapa, com `saida_hash` (versão da entrega, FNV-1a de `saida`) |
+| 12 | `Falha do modelo` | `code` | recebe a saída de erro (`continueErrorOutput`) dos 3 nós Grok depois de 3 tentativas; devolve saída de etapa reprovada com `motivo: 'falha do modelo ...'`, sem derrubar a rodada |
 
 Também há um `stickyNote` "Sobre este agente" em cada workflow.
 
@@ -223,18 +227,21 @@ Também há um `stickyNote` "Sobre este agente" em cada workflow.
 |---|---|---|---|
 | 1 | `Iniciar rodada` | `manualTrigger` | — |
 | 2 | `⚙️ Configuração` | `code` | devolve o objeto `config` da seção 3.1. **Único lugar onde o operador edita valores** |
+| 2a | `Arquivo de estado` → `Estado salvo · ler` → `Estado salvo · extrair` | `code` → `readWriteFile` (read) → `extractFromFile` (fromJson), os dois últimos com `onError: continueRegularOutput` | lê `<pasta_saida>\<slug>\estado.json`; se não existir (primeira rodada), segue com estado vazio |
 | 3 | `Coordenador · plano` | `agent` + `Grok (xAI)` | prompt `COORDENADOR_PLANO`: divide tarefas, prazos (ou "prazo sugerido"), dependências e decisões do dono; lista numerada |
-| 4 | `Estado inicial` | `code` | `{config, estado:{plano_do_coordenador, inicio_rodada}}` |
-| 5–25 | para cada etapa `NN · <Nome>` → `Estado · <Nome>` → `<Nome> liberou?` | `executeWorkflow` (1.2, `source: database`, `workflowId` por ID, `waitForSubWorkflow: true`) → `code` (copia o item anterior e grava `estado[etapa] = $json`) → `if` (`estado[etapa].seguir`) | saída `true` vai para a próxima etapa; saída `false` vai para `Prazos e resumo` |
+| 4 | `Estado inicial` | `code` | `{config, estado:{plano_do_coordenador, inicio_rodada, <etapas salvas com de_rodada_anterior: true>}, arquivo_estado}` |
+| 5–25 | para cada etapa `NN · <Nome>` → `Estado · <Nome>` → `<Nome> liberou?` | `executeWorkflow` (1.2, `source: database`, `workflowId` por ID, `waitForSubWorkflow: true`) → `code` (copia o item anterior e grava `estado[etapa] = $json`; se a etapa foi **pulada** e havia entrega salva, mantém a salva) → `if` (`estado[etapa].seguir`) | saída `true` vai para a próxima etapa; saída `false` vai para `Prazos e resumo` |
 | 26 | `Prazos e resumo` | `code` | por agente: status (`aprovado`, `bloqueado`, `pulada`, `reprovado`, `não começou`), prazo, `atrasado` (prazo vencido em UTC-3 e não aprovado), motivo |
 | 27 | `Coordenador · relatório` | `agent` + `Grok (xAI) relatório` | prompt `COORDENADOR_RELATORIO`: lista numerada com status por agente, atrasos, o que depende do dono, próximo passo; lembra que nada foi ativado |
-| 28 | `Progresso (lista numerada)` | `code` | texto final em `progresso` |
+| 28 | `Progresso (lista numerada)` | `code` | texto final em `progresso`; se o modelo falhar, monta a lista a partir de `Prazos e resumo`; acrescenta a versão da copy (`saida_hash` do Headline Killer) |
+| 28a | `Estado → salvar` → `Estado → arquivo` → `Gravar estado.json` | `code` → `convertToFile` → `readWriteFile` (write) | grava as etapas da rodada em `estado.json` para a próxima |
 | 29 | `Enviar no Telegram (opcional)` | `telegram` (1.2) | **desativado**; `chatId` placeholder; texto `{{ $json.progresso }}` |
 
 **Lacunas do coordenador:**
 
-- **Estado não persiste entre rodadas.** Se a rodada pula o Headline Killer, o Construtor fica bloqueado porque `estado.headline` não existe. Ver T-03.
-- Se um sub-workflow lançar erro (ex.: nó Agent falha com 401 da xAI), a execução inteira para e não sai relatório. Ver seção 13.
+- ~~Estado não persiste entre rodadas~~: resolvido no gerador em `H-20261127-italo-05` (T-03), falta publicar e validar no n8n.
+- ~~Erro de um nó Agent derruba a rodada~~: os nós Grok repetem 3 vezes e depois reprovam a etapa com motivo (`H-20261127-italo-04`, T-02). Erros fora disso vão para o `99 Erros`.
+- Os agentes `Coordenador · plano` e `Coordenador · relatório` usam `onError: continueRegularOutput`: se o modelo falhar, a rodada segue e o relatório sai montado por código.
 
 ---
 
@@ -249,7 +256,7 @@ Também há um `stickyNote` "Sobre este agente" em cada workflow.
 | Nó | Tipo | Configuração |
 |---|---|---|
 | `Consultas → itens` | `code` | um item por termo (`search_terms`, `search_type: KEYWORD_UNORDERED`) e um por `page_id_br` (`search_page_ids`), todos com `ad_reached_countries: [pais_destino]`, `ad_active_status: ACTIVE`, `ad_type: ALL`, `fields: id,page_id,page_name,ad_delivery_start_time,ad_snapshot_url,ad_creative_link_titles`, `limit: 200` |
-| `Meta Ad Library · país de destino` | `httpRequest` GET `https://graph.facebook.com/{v}/ads_archive` | credencial Meta; query = `$json.qs` |
+| `Meta Ad Library · país de destino` | `httpRequest` GET `https://graph.facebook.com/{v}/ads_archive` | credencial Meta; query = `$json.qs`; **paginação** pelo cursor `after` até não haver `paging.next` (máx. 25 páginas = 5.000 anúncios por consulta) |
 | `Dados da etapa` | `code` | por consulta: anúncios carregados, `contagem_e_minimo` (há `paging.next` → mais de 200), anúncio mais antigo carregado, top 15 anunciantes, 5 exemplos com link, `link_print` para a Biblioteca. Para o BR, só repassa o que veio em `ofertas_br` (senão `"não verificado"`) |
 
 **Saída do agente (JSON):**
@@ -259,7 +266,7 @@ Também há um `stickyNote` "Sobre este agente" em cada workflow.
 
 **Limite conhecido:** a Ad Library API só devolve anúncios comerciais de países da UE. **Números do Brasil não vêm da API**: vêm dos prints (campo `ofertas_br`); sem print ficam "não verificado". Não tente contornar com scraping da Biblioteca.
 
-**Lacunas:** só lê a primeira página (200 anúncios); para contagem exata, paginar `paging.next` até o fim (T-07). O Radar ainda não grava prints (o link `link_print` é para tirar à mão).
+**Lacunas:** a paginação (T-07, `H-20261127-italo-06`) precisa ser conferida na primeira rodada com credencial real: `paginas_lidas` deve passar de 1 quando houver mais de 200 anúncios. O `Dados da etapa` agrupa as páginas pelo `pairedItem` de cada consulta. O Radar ainda não grava prints (o link `link_print` é para tirar à mão).
 
 **Como testar:** com credencial Meta válida, rodar só `radar` (`etapas_ativas: ['radar']`) e conferir que `consultas_destino[*].erro` está vazio e que os números batem com a Biblioteca aberta no navegador.
 
@@ -283,7 +290,7 @@ Regras no prompt: pt-PT com "para si/consigo", nunca "você"; `[ESPAÇO PARA PRO
 **Lacunas (importantes):**
 
 - O agente **não recebe as decisões do Arthur** (formato, preço, garantia, instrutora). Precisa receber `config.decisoes` com P-01 a P-07 para preencher os marcadores (T-04).
-- A copy é gerada de novo a cada rodada (modelo não determinístico). A versão que o Arthur aprovou precisa ser **congelada** e reutilizada, senão o Construtor publica um texto que ninguém aprovou (T-03).
+- **Copy congelada (T-03, `H-20261127-italo-05`):** cada entrega sai com `saida_hash`. O relatório mostra a versão da copy. Para aprovar, o Arthur confere aquela versão e o Italo põe `copy_aprovada: true` e `copy_aprovada_hash: '<versão>'`. Daí em diante o Headline Killer **não gera de novo** (sai como pulada/congelada, e o estado salvo é mantido), e Construtor e Claquete só rodam se a versão salva for a aprovada.
 - A cópia de referência que o Arthur já viu está em `contexto/02-entrega-headline-killer.md`; a nova versão aprovada deve ir para fora de `contexto/` (que não se edita).
 
 **Como testar:** rodar só `headline`, conferir as 8 verificações e ler a copy procurando "você", preço riscado e claims de saúde.
@@ -294,7 +301,7 @@ Regras no prompt: pt-PT com "para si/consigo", nunca "você"; `[ESPAÇO PARA PRO
 
 **Objetivo:** transformar a copy aprovada numa página HTML única, injetar pixel e UTM, gravar no disco e conferir o PageView na página publicada.
 
-**Pré-requisitos:** `copy_aprovada === true`; `estado.headline.saida` existe; `pixel_id`; `pasta_saida`.
+**Pré-requisitos:** `copy_aprovada === true`; `estado.headline.saida` existe **e** `estado.headline.saida_hash === copy_aprovada_hash`; `pixel_id`; `pasta_saida`.
 
 **Nós depois do agente:**
 
@@ -356,7 +363,7 @@ O script `dr-utm` repassa `utm_source`, `utm_medium`, `utm_campaign`, `utm_conte
 
 **Objetivo:** transformar roteiros e briefings aprovados em imagens geradas e planos de vídeo.
 
-**Pré-requisitos:** `copy_aprovada === true`; `estado.headline.saida`.
+**Pré-requisitos:** `copy_aprovada === true`; `estado.headline.saida` com `saida_hash === copy_aprovada_hash`.
 
 **Nós depois do agente:**
 
@@ -417,14 +424,17 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 
 **Objetivo:** criar na conta de anúncios a campanha de vendas e os conjuntos, **todos `PAUSED`**, e conferir pela API.
 
-**Pré-requisitos:** `estado.revisor.aprovado === true` **na mesma rodada**; `ad_account_id` no formato `act_<número>`; `pixel_id`; `orcamento_diario_centavos > 0`.
+**Pré-requisitos:** `estado.revisor.aprovado === true` **na mesma rodada** (uma aprovação salva de rodada anterior, `de_rodada_anterior: true`, não vale); `ad_account_id` no formato `act_<número>`; `pixel_id`; `orcamento_diario_centavos > 0`.
 
 **Nós depois do agente:**
 
 | Nó | Tipo | Configuração |
 |---|---|---|
 | `Payload PAUSADO` | `code` | campanha `{name, objective: OUTCOME_SALES, buying_type: AUCTION, special_ad_categories: [], is_adset_budget_sharing_enabled: false, status: PAUSED}`; até 3 conjuntos `{status: PAUSED, daily_budget, billing_event: IMPRESSIONS, optimization_goal: OFFSITE_CONVERSIONS, bid_strategy: LOWEST_COST_WITHOUT_CAP, promoted_object: {pixel_id, custom_event_type: PURCHASE}, targeting: {geo_locations.countries:[pais_destino], age_min, age_max, genders?, targeting_automation.advantage_audience: 0}}`. **Trava:** se o JSON tiver qualquer `status` diferente de `PAUSED` ou a palavra `ACTIVE`, lança erro e nada é enviado |
-| `Meta · criar campanha (PAUSED)` | `httpRequest` POST `/{v}/{ad_account_id}/campaigns` | body = campanha com `status: 'PAUSED'` reforçado na expressão |
+| `Meta · buscar campanha` | `httpRequest` GET `/{v}/{ad_account_id}/campaigns` | `filtering: [{field: name, operator: EQUAL, value: <nome>}]`. **Idempotência (T-07)** |
+| `Campanha já existe?` | `if` | `data.length > 0` |
+| *se existe:* `Meta · conjuntos existentes` → `Reusar campanha` → `Meta · conferir status (existente)` → `Conferência PAUSADO` | GET `/{campaign_id}/adsets` → `code` → GET status | **não cria nem altera nada** (nem reforça PAUSED, porque o Arthur pode já ter ativado); a conferência avisa se algo já está ativo |
+| `Meta · criar campanha (PAUSED)` | `httpRequest` POST `/{v}/{ad_account_id}/campaigns` | só se não existe; body = campanha do `Payload PAUSADO` com `status: 'PAUSED'` reforçado na expressão. **Sem retry** (POST de criação) |
 | `Conjuntos → itens` | `code` | um item por conjunto com `campaign_id` |
 | `Meta · criar conjunto (PAUSED)` | `httpRequest` POST `/{v}/{ad_account_id}/adsets` | `status: 'PAUSED'` reforçado |
 | `IDs criados` | `code` | lista campanha + conjuntos |
@@ -432,14 +442,14 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 | `Meta · conferir status` | `httpRequest` GET `/{v}/{id}?fields=id,name,status,effective_status` | — |
 | `Conferência PAUSADO` | `code` | reprova se algum `status ≠ PAUSED` ou `effective_status` fora de `PAUSED`, `CAMPAIGN_PAUSED`, `ADSET_PAUSED` |
 
-**Saída do agente (JSON):** `{"campanha_nome","conjuntos":[{"nome","idade_min","idade_max","generos","observacao"}],"observacoes"}`. Nome padrão: `DR | <oferta> | <país> | <data>`. O agente **não escolhe status**.
+**Saída do agente (JSON):** `{"campanha_nome","conjuntos":[{"nome","idade_min","idade_max","generos","observacao"}],"observacoes"}`. O nome da campanha **não vem do agente**: é `config.campanha_nome` ou `DR | <oferta> | <país>` (fixo, para a busca por nome funcionar). Conjuntos: `<campanha> | <nome do agente> | <data>`. O agente **não escolhe status**.
 
 **Verificações por código:** `campanha_criada`, `conjuntos_criados`, `tudo_pausado_conferido_na_api`.
 
 **Lacunas:**
 
 - **Os anúncios não são criados.** Falta: subir as imagens (`/{act}/adimages`), criar `adcreative` com link da página + UTMs, e criar `ads` com `status: PAUSED`, passando pela mesma trava e conferência (T-06).
-- Se a rodada roda duas vezes, cria campanhas duplicadas. Falta checar por nome antes de criar (idempotência, T-07).
+- ~~Rodada repetida duplica campanha~~: busca por nome antes de criar (T-07, `H-20261127-italo-06`). Falta validar com conta de teste.
 - O `orcamento_diario_centavos: 1000` é valor de exemplo do gerador; **só o Arthur define** (tarefa de decisão D-08).
 
 **Como testar:** só com conta de anúncios de teste ou com o Arthur ciente; conferir no Gerenciador de Anúncios que tudo está pausado e apagar o que for de teste.
@@ -453,20 +463,17 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 - Todo `httpRequest` usa `onError: continueRegularOutput` + `alwaysOutputData: true`: uma API fora do ar não derruba a etapa; o erro vira dado e a verificação correspondente fica `false`.
 - Respostas do agente que não são JSON viram `{erro_parse: true}` e reprovam `saida_do_agente_em_json`.
 - O Tráfego tem uma trava que **lança erro** se aparecer status diferente de `PAUSED` (é de propósito: melhor parar do que arriscar).
-- Os nós Agent (Grok) **não** têm `onError`: chave inválida, limite de uso ou timeout da xAI derrubam a execução inteira.
-
-**Como deve ficar (T-02):**
-
-1. Criar `Direct Response · 99 Erros` com `errorTrigger`, que monta mensagem (workflow, nó, erro, link da execução) e envia pelo Telegram (ou outro canal decidido). Configurar como *Error workflow* em todos os 8 workflows.
-2. Nos nós Agent: `retryOnFail: true`, `maxTries: 3`, `waitBetweenTries: 5000`; depois disso, `onError: continueErrorOutput` levando para um Code que devolve saída de etapa reprovada com `motivo: 'falha do modelo'`.
-3. Nos HTTP da Meta e da Hotmart: `retryOnFail` para 429/5xx; 4xx não repete.
-4. Nunca colocar `retryOnFail` nos POST de criação do Tráfego sem antes ter a checagem de duplicidade (T-07).
+- **Desde `H-20261127-italo-04` (T-02, no gerador; falta publicar no n8n):**
+  1. `Direct Response · 99 Erros` (`errorTrigger` → `Montar alerta` → grava um arquivo por erro em `...\data\direct-response\erros\erro-<data>.json` → Telegram opcional, **desativado** até ter `chatId`). Está como *Error workflow* (`settings.errorWorkflow`) nos outros 8. A pasta vem de `DR_PASTA_ERROS` ou do padrão no `gerar.mjs`.
+  2. Nós Agent (Grok): `retryOnFail: true`, `maxTries: 3`, `waitBetweenTries: 5000`. Nas etapas, depois disso, `onError: continueErrorOutput` leva ao nó `Falha do modelo` (etapa reprovada com motivo). No coordenador, `continueRegularOutput` (a rodada chega ao relatório).
+  3. HTTP: `retryOnFail` (3 × 5 s) em **todas as leituras (GET)** e no token da Hotmart. O n8n não separa 429/5xx de 4xx, então um 4xx de leitura também repete; é inofensivo (só leitura).
+  4. **POST de criação na Meta não repete** (campanha e conjunto), mesmo com a checagem de duplicidade: repetir um POST que chegou a criar algo duplicaria.
 
 ---
 
 ## 14. Testes e critério de "funcionando perfeitamente"
 
-**Ferramentas que já existem** (em `automacoes/direct-response-n8n/tools/`, no PC do Italo):
+**Ferramentas que já existem** (em `n8n/tools/` neste repositório; rode de dentro de `n8n/`):
 
 ```powershell
 node tools/testar-codigos.mjs   # roda a lógica dos nós Code com dados simulados
@@ -511,13 +518,13 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 
 | # | Tarefa | Workflow | Depende de | Status | Feito por | Data | Evidência |
 |---|---|---|---|---|---|---|---|
-| T-01 | Trazer o código gerador (`tools/`, `workflows/*.json` sem credenciais) para este repositório em `n8n/`, para a outra máquina e a outra IA terem a mesma fonte | todos | — | ⬜ | | | |
-| T-02 | Workflow `99 Erros` + retries (seção 13) | todos | — | ⬜ | | | |
-| T-03 | Persistir estado entre rodadas (n8n Data Table ou arquivo JSON por oferta) e **congelar a copy aprovada** (hash + versão); Construtor e Claquete leem a versão congelada, não a da rodada | 00, 02, 03, 05 | — | ⬜ | | | |
+| T-01 | Trazer o código gerador (`tools/`, `workflows/*.json` sem credenciais) para este repositório em `n8n/`, para a outra máquina e a outra IA terem a mesma fonte | todos | — | ✅ | Claude | 2026-11-27 | H-20261127-italo-03 |
+| T-02 | Workflow `99 Erros` + retries (seção 13) | todos | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-04 |
+| T-03 | Persistir estado entre rodadas (n8n Data Table ou arquivo JSON por oferta) e **congelar a copy aprovada** (hash + versão); Construtor e Claquete leem a versão congelada, não a da rodada | 00, 02, 03, 05 | — | 🟡 código pronto e testado (arquivo `estado.json` por oferta + `copy_aprovada_hash`); publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-05 |
 | T-04 | Levar as decisões do Arthur para a config (`decisoes: {formato, preco, garantia, instrutora, ...}`) e para o prompt do Headline Killer; criar `criativos_aprovados` | 00, 02, 05, 06 | D-05 | ⬜ | | | |
 | T-05 | Nó de deploy da página (API da hospedagem escolhida) que preenche `url_pagina_publicada` sozinho, depois do Construtor e de novo depois do Funil | 03, 04 | D-07 | ⬜ | | | |
 | T-06 | Baixar e guardar as imagens da Claquete; no Tráfego, criar `adimages` → `adcreative` → `ads` **PAUSED**, com UTMs no link, passando pela trava e pela conferência | 05, 07 | D-02, D-04 | ⬜ | | | |
-| T-07 | Idempotência: Tráfego procura campanha pelo nome antes de criar; Radar pagina a Ad Library até o fim | 01, 07 | — | ⬜ | | | |
+| T-07 | Idempotência: Tráfego procura campanha pelo nome antes de criar; Radar pagina a Ad Library até o fim | 01, 07 | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-06 |
 | T-08 | Conferência em navegador real (headless) para PageView e preço no checkout | 04, 06 | T-05 | ⬜ | | | |
 | T-09 | Agendamento (`scheduleTrigger`) e envio do relatório pelo Telegram | 00 | T-02 | ⬜ | | | |
 
@@ -525,7 +532,7 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 
 | # | Teste | Depende de | Status | Feito por | Data | Evidência |
 |---|---|---|---|---|---|---|
-| V-01 | `testar-codigos.mjs` e `checar.mjs` sem erro | T-01 | ⬜ | | | |
+| V-01 | `testar-codigos.mjs` e `checar.mjs` sem erro | T-01 | ✅ | Claude | 2026-11-27 | H-20261127-italo-03 |
 | V-02 | Rodada etapa por etapa (seção 14) com credenciais reais | D-01 a D-04 | ⬜ | | | |
 | V-03 | Rodada completa cumprindo os 7 critérios da seção 14 | todas as T e D | ⬜ | | | |
 | V-04 | Arthur ativa as campanhas no Gerenciador (fora do fluxo) | V-03 | ⬜ | | | |
