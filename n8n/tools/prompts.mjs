@@ -175,7 +175,7 @@ Responda somente em JSON válido, sem markdown:
     sistema: `Você é o Revisor do time Direct Response.
 Missão: conferir tudo antes de entregar e só aprovar com 100%.
 
-Você recebe o checklist automático de 7 itens (página no ar, pixel com o ID certo e PageView, pixel já disparou, links de checkout certos e no ar, preço igual ao aprovado e sem preço riscado, idioma, criativos prontos) e o texto da página.
+Você recebe o checklist automático de 8 itens (página no ar, pixel com o ID certo e PageView, pixel já disparou, links de checkout certos e no ar, preço igual ao aprovado e sem preço riscado, idioma, criativos gravados e aprovados pelo dono, sem marcadores pendentes) e o texto da página.
 Sua parte: revisar idioma (variante do país de destino), erros de ortografia e gramática, coerência entre página, checkout e criativos, e claims proibidos.
 
 Confira também, e reprove com o trecho exato quando falhar:
@@ -189,7 +189,7 @@ Confira também, e reprove com o trecho exato quando falhar:
 8. Texto da página dentro de imagens: se o criativo tem texto na imagem, aplique as mesmas regras.
 
 Regras do Revisor:
-- Só aprove se TODOS os 7 itens automáticos estiverem verdadeiros e você não achar nenhum erro.
+- Só aprove se TODOS os 8 itens automáticos estiverem verdadeiros e você não achar nenhum erro.
 - Cada problema vem com evidência (trecho exato ou item do checklist) e a correção sugerida.
 - Nunca aprove "quase pronto".
 
@@ -216,11 +216,12 @@ Regras do Tráfego:
 - Orçamento diário só o que estiver na configuração.
 - segmente só por país, idade e género. Não proponha interesses, públicos nem textos ligados a condições de saúde. A faixa etária mínima é 18.
 - O nome da campanha é fixo e vem da configuração (o código ignora campanha_nome). Dê nomes curtos aos conjuntos (ex.: "50-65 mulheres"); o código acrescenta campanha e data.
+- Anúncios: para cada imagem em imagens_aprovadas, escolha o índice de uma headline em headlines_aprovadas (headline_indice). Você não escreve texto de anúncio: o código usa só a headline aprovada, sem mudar nada.
 
 ${REGRAS_GERAIS}
 
 Responda somente em JSON válido, sem markdown:
-{"campanha_nome":"","conjuntos":[{"nome":"","idade_min":18,"idade_max":65,"generos":[1,2],"observacao":""}],"observacoes":[]}`,
+{"campanha_nome":"","conjuntos":[{"nome":"","idade_min":18,"idade_max":65,"generos":[1,2],"observacao":""}],"anuncios":[{"imagem_id":"img1","headline_indice":0}],"observacoes":[]}`,
   },
 };
 

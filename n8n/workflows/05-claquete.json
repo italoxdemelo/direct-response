@@ -2,7 +2,7 @@
   "name": "Direct Response · 05 Claquete (criativos)",
   "nodes": [
     {
-      "id": "0c94bb6c-619b-40ae-82fa-de84386e7e20",
+      "id": "be61e08c-b855-4fcf-8c69-1880787aad3c",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "6564dd8b-1385-4f4c-bb7b-89c82338aee0",
+      "id": "3b935842-0210-4da7-8d58-a5be579ce15d",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -24,11 +24,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'claquete';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (roteiros aprovados)');\nif (!(estado.headline && estado.headline.saida)) faltando.push('roteiros do Headline Killer');\nelse if (!cfg.copy_aprovada_hash || estado.headline.saida_hash !== cfg.copy_aprovada_hash) faltando.push('copy_aprovada_hash igual à versão da copy (' + (estado.headline.saida_hash || 'sem versão') + ')');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'claquete';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (cfg.criativos_aprovados === true && cfg.criativos_aprovados_hash && estado.claquete && estado.claquete.saida_hash === cfg.criativos_aprovados_hash) return [{ json: { ok: false, pulada: true, congelada: true, versao: cfg.criativos_aprovados_hash, faltando: [] } }];\nif (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (roteiros aprovados)');\nif (!(estado.headline && estado.headline.saida)) faltando.push('roteiros do Headline Killer');\nelse if (!cfg.copy_aprovada_hash || estado.headline.saida_hash !== cfg.copy_aprovada_hash) faltando.push('copy_aprovada_hash igual à versão da copy (' + (estado.headline.saida_hash || 'sem versão') + ')');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
       }
     },
     {
-      "id": "cffef199-f779-49dc-8cfe-8f021ea7e5fd",
+      "id": "cf3e5256-eddf-481d-8153-b1a18a270831",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "127bf21a-bd3c-4ae4-87c6-4b56ffc09be0",
+              "id": "5516753f-fe0b-4d0e-b639-18a70e76c790",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "3b584407-de6f-4c0c-8247-33163c328239",
+      "id": "50bf5cbb-d485-483b-bd59-6ceae07f3dbf",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'claquete';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Claquete',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'claquete';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Claquete',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'entrega aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "9b129d36-8193-45e4-a382-f8b6f4870d40",
+      "id": "465930b9-6deb-4994-bd1f-084d740d59ed",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "401e08e8-aa30-4e9a-96ee-a3fcadd47837",
+      "id": "14cd6480-b26e-4bf7-93ee-35f1ec1e036b",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "id": "78df037a-5d36-4329-92cd-bddeb3809e43",
+      "id": "fa9b54ea-0145-4ebb-b90f-f01980bfed30",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "3eac2785-46af-4156-9052-e4f65fe9a810",
+      "id": "483cca3c-55c0-4fa8-9a92-347f2eb3b0ec",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -149,7 +149,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "68cd2bb9-d18c-47d6-8085-7bb8b22cbf32",
+      "id": "1a00bcbd-77fa-48fe-99b9-24d41b575103",
       "name": "Agente · Claquete",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -171,7 +171,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "d7a91f56-ced0-4074-a0ec-b28dccec62ea",
+      "id": "11558223-62f4-442b-a865-309f1e968ed7",
       "name": "Imagens → itens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -180,11 +180,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst plano = parseJSON($json.output);\nconst imgs = Array.isArray(plano.imagens) ? plano.imagens : [];\nif (!imgs.length) return [{ json: { id: null, prompt: '', sem_imagens: true } }];\nreturn imgs.slice(0, 6).map(i => ({ json: { id: i.id, prompt: [i.prompt, i.texto_na_imagem ? 'Text on image: \"' + i.texto_na_imagem + '\"' : ''].filter(Boolean).join('. '), formato: i.formato } }));"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst plano = parseJSON($json.output);\nconst imgs = Array.isArray(plano.imagens) ? plano.imagens : [];\nif (!imgs.length) return [{ json: { id: null, prompt: '', sem_imagens: true } }];\nreturn imgs.slice(0, 6).map(i => ({ json: { id: i.id, prompt: [i.prompt, i.texto_na_imagem ? 'Text on image: \"' + i.texto_na_imagem + '\"' : ''].filter(Boolean).join('. '), formato: i.formato, texto_na_imagem: i.texto_na_imagem || '' } }));"
       }
     },
     {
-      "id": "41bd2e76-6b58-4f44-a7c2-841ed4945e0b",
+      "id": "d3ff5f0c-85d9-430b-bd09-bea9de2214a7",
       "name": "xAI · gerar imagem",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -202,7 +202,7 @@
         "nodeCredentialType": "xAiApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $('Entrada').first().json.config.modelo_imagem || 'grok-2-image', prompt: $json.prompt, n: 1, response_format: 'url' }) }}"
+        "jsonBody": "={{ JSON.stringify({ model: $('Entrada').first().json.config.modelo_imagem || 'grok-2-image', prompt: $json.prompt, n: 1, response_format: 'b64_json' }) }}"
       },
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
@@ -214,8 +214,8 @@
       }
     },
     {
-      "id": "0dca0a14-414c-46d9-8328-d336bc109b07",
-      "name": "Conferência pós-agente",
+      "id": "0f13d7f7-d843-48ce-8d5a-5ff18e69210e",
+      "name": "Imagens → arquivos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -223,11 +223,42 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst plano = parseJSON($('Agente · Claquete').first().json.output);\nconst pedidos = $('Imagens → itens').all().map(i => i.json);\nconst resp = $input.all().map(i => i.json);\nconst geradas = pedidos.map((p, i) => {\n  const r = resp[i] || {};\n  const d = Array.isArray(r.data) ? r.data[0] : null;\n  return { id: p.id, url: d && d.url ? d.url : null, erro: r.error ? String(r.error.message || JSON.stringify(r.error)).slice(0, 200) : null };\n});\nreturn [{ json: { saida: { plano, imagens_geradas: geradas }, verificacoes: {\n  saida_do_agente_em_json: !plano.erro_parse,\n  imagens_geradas: geradas.length > 0 && geradas.every(g => !!g.url),\n  videos_roteirizados: Array.isArray(plano.videos) && plano.videos.length > 0\n} } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst cfg = $('Entrada').first().json.config;\nconst pedidos = $('Imagens → itens').all().map(i => i.json);\nconst slug = String(cfg.oferta_escolhida && cfg.oferta_escolhida.slug || 'oferta').replace(/[^a-z0-9-]/gi, '-');\nconst pasta = String(cfg.pasta_saida || '').replace(/[\\\\/]+$/, '') + '\\\\' + slug + '\\\\criativos';\nreturn $input.all().map((it, i) => {\n  const r = it.json || {};\n  const p = pedidos[i] || {};\n  const d = Array.isArray(r.data) ? r.data[0] : null;\n  const b64 = d && d.b64_json ? String(d.b64_json).replace(/^data:[^,]+,/, '') : '';\n  const base = { id: p.id || ('img' + (i + 1)), formato: p.formato || null, texto_na_imagem: p.texto_na_imagem || '' };\n  if (!b64) return { json: Object.assign(base, { arquivo: null, versao: null, erro: r.error ? String(r.error.message || JSON.stringify(r.error)).slice(0, 200) : 'a xAI não devolveu imagem' }) };\n  const versao = hashTexto(b64);\n  const nome = String(base.id).replace(/[^a-z0-9-]/gi, '-') + '-' + versao + '.jpg';\n  return { json: Object.assign(base, { arquivo: pasta + '\\\\' + nome, versao, erro: null }),\n    binary: { data: { data: b64, mimeType: 'image/jpeg', fileName: nome, fileExtension: 'jpg' } } };\n});"
       }
     },
     {
-      "id": "d807d08a-e680-43f6-9ed9-37e987ec5d83",
+      "id": "34dd7480-1f52-46f3-8ff9-2beee55dee10",
+      "name": "Gravar criativos",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2140,
+        300
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.arquivo }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "7cef4ac1-b52a-448a-af7a-25bb6500875c",
+      "name": "Conferência pós-agente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2360,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst plano = parseJSON($('Agente · Claquete').first().json.output);\nconst arquivos = $('Imagens → arquivos').all().map(i => i.json);\nconst gravacao = $input.all().map(i => i.json || {});\nconst geradas = arquivos.map((a, i) => {\n  const falhou = !!(gravacao[i] && gravacao[i].error);\n  return { id: a.id, arquivo: a.arquivo && !falhou ? a.arquivo : null, versao: a.versao, formato: a.formato, texto_na_imagem: a.texto_na_imagem,\n    erro: a.erro || (falhou ? 'não gravou no disco: ' + String(gravacao[i].error.message || gravacao[i].error).slice(0, 160) : null) };\n});\nreturn [{ json: { saida: { plano, imagens_geradas: geradas, pasta: geradas[0] && geradas[0].arquivo ? geradas[0].arquivo.replace(/\\\\[^\\\\]+$/, '') : null }, verificacoes: {\n  saida_do_agente_em_json: !plano.erro_parse,\n  imagens_geradas_e_gravadas: geradas.length > 0 && geradas.every(g => !!g.arquivo),\n  videos_roteirizados: Array.isArray(plano.videos) && plano.videos.length > 0\n} } }];"
+      }
+    },
+    {
+      "id": "21b6911e-68ca-4c7d-93cb-502197e9247c",
       "name": "Vídeos",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -243,12 +274,12 @@
       }
     },
     {
-      "id": "f4deb5d9-5437-45bd-ad25-bc19cb1a904d",
+      "id": "3bc04c1f-7b38-4171-89a1-0df4176eb6da",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        2140,
+        2580,
         300
       ],
       "parameters": {
@@ -265,12 +296,12 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "24f73835-0730-4661-a900-8bab7b5995b4",
+      "id": "4dde81cc-692f-4549-8199-59c4cb1b1e5a",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2180,
+        2620,
         560
       ],
       "parameters": {
@@ -287,12 +318,12 @@
       }
     },
     {
-      "id": "6abe4c41-e4b4-49fd-9035-88dd4ecef0e5",
+      "id": "9757de3a-1763-4a58-9b4e-f6259d2a64c7",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2440,
+        2880,
         300
       ],
       "parameters": {
@@ -300,12 +331,12 @@
       }
     },
     {
-      "id": "9b7be56b-bb30-4866-8461-ae383a906d45",
+      "id": "24c07d9b-e748-4e86-ba1c-bb5bb5127f10",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2440,
+        2880,
         600
       ],
       "parameters": {
@@ -411,6 +442,28 @@
       ]
     },
     "xAI · gerar imagem": {
+      "main": [
+        [
+          {
+            "node": "Imagens → arquivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Imagens → arquivos": {
+      "main": [
+        [
+          {
+            "node": "Gravar criativos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gravar criativos": {
       "main": [
         [
           {

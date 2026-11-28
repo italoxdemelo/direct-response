@@ -7,6 +7,36 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-12 — Publicar no n8n o fluxo completo (anúncios, Netlify, ofertas Hotmart)
+
+- **Data/hora:** 2026-11-27 23:16 (America/Bahia UTC-3)
+- **Autor:** italo — Claude Code
+- **Tipo:** ação externa
+- **O que mudou:** `node tools/gerar.mjs` rodou no n8n do PC (`localhost:5678`) e atualizou os 9 workflows (99 Erros `rUNQVY24WtvxDK5l`, 01 Radar `ZEwHqbQbTRpqwbZm`, 02 Headline Killer `HcVTPRfIrVr5pEpS`, 03 Construtor `dIRHcPq6GOQjGjlf`, 04 Funil `4ZrBWdTNmlj5cnez`, 05 Claquete `b0Mtxcsxf2hZPAQZ`, 06 Revisor `cqkhx6Mc2PENjylp`, 07 Tráfego `8nsN0jKDEmNyID9M`, 00 Coordenador `WiHxKHcgbaLG7iFy`) e a tag "Direct Response". Credencial nova `DR · Netlify` criada como **placeholder** (sem valor); as 3 anteriores (xAI Grok, Meta, Hotmart) já existiam e não foram alteradas. Os JSON em `n8n/workflows/` foram regravados com o fluxo da `H-20261127-italo-11`.
+- **Por quê:** levar ao n8n o fluxo completo da `H-20261127-italo-11` (pedido do Italo pelo chat do projeto).
+- **Arquivos tocados:** `n8n/workflows/*.json`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`; fora do repositório: n8n local (`localhost:5678`)
+- **Continua:** H-20261127-italo-11
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs`: TODOS OS TESTES PASSARAM. `gerar.mjs` publicou na primeira tentativa (sem o 400 "no published version"). `checar.mjs`: ok nos 9 (00: 38 nós, 01: 16, 02: 15, 03: 27, 04: 28, 05: 19, 06: 17, 07: 35, 99: 6); a contagem de nós pela API do n8n bate com os JSON. Pela API: o Coordenador está inativo; ativos do DR são só os sub-workflows 01 a 07 e o 99 Erros. Execuções dos 9 workflows: nenhuma nova (as únicas são do 01 Radar e do 03 Construtor, de 2026-11-26, anteriores a esta rodada). Grep nos JSON: sem chave, token ou senha; só 2 `COLE_AQUI` (00 Coordenador e 99 Erros) e 37 referências a credenciais por id. **Não verificado:** execução real dos agentes (nenhum workflow foi rodado) e as chamadas reais listadas na `H-20261127-italo-11`.
+- **Próximo passo:** revisar e fazer merge do PR do branch `n8n/H-20261127-italo-11`; depois preencher credenciais (incluindo `DR · Netlify`), IDs e aprovações conforme `n8n/README.md`.
+
+### H-20261127-italo-11 — Deixar o fluxo do n8n completo sem depender das respostas do Arthur
+
+- **Data/hora:** 2026-11-27 23:15 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** decisão + mudança de arquivo
+- **O que mudou:** (1) **Decisão do Italo:** o objetivo é deixar o fluxo do n8n pronto para funcionar, não validar produto. As decisões do produto (`config.decisoes`: formato, garantia, instrutora, depoimentos, números, bumps, upsell) passam a ser **entradas opcionais**: vazio vira marcador na página e o Revisor segura até preencher. I-03 e D-05 deixam de bloquear. (2) **C-06/T-06:** Claquete pede a imagem em base64 e grava `<pasta_saida>\<slug>\criativos\<id>-<versão>.jpg`; Tráfego sobe as imagens (`/adimages`), cria um criativo por imagem com `facebook_page_id`, link da página, UTMs e `xcod`, usando só headlines aprovadas (o agente só escolhe o índice), e cria os anúncios **PAUSED** em cada conjunto, com trava e conferência (anúncio em `PENDING_REVIEW` com status PAUSED é aceito; `ACTIVE` reprova). (3) **C-07/T-05:** deploy opcional no Netlify depois do Construtor e de novo depois do Funil (zip → `POST /sites/{id}/deploys` → espera 20 s → confere o deploy); o endereço do Netlify vira `url_pagina_publicada` para Revisor e Tráfego. Credencial placeholder nova `DR · Netlify`. (4) **Funil:** produto filtrado por id e oferta principal lida em `/products/{ucode}/offers`; confere preço e moeda contra `preco_aprovado` e `moeda`. (5) **Aprovação dos criativos:** `criativos_aprovados` + `criativos_aprovados_hash` (mesmo modelo da copy; congela a Claquete; exigidos pelo Revisor item 7 e pelo Tráfego). (6) Config nova: `netlify_site_id`, `facebook_page_id`, `dominio_conversao`, `cta_anuncio`, `criativos_aprovados`, `criativos_aprovados_hash`.
+- **Por quê:** o Italo disse no chat do projeto que não quer validar produto com perguntas ao Arthur, só deixar o fluxo do n8n pronto para funcionar.
+- **Arquivos tocados:** `n8n/tools/codigos.mjs`, `n8n/tools/gerar.mjs`, `n8n/tools/prompts.mjs`, `n8n/tools/testar-codigos.mjs`, `n8n/README.md`, `plano/PLANO-DE-ACAO.md`, `plano/DIVISAO-TAREFAS.md`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-italo-10
+- **Depende de:** H-20261127-grok-02 (Hotmart), H-20261127-grok-03 (Meta), H-20261127-grok-04 (Netlify)
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs`: TODOS OS TESTES PASSARAM (testes novos: imagens em arquivo com versão, item 7 sem aprovação ou com outra versão reprova, URL do Netlify e repasse pelo Coordenador, oferta principal com preço/moeda errados reprova, criativo com headline aprovada e trava de claim, anúncios PAUSED por conjunto, `PENDING_REVIEW` aceito e `ACTIVE` reprovado). `gerar.mjs --so-json` + `checar.mjs` numa cópia: ok nos 9 (00: 38 nós, 01: 16, 02: 15, 03: 27, 04: 28, 05: 19, 06: 17, 07: 35, 99: 6); POSTs de criação sem retry. **Não verificado:** chamadas reais (xAI `b64_json`, upload multipart na Meta, deploy no Netlify, API de ofertas da Hotmart), criação da pasta `criativos` pelo nó de gravar, e nó `Compression` 1.1 no n8n 2.46.4.
+- **Próximo passo:** publicar no n8n do PC (`node tools/gerar.mjs`) e registrar; depois só credenciais, IDs e aprovações (lista no `n8n/README.md`).
+
 ### H-20261127-italo-10 — Republicar no n8n o gerador com as correções do Grok
 
 - **Data/hora:** 2026-11-27 22:55 (America/Bahia UTC-3)

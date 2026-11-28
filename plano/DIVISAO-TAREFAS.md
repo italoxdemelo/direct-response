@@ -79,9 +79,9 @@ Legenda: ⬜ a fazer · 🟡 em andamento · ✅ feito · ⛔ bloqueado. "Liga a
 | C-02 | Workflow `99 Erros` + retries nos nós Agent e HTTP | T-02 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-04 |
 | C-03 | Persistir estado entre rodadas e congelar a copy aprovada (hash + versão) | T-03 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-05 |
 | C-04 | Idempotência do Tráfego (procurar campanha por nome) + paginação da Ad Library | T-07 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-06 |
-| C-05 | `config.decisoes` e `criativos_aprovados` no gerador, usando os prompts revisados pelo Grok | T-04 | G-04, D-05 | 🟡 estrutura e prompts aplicados; faltam os valores do Arthur (D-05) e `criativos_aprovados` | 2026-11-27 | H-20261127-italo-09 |
-| C-06 | Imagens da Claquete guardadas + `adimages` → `adcreative` → `ads` **PAUSED** no Tráfego | T-06 | G-02, D-02, D-04 | ⛔ | | |
-| C-07 | Nó de deploy da página | T-05 | G-03, D-07 | ⛔ | | |
+| C-05 | `config.decisoes` e `criativos_aprovados` no gerador, usando os prompts revisados pelo Grok | T-04 | G-04 | ✅ decisões viraram entradas opcionais (não esperam o Arthur); `criativos_aprovados` + hash criados | 2026-11-27 | H-20261127-italo-09, H-20261127-italo-11 |
+| C-06 | Imagens da Claquete guardadas + `adimages` → `adcreative` → `ads` **PAUSED** no Tráfego | T-06 | G-02 | 🟡 pronto, testado e publicado; falta rodar com conta real (C-08) | 2026-11-27 | H-20261127-italo-11 |
+| C-07 | Nó de deploy da página (Netlify, opcional) | T-05 | G-03 | 🟡 pronto, testado e publicado; falta rodar com token real (C-08) | 2026-11-27 | H-20261127-italo-11 |
 | C-08 | Rodadas de teste com credenciais reais, etapa por etapa | V-02 | D-01..D-04 | ⛔ | | |
 
 ### 5.2 Grok (pesquisa, prompts, textos)
@@ -103,7 +103,7 @@ Legenda: ⬜ a fazer · 🟡 em andamento · ✅ feito · ⛔ bloqueado. "Liga a
 |---|---|---|---|
 | I-01 | Colar a chave da xAI na credencial `DR · xAI Grok` no n8n (nunca no chat nem no Git) | D-01, P-12 | ⬜ |
 | I-02 | Instalar a Claude GitHub App em `italoxdemelo` com acesso a `direct-response` (o Claude passa a gravar sem o navegador) | P-11 | ⬜ |
-| I-03 | Mandar ao Arthur as perguntas da G-05 e repassar as respostas | D-05, D-06, D-08 | ⬜ |
+| I-03 | ~~Mandar ao Arthur as perguntas da G-05~~ **Opcional desde 27/11** (`H-20261127-italo-11`): o fluxo não depende das respostas. As decisões são campos de `config.decisoes`; quem opera preenche quando quiser | D-05, D-06, D-08 | ➖ opcional |
 | I-04 | Com o Arthur: token de sistema da Meta, credenciais Hotmart, `pixel_id`, `ad_account_id` | D-02..D-04, P-09 | ⬜ |
 | I-05 | Decidir hospedagem e domínio com base na G-03 | D-07 | ⬜ |
 
@@ -126,3 +126,5 @@ flowchart LR
 ```
 
 Com a chave da xAI e o token da Meta (I-01, I-04), o Radar e o Headline Killer já podem rodar de verdade **sem nenhuma decisão do Arthur**. É o primeiro teste real possível.
+
+**Atualização 27/11 (`H-20261127-italo-11`):** o fluxo inteiro está construído. Nada mais espera resposta do Arthur: as decisões do produto são entradas opcionais (vazio = marcador, e o Revisor segura a página). O que falta para rodar de ponta a ponta é só: credenciais no n8n, IDs na config (pixel, conta de anúncios, página do Facebook, DSA, produto e checkout da Hotmart, site do Netlify ou URL da página) e as três aprovações por campo (`copy_aprovada` + hash, `preco_aprovado`, `criativos_aprovados` + hash). As travas continuam: campanhas sempre PAUSADAS e página só com copy aprovada.

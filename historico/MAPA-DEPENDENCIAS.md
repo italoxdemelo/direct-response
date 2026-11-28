@@ -75,6 +75,13 @@ flowchart TD
   H15["H-20261127-italo-10 Correções publicadas no n8n"]
   HG06 --> H13 --> H14
   H14 --> H15
+  H16["H-20261127-italo-11 Fluxo completo: decisões opcionais, anúncios PAUSED, Netlify, ofertas Hotmart"]
+  H15 --> H16
+  HG02 --> H16
+  HG03 --> H16
+  HG04 --> H16
+  H17["H-20261127-italo-12 Fluxo completo publicado no n8n"]
+  H16 --> H17
   HG06 --> P15
   HG05 --> HG06
 
@@ -168,8 +175,12 @@ flowchart TD
 | H-20261127-italo-08 | Revisão das entregas G-01 a G-06 do Grok (PR #6): ok, sem segredo; achados de código confirmados. | H-20261127-grok-06 | H-20261127-grok-01..06 | — | — |
 | H-20261127-italo-09 | Correções do Grok no gerador: prompts G-04, `config.decisoes`, regex, Revisor item 8, Tráfego compara nome, DSA, `v26.0`. | H-20261127-italo-08 | H-20261127-grok-03, -05, -06 | — | — |
 | H-20261127-italo-10 | Gerador com as correções do Grok republicado no n8n do PC: 9 workflows atualizados, `checar.mjs` ok, `errorWorkflow` do 99 Erros nos 8, Coordenador inativo. | H-20261127-italo-09 | — | — | — |
+| H-20261127-italo-11 | Decisões do produto viram entradas opcionais (fluxo não espera o Arthur); imagens da Claquete no disco; anúncios PAUSED no Tráfego; deploy opcional no Netlify; preço e moeda pela API de ofertas da Hotmart; `criativos_aprovados` + hash. | H-20261127-italo-10 | H-20261127-grok-02, -03, -04 | — | — |
+| H-20261127-italo-12 | Fluxo completo da -11 publicado no n8n do PC: 9 workflows atualizados, `checar.mjs` ok, credencial `DR · Netlify` criada como placeholder, Coordenador inativo, nada executado. | H-20261127-italo-11 | — | — | — |
 
 ### Pendências
+
+> **Desde H-20261127-italo-11:** P-01 a P-07 e P-13 **não bloqueiam o fluxo do n8n**. São entradas opcionais em `config.decisoes`; vazias viram marcador e o Revisor segura a página até alguém preencher. Continuam abertas como decisões do produto. P-14 virou campos da config (`facebook_page_id`, `dsa_pagador`, `dsa_beneficiario`): falta só preencher os valores.
 
 | Nó | Pendência | Estado | Quem decide | Bloqueia | Fonte |
 |---|---|---|---|---|---|

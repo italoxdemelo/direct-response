@@ -56,7 +56,7 @@ const ETAPA = '__ETAPA__';
 return [{ json: {
   etapa: ETAPA, agente: '__AGENTE__',
   aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,
-  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),
+  motivo: p.congelada ? 'entrega aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),
   faltando: p.faltando, em: new Date().toISOString()
 } }];`;
 
@@ -240,6 +240,7 @@ return [{ json: { html, arquivo, saida, verificacoes: {
 export const CONSTRUTOR_PAGEVIEW = String.raw`
 const cfg = $('Entrada').first().json.config;
 const montado = $('Montar HTML final').first().json;
+const alvo = $('URL da página').first().json;
 const pag = $('Página publicada · baixar').first().json;
 const px = $('Pixel · último disparo').first().json;
 const htmlNoAr = typeof pag.body === 'string' ? pag.body : (typeof pag.data === 'string' ? pag.data : '');
@@ -248,41 +249,69 @@ const reInit = new RegExp("fbq\\(\\s*['\"]init['\"]\\s*,\\s*['\"]" + pixel + "['
 const ultimo = px && px.last_fired_time ? px.last_fired_time : null;
 const recente = ultimo ? (Date.now() - new Date(ultimo).getTime()) < 7 * 24 * 3600 * 1000 : false;
 return [{ json: {
-  saida: Object.assign({}, montado.saida, { arquivo: montado.arquivo, html: montado.html, url_publicada: cfg.url_pagina_publicada || null, pixel_ultimo_disparo: ultimo }),
-  verificacoes: Object.assign({}, montado.verificacoes, {
-    pagina_publicada_no_ar: !!cfg.url_pagina_publicada && pag.statusCode === 200,
+  saida: Object.assign({}, montado.saida, { arquivo: montado.arquivo, html: montado.html, url_publicada: alvo.url || null, netlify: alvo.netlify, pixel_ultimo_disparo: ultimo }),
+  verificacoes: Object.assign({}, montado.verificacoes, alvo.netlify ? { netlify_publicou: alvo.netlify.publicou } : {}, {
+    pagina_publicada_no_ar: !!alvo.url && pag.statusCode === 200,
     pixel_certo_na_pagina_publicada: pixel.length > 5 && reInit.test(htmlNoAr),
     pageview_na_pagina_publicada: /fbq\(\s*['"]track['"]\s*,\s*['"]PageView['"]/.test(htmlNoAr),
     utm_na_pagina_publicada: htmlNoAr.includes('dr-utm'),
     pixel_disparou_nos_ultimos_7_dias: recente
   }),
-  avisos: { como_publicar: 'Suba o arquivo ' + montado.arquivo + ' no seu domínio e preencha url_pagina_publicada. Abra a página uma vez no navegador para o PageView disparar e rode de novo.' }
+  avisos: { como_publicar: alvo.netlify ? 'Página publicada pelo Netlify em ' + (alvo.url || '?') + '. Abra a página uma vez no navegador para o PageView disparar e rode de novo.' : 'Preencha netlify_site_id (o fluxo publica sozinho) ou suba o arquivo ' + montado.arquivo + ' no seu domínio e preencha url_pagina_publicada. Abra a página uma vez no navegador para o PageView disparar e rode de novo.' }
 } }];`;
+
+// URL da página: a da configuração ou a que o Netlify devolveu (Construtor)
+export const URL_DA_PAGINA = String.raw`
+const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };
+const cfg = $('Entrada').first().json.config;
+const pub = ran('Netlify · publicar') ? $('Netlify · publicar').first().json : null;
+const conf = ran('Netlify · conferir deploy') ? $('Netlify · conferir deploy').first().json : null;
+const d = Object.assign({}, pub || {}, conf && conf.id ? conf : {});
+const url = String(cfg.url_pagina_publicada || d.ssl_url || d.url || '');
+return [{ json: { url, netlify: pub ? { publicou: !!d.id && !pub.error && d.state !== 'error', deploy_id: d.id || null, estado: d.state || null, url_site: d.ssl_url || d.url || null,
+  erro: pub.error ? String(pub.error.message || JSON.stringify(pub.error)).slice(0, 200) : (d.error_message || null) } : null } }];`;
+
+// Preparar deploy: o HTML final vira index.html dentro do zip
+export const PREPARAR_DEPLOY = String.raw`
+return [{ json: { html: $('__ORIGEM__').first().json.html } }];`;
 
 // ---------------- FUNIL ----------------
 export const FUNIL_DADOS = String.raw`
 const cfg = $('Entrada').first().json.config;
 const tok = $('Hotmart · token').first().json;
 const prod = $('Hotmart · produtos').first().json;
+const ofs = $('Hotmart · ofertas').first().json;
 const chk = $('Checkout · conferir').first().json;
 const lista = Array.isArray(prod.items) ? prod.items : (Array.isArray(prod.data) ? prod.data : []);
 const alvo = String(cfg.hotmart_product_id || '');
 const achado = lista.find(p => String(p.id) === alvo || String(p.ucode) === alvo) || null;
 const corpo = typeof chk.body === 'string' ? chk.body : '';
 const preco = String(cfg.preco_aprovado || '').replace(/[^\d,\.]/g, '');
+// "14,90 €" ou "1.234,90" -> 14.9 / 1234.9 (vírgula decimal, como em Portugal e no Brasil)
+const precoNum = preco ? Number(preco.replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')) : NaN;
+const ofertas = Array.isArray(ofs.items) ? ofs.items : (Array.isArray(ofs.data) ? ofs.data : []);
+const principal = ofertas.find(o => o && o.is_main_offer === true) || (ofertas.length === 1 ? ofertas[0] : null);
+const valor = principal && principal.price ? Number(principal.price.value) : NaN;
+const moedaOferta = principal && principal.price ? String(principal.price.currency_code || '') : '';
 return [{ json: {
   dados: {
     pais: cfg.nome_pais, moeda: cfg.moeda, preco_aprovado: cfg.preco_aprovado,
     produto_hotmart: achado, produtos_na_conta: lista.slice(0, 20).map(p => ({ id: p.id, nome: p.name, status: p.status })),
+    oferta_principal: principal ? { codigo: principal.code || null, valor: isNaN(valor) ? null : valor, moeda: moedaOferta, pagamento: principal.payment_mode || null, conversao_de_moeda: principal.is_currency_conversion_enabled === true, link_direto: principal.direct_offer_link_for_creator || null } : null,
     checkout_url: cfg.hotmart_checkout_url, checkout_status_http: chk.statusCode || null,
     entregaveis_confirmados: cfg.entregaveis_confirmados || [], oferta: cfg.oferta_escolhida
   },
   verificacoes: {
     hotmart_api_autenticou: !!tok.access_token,
     produto_existe_na_hotmart: !!achado,
+    oferta_principal_encontrada: !!principal,
+    preco_da_oferta_igual_ao_aprovado: !isNaN(precoNum) && !isNaN(valor) && Math.abs(valor - precoNum) < 0.005,
+    moeda_da_oferta_igual_a_config: !!moedaOferta && moedaOferta === String(cfg.moeda || ''),
     checkout_no_ar: chk.statusCode === 200
   },
   avisos: {
+    pagamento_da_oferta: principal ? (['UNIQUE_PAYMENT', 'PAY_IN_FULL'].includes(principal.payment_mode) ? 'pagamento único' : 'a oferta principal não é pagamento único (' + principal.payment_mode + '): confira se é o formato decidido') : '',
+    conversao_de_moeda: principal && principal.is_currency_conversion_enabled === true ? 'a Hotmart converte a moeda para compradores de fora: o preço mostrado pode variar' : '',
     checkout_mostra_preco_no_html: preco ? corpo.includes(preco) : false,
     nota: 'O checkout da Hotmart desenha o preço por JavaScript; se este aviso vier false, confira o preço no navegador.'
   }
@@ -303,8 +332,19 @@ return [{ json: { html, arquivo: e.estado.construtor.saida.arquivo, saida, verif
 } } }];`;
 
 export const FUNIL_FIM = String.raw`
+const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };
 const l = $('Link do checkout nos botões').first().json;
-return [{ json: { saida: Object.assign({}, l.saida, { html: l.html, arquivo: l.arquivo }), verificacoes: Object.assign({}, l.verificacoes, { pagina_regravada_no_disco: !$json.error }) } }];`;
+const gravou = !$('Regravar index.html').first().json.error;
+const extra = { pagina_regravada_no_disco: gravou };
+let netlify = null;
+if (ran('Netlify · publicar')) {
+  const pub = $('Netlify · publicar').first().json;
+  const conf = ran('Netlify · conferir deploy') ? $('Netlify · conferir deploy').first().json : {};
+  const d = Object.assign({}, pub, conf && conf.id ? conf : {});
+  netlify = { deploy_id: d.id || null, estado: d.state || null, url_site: d.ssl_url || d.url || null };
+  extra.netlify_republicou_com_checkout = !!d.id && !pub.error && d.state !== 'error';
+}
+return [{ json: { saida: Object.assign({}, l.saida, { html: l.html, arquivo: l.arquivo, netlify }), verificacoes: Object.assign({}, l.verificacoes, extra) } }];`;
 
 // ---------------- CLAQUETE ----------------
 export const CLAQUETE_DADOS = String.raw`
@@ -317,21 +357,42 @@ ${UTIL}
 const plano = parseJSON($json.output);
 const imgs = Array.isArray(plano.imagens) ? plano.imagens : [];
 if (!imgs.length) return [{ json: { id: null, prompt: '', sem_imagens: true } }];
-return imgs.slice(0, 6).map(i => ({ json: { id: i.id, prompt: [i.prompt, i.texto_na_imagem ? 'Text on image: "' + i.texto_na_imagem + '"' : ''].filter(Boolean).join('. '), formato: i.formato } }));`;
+return imgs.slice(0, 6).map(i => ({ json: { id: i.id, prompt: [i.prompt, i.texto_na_imagem ? 'Text on image: "' + i.texto_na_imagem + '"' : ''].filter(Boolean).join('. '), formato: i.formato, texto_na_imagem: i.texto_na_imagem || '' } }));`;
+
+// Cada imagem (base64 da xAI) vira um arquivo <pasta_saida>\<slug>\criativos\<id>-<versão>.jpg
+// A versão no nome muda quando a imagem muda: a aprovação (criativos_aprovados_hash) vale só para estas imagens.
+export const CLAQUETE_ARQUIVOS = String.raw`
+${UTIL}
+const cfg = $('Entrada').first().json.config;
+const pedidos = $('Imagens → itens').all().map(i => i.json);
+const slug = String(cfg.oferta_escolhida && cfg.oferta_escolhida.slug || 'oferta').replace(/[^a-z0-9-]/gi, '-');
+const pasta = String(cfg.pasta_saida || '').replace(/[\\/]+$/, '') + '\\' + slug + '\\criativos';
+return $input.all().map((it, i) => {
+  const r = it.json || {};
+  const p = pedidos[i] || {};
+  const d = Array.isArray(r.data) ? r.data[0] : null;
+  const b64 = d && d.b64_json ? String(d.b64_json).replace(/^data:[^,]+,/, '') : '';
+  const base = { id: p.id || ('img' + (i + 1)), formato: p.formato || null, texto_na_imagem: p.texto_na_imagem || '' };
+  if (!b64) return { json: Object.assign(base, { arquivo: null, versao: null, erro: r.error ? String(r.error.message || JSON.stringify(r.error)).slice(0, 200) : 'a xAI não devolveu imagem' }) };
+  const versao = hashTexto(b64);
+  const nome = String(base.id).replace(/[^a-z0-9-]/gi, '-') + '-' + versao + '.jpg';
+  return { json: Object.assign(base, { arquivo: pasta + '\\' + nome, versao, erro: null }),
+    binary: { data: { data: b64, mimeType: 'image/jpeg', fileName: nome, fileExtension: 'jpg' } } };
+});`;
 
 export const CLAQUETE_POS = String.raw`
 ${UTIL}
 const plano = parseJSON($('Agente · Claquete').first().json.output);
-const pedidos = $('Imagens → itens').all().map(i => i.json);
-const resp = $input.all().map(i => i.json);
-const geradas = pedidos.map((p, i) => {
-  const r = resp[i] || {};
-  const d = Array.isArray(r.data) ? r.data[0] : null;
-  return { id: p.id, url: d && d.url ? d.url : null, erro: r.error ? String(r.error.message || JSON.stringify(r.error)).slice(0, 200) : null };
+const arquivos = $('Imagens → arquivos').all().map(i => i.json);
+const gravacao = $input.all().map(i => i.json || {});
+const geradas = arquivos.map((a, i) => {
+  const falhou = !!(gravacao[i] && gravacao[i].error);
+  return { id: a.id, arquivo: a.arquivo && !falhou ? a.arquivo : null, versao: a.versao, formato: a.formato, texto_na_imagem: a.texto_na_imagem,
+    erro: a.erro || (falhou ? 'não gravou no disco: ' + String(gravacao[i].error.message || gravacao[i].error).slice(0, 160) : null) };
 });
-return [{ json: { saida: { plano, imagens_geradas: geradas }, verificacoes: {
+return [{ json: { saida: { plano, imagens_geradas: geradas, pasta: geradas[0] && geradas[0].arquivo ? geradas[0].arquivo.replace(/\\[^\\]+$/, '') : null }, verificacoes: {
   saida_do_agente_em_json: !plano.erro_parse,
-  imagens_geradas: geradas.length > 0 && geradas.every(g => !!g.url),
+  imagens_geradas_e_gravadas: geradas.length > 0 && geradas.every(g => !!g.arquivo),
   videos_roteirizados: Array.isArray(plano.videos) && plano.videos.length > 0
 } } }];`;
 
@@ -364,7 +425,7 @@ const checklist = {
   '4_links_de_checkout_certos_e_no_ar': linksCheckout.length > 0 && linksCheckout.every(h => h.split('?')[0] === urlChk.split('?')[0]) && !html.includes('{{CHECKOUT_URL}}') && chk.statusCode === 200,
   '5_preco_aprovado_e_sem_preco_riscado': !!rePreco && rePreco.test(texto) && !PRECO_RISCADO.test(html),
   '6_idioma_do_destino': (idi.includes('-') ? lang.toLowerCase() === idi : lang.toLowerCase().split('-')[0] === idi) && (idi !== 'pt-pt' || !/(^|[^\p{L}])voc[eê]s?(?![\p{L}])/iu.test(texto)),
-  '7_criativos_prontos': imgs.length > 0 && imgs.every(i => !!i.url),
+  '7_criativos_prontos_e_aprovados': imgs.length > 0 && imgs.every(i => !!(i.arquivo || i.url)) && cfg.criativos_aprovados === true && !!cfg.criativos_aprovados_hash && !!est.claquete && est.claquete.saida_hash === cfg.criativos_aprovados_hash,
   '8_sem_marcadores_pendentes': !!html && !MARCADOR_PENDENTE.test(html)
 };
 return [{ json: {
@@ -379,11 +440,16 @@ return [{ json: { saida, verificacoes: { saida_do_agente_em_json: !saida.erro_pa
 
 // ---------------- TRÁFEGO ----------------
 export const TRAFEGO_DADOS = String.raw`
-const cfg = $('Entrada').first().json.config;
+const e = $('Entrada').first().json;
+const cfg = e.config, est = e.estado || {};
+const headlines = (est.headline && est.headline.saida && est.headline.saida.headlines) || [];
+const imgs = ((est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || []).filter(i => i && i.arquivo);
 return [{ json: { dados: {
   pais: cfg.pais_destino, oferta: cfg.oferta_escolhida, url_pagina: cfg.url_pagina_publicada,
-  orcamento_diario_centavos: cfg.orcamento_diario_centavos, publico_sugerido: cfg.publico || null
-}, verificacoes: {}, avisos: {} } }];`;
+  orcamento_diario_centavos: cfg.orcamento_diario_centavos, publico_sugerido: cfg.publico || null,
+  headlines_aprovadas: headlines.map((h, i) => ({ indice: i, texto: h })),
+  imagens_aprovadas: imgs.map(i => ({ id: i.id, texto_na_imagem: i.texto_na_imagem || '' }))
+}, verificacoes: { tem_headlines_aprovadas: headlines.length > 0, tem_imagens_aprovadas: imgs.length > 0 }, avisos: {} } }];`;
 
 export const TRAFEGO_PAYLOAD = String.raw`
 ${UTIL}
@@ -424,11 +490,70 @@ const camp = $json;
 const id = camp && camp.id ? camp.id : null;
 return p.conjuntos.map(c => ({ json: { campaign_id: id, body: Object.assign({}, c, { campaign_id: id, status: 'PAUSED' }) } }));`;
 
+// Imagens aprovadas da Claquete (arquivos no disco) -> uma por item, para subir na conta de anúncios
+export const TRAFEGO_CRIATIVOS_ARQUIVOS = String.raw`
+const est = $('Entrada').first().json.estado || {};
+const imgs = ((est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || []).filter(i => i && i.arquivo).slice(0, 6);
+if (!imgs.length) return [{ json: { id: null, arquivo: '', sem_imagens: true } }];
+return imgs.map(i => ({ json: { id: i.id, arquivo: i.arquivo, versao: i.versao || null } }));`;
+
+// Um criativo por imagem. Texto: SÓ headlines aprovadas (o modelo escolhe o índice, não escreve texto novo).
+export const TRAFEGO_CRIATIVOS = String.raw`
+${UTIL}
+const e = $('Entrada').first().json;
+const cfg = e.config, est = e.estado || {};
+const plano = $('Payload PAUSADO').first().json.plano || {};
+const arquivos = $('Criativos → arquivos').all().map(i => i.json);
+const subidas = $input.all().map(i => i.json || {});
+const headlines = (est.headline && est.headline.saida && est.headline.saida.headlines) || [];
+const url = String(cfg.url_pagina_publicada || '');
+const escolhas = Array.isArray(plano.anuncios) ? plano.anuncios : [];
+const out = [];
+arquivos.forEach((a, i) => {
+  const r = subidas[i] || {};
+  const img = r.images && typeof r.images === 'object' ? Object.values(r.images)[0] : null;
+  if (!a.id || !img || !img.hash) return;
+  const esc = escolhas.find(x => x && x.imagem_id === a.id) || {};
+  const k = Number.isInteger(esc.headline_indice) && headlines[esc.headline_indice] ? esc.headline_indice : (i % Math.max(headlines.length, 1));
+  const texto = String(headlines[k] || '');
+  const titulo = String(headlines[(k + 1) % Math.max(headlines.length, 1)] || texto);
+  if (CLAIMS_SAUDE.test(texto + ' ' + titulo) || PRECO_RISCADO.test(texto + ' ' + titulo)) throw new Error('Trava do Tráfego: texto do anúncio com claim de saúde, escassez ou preço riscado. Nada foi criado.');
+  out.push({ json: { imagem_id: a.id, image_hash: img.hash, criativo: {
+    name: $('Payload PAUSADO').first().json.campanha.name + ' | ' + a.id + (a.versao ? '-' + a.versao : ''),
+    object_story_spec: { page_id: String(cfg.facebook_page_id), link_data: {
+      link: url, message: texto, name: titulo, image_hash: img.hash,
+      call_to_action: { type: cfg.cta_anuncio || 'LEARN_MORE', value: { link: url } } } },
+    url_tags: 'utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.id}}&xcod={{ad.id}}'
+  } } });
+});
+if (!out.length) return [{ json: { sem_criativos: true, criativo: null, erros_upload: subidas.filter(s => s.error).map(s => String(s.error.message || JSON.stringify(s.error)).slice(0, 200)) } }];
+return out;`;
+
+// Anúncios: cada conjunto criado x cada criativo criado, sempre PAUSED
+export const TRAFEGO_ANUNCIOS = String.raw`
+const cfg = $('Entrada').first().json.config;
+const conjuntos = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json).filter(c => c && c.id);
+const pedidos = $('Anúncios → criativos').all().map(i => i.json);
+const criados = $input.all().map(i => i.json || {});
+const criativos = pedidos.map((p, i) => ({ imagem_id: p.imagem_id, id: criados[i] && criados[i].id })).filter(c => c.imagem_id && c.id);
+const nomeBase = $('Payload PAUSADO').first().json.campanha.name;
+const out = [];
+conjuntos.forEach((c, ci) => criativos.forEach(cr => out.push({ json: { body: Object.assign({
+  name: nomeBase + ' | conjunto ' + (ci + 1) + ' | ' + cr.imagem_id,
+  adset_id: c.id, creative: { creative_id: cr.id }, status: 'PAUSED'
+}, cfg.dominio_conversao ? { conversion_domain: String(cfg.dominio_conversao) } : {}) } })));
+const tudo = JSON.stringify(out);
+if (/"status"\s*:\s*"(?!PAUSED)/.test(tudo) || /ACTIVE/.test(tudo)) throw new Error('Trava do Tráfego: anúncio com status diferente de PAUSED. Nada foi enviado.');
+if (!out.length) return [{ json: { sem_anuncios: true, body: null } }];
+return out;`;
+
 export const TRAFEGO_IDS = String.raw`
+const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };
 const camp = $('Meta · criar campanha (PAUSED)').first().json;
 const ids = [];
 if (camp && camp.id) ids.push({ json: { id: camp.id, tipo: 'campanha' } });
-for (const r of $input.all()) if (r.json && r.json.id) ids.push({ json: { id: r.json.id, tipo: 'conjunto' } });
+for (const r of $('Meta · criar conjunto (PAUSED)').all()) if (r.json && r.json.id) ids.push({ json: { id: r.json.id, tipo: 'conjunto' } });
+if (ran('Meta · criar anúncio (PAUSED)')) for (const r of $('Meta · criar anúncio (PAUSED)').all()) if (r.json && r.json.id) ids.push({ json: { id: r.json.id, tipo: 'anuncio' } });
 if (!ids.length) return [{ json: { id: 'nenhum', tipo: 'nenhum' } }];
 return ids;`;
 
@@ -463,23 +588,28 @@ if (ran('Reusar campanha')) {
       conjuntos_criados: ids.length > 1,
       tudo_pausado_conferido_na_api: st0.length > 0 && ativos.length === 0
     },
-    avisos: { reutilizada: 'A campanha já existia com este nome: nada foi criado nem alterado nesta rodada (sem duplicar).',
+    avisos: { reutilizada: 'A campanha já existia com este nome: nada foi criado nem alterado nesta rodada (sem duplicar). Os anúncios dela não são conferidos aqui; veja no Gerenciador. Para subir de novo, troque campanha_nome.',
       ativos: ativos.length ? 'Itens já ativos (ativados fora do fluxo): ' + ativos.map(a => a.id + ' ' + a.status).join(', ') : '' }
   } }];
 }
 const camp = $('Meta · criar campanha (PAUSED)').first().json;
 const conj = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json);
+const ads = ran('Meta · criar anúncio (PAUSED)') ? $('Meta · criar anúncio (PAUSED)').all().map(i => i.json || {}) : [];
 const st = $input.all().map(i => i.json).filter(s => s && s.id);
-const naoPausados = st.filter(s => s.status !== 'PAUSED' || (s.effective_status && !['PAUSED', 'CAMPAIGN_PAUSED', 'ADSET_PAUSED'].includes(s.effective_status)));
+// Pausado = status PAUSED e nunca entregando. Anúncio novo fica em PENDING_REVIEW / IN_PROCESS: isso não é ativo.
+const naoPausados = st.filter(s => s.status !== 'PAUSED' || s.effective_status === 'ACTIVE');
+const erro = x => x && x.error ? String(x.error.message || JSON.stringify(x.error)).slice(0, 200) : null;
 return [{ json: {
-  saida: { plano, campanha: camp && camp.id ? { id: camp.id } : { erro: camp && camp.error ? camp.error.message : 'não criada' },
-    conjuntos: conj.map(c => c.id ? { id: c.id } : { erro: c.error ? c.error.message : 'não criado' }), status_conferido: st },
+  saida: { plano, campanha: camp && camp.id ? { id: camp.id } : { erro: erro(camp) || 'não criada' },
+    conjuntos: conj.map(c => c.id ? { id: c.id } : { erro: erro(c) || 'não criado' }),
+    anuncios: ads.map(a => a.id ? { id: a.id } : { erro: erro(a) || 'não criado' }), status_conferido: st },
   verificacoes: {
     campanha_criada: !!(camp && camp.id),
     conjuntos_criados: conj.length > 0 && conj.every(c => !!c.id),
+    anuncios_criados: ads.length > 0 && ads.every(a => !!a.id),
     tudo_pausado_conferido_na_api: st.length > 0 && naoPausados.length === 0
   },
-  avisos: { anuncios: 'Os anúncios (criativos) dentro dos conjuntos ainda não são criados por este fluxo; suba os criativos da Claquete e crie os anúncios também PAUSADOS.' }
+  avisos: { quem_ativa: 'Tudo ficou PAUSADO. Quem ativa é o Arthur, no Gerenciador de Anúncios.' }
 } }];`;
 
 // ---------------- COORDENADOR ----------------
@@ -497,7 +627,9 @@ try { const d = $('Estado salvo · extrair').first().json; salvo = d && d.data &
 const estado = { plano_do_coordenador: $json.output || '(plano indisponível: o modelo não respondeu)', inicio_rodada: new Date().toISOString() };
 // Etapas de rodadas anteriores entram marcadas: valem como entrega (ex.: copy congelada), nunca como aprovação "desta rodada"
 for (const k of ETAPAS) if (salvo[k] && typeof salvo[k] === 'object') estado[k] = Object.assign({}, salvo[k], { de_rodada_anterior: true });
-return [{ json: { config, estado, arquivo_estado: $('Arquivo de estado').first().json.arquivo_estado } }];`;
+const u = estado.construtor && estado.construtor.saida && estado.construtor.saida.url_publicada;
+const cfg = Object.assign({}, config, !config.url_pagina_publicada && u ? { url_pagina_publicada: u } : {});
+return [{ json: { config: cfg, estado, arquivo_estado: $('Arquivo de estado').first().json.arquivo_estado } }];`;
 
 export const COORD_ESTADO = String.raw`
 const base = JSON.parse(JSON.stringify($('__PREV__').first().json));
@@ -505,6 +637,9 @@ const anterior = base.estado['__ETAPA__'];
 // Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)
 if ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['__ETAPA__'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });
 else base.estado['__ETAPA__'] = $json;
+// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração
+const u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;
+if (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;
 return [{ json: base }];`;
 
 export const COORD_SALVAR = String.raw`
@@ -518,9 +653,11 @@ return [{ json: { texto: JSON.stringify(guardar, null, 2), arquivo: $('Estado in
 export const COORD_PROGRESSO = String.raw`
 const p = $('Prazos e resumo').first().json;
 const h = p.estado.headline;
+const cq = p.estado.claquete;
 let texto = $json.output;
 if (!texto) texto = '(relatório do modelo indisponível)\n' + p.prazos.map(l => l.n + '. ' + l.agente + ': ' + l.status + (l.motivo ? ' (' + l.motivo + ')' : '')).join('\n');
 if (h && h.saida_hash) texto += '\n\nVersão da copy: ' + h.saida_hash + (p.config.copy_aprovada_hash === h.saida_hash ? ' (é a aprovada)' : ' (para aprovar esta versão, o Arthur confere a copy e o Italo põe este código em copy_aprovada_hash e copy_aprovada: true)');
+if (cq && cq.saida_hash && cq.saida && (cq.saida.imagens_geradas || []).length) texto += '\nVersão dos criativos: ' + cq.saida_hash + (p.config.criativos_aprovados_hash === cq.saida_hash ? ' (é a aprovada)' : ' (imagens em ' + (cq.saida.pasta || 'pasta_saida') + '; para aprovar, ponha este código em criativos_aprovados_hash e criativos_aprovados: true)');
 return [{ json: { progresso: texto, prazos: p.prazos, estado: p.estado } }];`;
 
 export const COORD_PRAZOS = String.raw`
@@ -566,7 +703,8 @@ return [{ json: {
   // HEADLINE KILLER — oferta escolhida pelo dono.
   oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },
 
-  // Decisões do dono (P-01 a P-07, P-13; perguntas em plano/rascunhos/perguntas-arthur.md). Vazio = não decidido (o agente usa marcador).
+  // Decisões do produto: ENTRADAS OPCIONAIS. O fluxo roda com tudo vazio; campo vazio vira marcador na página
+  // (ex.: [GARANTIA A DEFINIR PELO PRODUTOR]) e o Revisor segura a página até ele ser preenchido. Nada é inventado.
   decisoes: {
     formato: '',
     garantia: { dias: null, texto_aprovado: '', renuncia_14_dias: null },
@@ -582,13 +720,16 @@ return [{ json: {
   // Aprovações do dono (só você muda isto).
   copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)
   copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo
-  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil
+  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil (conferido contra a oferta principal na Hotmart)
   entregaveis_confirmados: [],
+  criativos_aprovados: false,     // libera o Tráfego (junto com criativos_aprovados_hash)
+  criativos_aprovados_hash: '',   // versão aprovada das imagens (sai no relatório). Congela os criativos: a Claquete não gera de novo
 
   // CONSTRUTOR / PIXEL
   pixel_id: '',
   pasta_saida: 'C:\\Users\\italo\\Downloads\\claude\\canal-dark-n8n\\data\\direct-response',
-  url_pagina_publicada: '',
+  netlify_site_id: '',       // preenchido = o fluxo publica a página no Netlify sozinho (credencial DR · Netlify)
+  url_pagina_publicada: '',  // vazio + Netlify = usa o endereço do Netlify; preencha se usar domínio próprio
   url_privacidade: '',
   url_termos: '',
 
@@ -598,6 +739,9 @@ return [{ json: {
 
   // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS
   ad_account_id: '',         // formato act_1234567890
+  facebook_page_id: '',      // página do Facebook que assina os anúncios
+  dominio_conversao: '',     // opcional: domínio da página para o Meta (ex.: exemplo.pt)
+  cta_anuncio: 'LEARN_MORE', // botão do anúncio (LEARN_MORE, SHOP_NOW...)
   campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha
   dsa_pagador: '',           // UE: quem paga os anúncios (P-14). Obrigatório para anunciar em Portugal
   dsa_beneficiario: '',      // UE: quem se beneficia dos anúncios (P-14)

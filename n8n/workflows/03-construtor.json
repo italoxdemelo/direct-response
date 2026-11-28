@@ -2,7 +2,7 @@
   "name": "Direct Response · 03 Construtor (página)",
   "nodes": [
     {
-      "id": "1a957a94-78cc-4976-a2fa-fb5a02e41153",
+      "id": "334a3c31-f105-40e0-85d9-4f2a9e7f85f5",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "e5d9f25e-bc25-418b-aa61-2a55c08c29cb",
+      "id": "af58aefe-30c2-4381-bb8b-bfe0a030e34f",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "8de5f779-c5bf-47a4-9b60-2314d6fa5d5f",
+      "id": "29ad358b-5fa5-48b7-90c4-20603b434319",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "11ccde7a-bde8-4fe1-aae5-0bee57b0654a",
+              "id": "8488fbef-248b-4cdd-becc-858af8baffb9",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "f96c7dc4-5122-4520-affe-9ccc885ea361",
+      "id": "15769fdb-b276-4d97-99b2-e8b7be49c830",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'construtor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Construtor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'construtor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Construtor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'entrega aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "5670bcf1-02d2-440a-9e9a-93fc0bb296b8",
+      "id": "92241c49-6c86-420a-a2a4-e51333bcab63",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "e6688d8b-334a-4d25-94d9-09b4469a6886",
+      "id": "a2f5ebba-d964-42f5-bfe0-6dc5e43e4318",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "id": "c34c0148-dc36-4501-8ca7-70f3410bf3f5",
+      "id": "26d3688e-c890-4fe3-9e75-8aa65a102b89",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "29a77ee6-effc-4e0a-8ec2-016ec6e6464f",
+      "id": "cb322358-514f-489d-8158-ebe3429ad723",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -149,7 +149,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "2a48a376-ed8d-4a1f-ba01-d8694903afa3",
+      "id": "80c4a5ee-fa79-4482-ac54-a6d45e5473ab",
       "name": "Agente · Construtor",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -171,7 +171,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "1965ef44-46af-4185-8992-b096999827e2",
+      "id": "5116bef3-7b12-43ed-887c-c01d970c47aa",
       "name": "Montar HTML final",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -184,7 +184,7 @@
       }
     },
     {
-      "id": "f3555b49-39aa-46a2-853b-81f7b0011110",
+      "id": "aec10715-a441-4955-a753-7254db3eca27",
       "name": "HTML → arquivo",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
@@ -201,7 +201,7 @@
       }
     },
     {
-      "id": "53866401-5576-460e-9eef-10f870ab0d56",
+      "id": "6a963b2f-c07e-4bbb-9c64-3b397c08d863",
       "name": "Gravar index.html",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -218,17 +218,197 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "bbada6db-c7ee-4032-9620-81a065bcdb5d",
-      "name": "Página publicada · baixar",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "a46ced5a-dac0-461c-94a1-61792cc01419",
+      "name": "Netlify configurado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
       "position": [
         2140,
         300
       ],
       "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "68aa1ec7-a10a-4c1f-a29e-a65afac2cddd",
+              "leftValue": "={{ !!$('Entrada').first().json.config.netlify_site_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "ee34d92d-9f75-44cd-96ee-60e8f74b5a39",
+      "name": "Preparar deploy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2360,
+        100
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { html: $('Montar HTML final').first().json.html } }];"
+      }
+    },
+    {
+      "id": "5b4e1ff8-a319-419e-9615-40f2ce7ed72c",
+      "name": "HTML → index.html",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2580,
+        100
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "html",
+        "options": {
+          "fileName": "index.html"
+        }
+      }
+    },
+    {
+      "id": "9dc82767-f48a-4b56-9b8a-1e6419432317",
+      "name": "Compactar (zip)",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        2800,
+        100
+      ],
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "data",
+        "outputFormat": "zip",
+        "fileName": "site.zip",
+        "binaryPropertyOutput": "data"
+      }
+    },
+    {
+      "id": "cc4c88cf-3ded-46b3-8cf3-a10f2194017b",
+      "name": "Netlify · publicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3020,
+        100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.netlify.com/api/v1/sites/{{ $('Entrada').first().json.config.netlify_site_id }}/deploys",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/zip"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "epCGSYZu06OaC53T",
+          "name": "DR · Netlify"
+        }
+      }
+    },
+    {
+      "id": "ddb50eda-1e75-4426-b535-b823675463b8",
+      "name": "Esperar publicação",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3240,
+        100
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 20,
+        "unit": "seconds"
+      },
+      "webhookId": "6425ed00-1430-4bd7-9249-a83014ac544c"
+    },
+    {
+      "id": "9cf3ccfa-1200-4442-b683-29ef034f2c8f",
+      "name": "Netlify · conferir deploy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3460,
+        100
+      ],
+      "parameters": {
         "method": "GET",
-        "url": "={{ $('Entrada').first().json.config.url_pagina_publicada || 'http://invalid.local' }}",
+        "url": "=https://api.netlify.com/api/v1/deploys/{{ $('Netlify · publicar').first().json.id || 'sem-id' }}",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "epCGSYZu06OaC53T",
+          "name": "DR · Netlify"
+        }
+      }
+    },
+    {
+      "id": "3b0f81b9-3bc7-413d-ab7b-60dad6af333e",
+      "name": "URL da página",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3680,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };\nconst cfg = $('Entrada').first().json.config;\nconst pub = ran('Netlify · publicar') ? $('Netlify · publicar').first().json : null;\nconst conf = ran('Netlify · conferir deploy') ? $('Netlify · conferir deploy').first().json : null;\nconst d = Object.assign({}, pub || {}, conf && conf.id ? conf : {});\nconst url = String(cfg.url_pagina_publicada || d.ssl_url || d.url || '');\nreturn [{ json: { url, netlify: pub ? { publicou: !!d.id && !pub.error && d.state !== 'error', deploy_id: d.id || null, estado: d.state || null, url_site: d.ssl_url || d.url || null,\n  erro: pub.error ? String(pub.error.message || JSON.stringify(pub.error)).slice(0, 200) : (d.error_message || null) } : null } }];"
+      }
+    },
+    {
+      "id": "c1cb979e-d3f3-473a-947e-49af2b439157",
+      "name": "Página publicada · baixar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3900,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('URL da página').first().json.url || 'http://invalid.local' }}",
         "options": {
           "response": {
             "response": {
@@ -247,12 +427,12 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "1882c4c3-ec8f-4895-b859-154b7a9cefac",
+      "id": "f77436fd-d6f4-4638-a8d4-e02d39c5796d",
       "name": "Pixel · último disparo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2360,
+        4120,
         300
       ],
       "parameters": {
@@ -280,25 +460,25 @@
       }
     },
     {
-      "id": "9e343887-6a3d-4c98-a62f-a12148dba1a2",
+      "id": "5a6edc08-f215-4d25-b503-17e09d78445e",
       "name": "Conferência do PageView",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2580,
+        4340,
         300
       ],
       "parameters": {
-        "jsCode": "const cfg = $('Entrada').first().json.config;\nconst montado = $('Montar HTML final').first().json;\nconst pag = $('Página publicada · baixar').first().json;\nconst px = $('Pixel · último disparo').first().json;\nconst htmlNoAr = typeof pag.body === 'string' ? pag.body : (typeof pag.data === 'string' ? pag.data : '');\nconst pixel = String(cfg.pixel_id || '');\nconst reInit = new RegExp(\"fbq\\\\(\\\\s*['\\\"]init['\\\"]\\\\s*,\\\\s*['\\\"]\" + pixel + \"['\\\"]\");\nconst ultimo = px && px.last_fired_time ? px.last_fired_time : null;\nconst recente = ultimo ? (Date.now() - new Date(ultimo).getTime()) < 7 * 24 * 3600 * 1000 : false;\nreturn [{ json: {\n  saida: Object.assign({}, montado.saida, { arquivo: montado.arquivo, html: montado.html, url_publicada: cfg.url_pagina_publicada || null, pixel_ultimo_disparo: ultimo }),\n  verificacoes: Object.assign({}, montado.verificacoes, {\n    pagina_publicada_no_ar: !!cfg.url_pagina_publicada && pag.statusCode === 200,\n    pixel_certo_na_pagina_publicada: pixel.length > 5 && reInit.test(htmlNoAr),\n    pageview_na_pagina_publicada: /fbq\\(\\s*['\"]track['\"]\\s*,\\s*['\"]PageView['\"]/.test(htmlNoAr),\n    utm_na_pagina_publicada: htmlNoAr.includes('dr-utm'),\n    pixel_disparou_nos_ultimos_7_dias: recente\n  }),\n  avisos: { como_publicar: 'Suba o arquivo ' + montado.arquivo + ' no seu domínio e preencha url_pagina_publicada. Abra a página uma vez no navegador para o PageView disparar e rode de novo.' }\n} }];"
+        "jsCode": "const cfg = $('Entrada').first().json.config;\nconst montado = $('Montar HTML final').first().json;\nconst alvo = $('URL da página').first().json;\nconst pag = $('Página publicada · baixar').first().json;\nconst px = $('Pixel · último disparo').first().json;\nconst htmlNoAr = typeof pag.body === 'string' ? pag.body : (typeof pag.data === 'string' ? pag.data : '');\nconst pixel = String(cfg.pixel_id || '');\nconst reInit = new RegExp(\"fbq\\\\(\\\\s*['\\\"]init['\\\"]\\\\s*,\\\\s*['\\\"]\" + pixel + \"['\\\"]\");\nconst ultimo = px && px.last_fired_time ? px.last_fired_time : null;\nconst recente = ultimo ? (Date.now() - new Date(ultimo).getTime()) < 7 * 24 * 3600 * 1000 : false;\nreturn [{ json: {\n  saida: Object.assign({}, montado.saida, { arquivo: montado.arquivo, html: montado.html, url_publicada: alvo.url || null, netlify: alvo.netlify, pixel_ultimo_disparo: ultimo }),\n  verificacoes: Object.assign({}, montado.verificacoes, alvo.netlify ? { netlify_publicou: alvo.netlify.publicou } : {}, {\n    pagina_publicada_no_ar: !!alvo.url && pag.statusCode === 200,\n    pixel_certo_na_pagina_publicada: pixel.length > 5 && reInit.test(htmlNoAr),\n    pageview_na_pagina_publicada: /fbq\\(\\s*['\"]track['\"]\\s*,\\s*['\"]PageView['\"]/.test(htmlNoAr),\n    utm_na_pagina_publicada: htmlNoAr.includes('dr-utm'),\n    pixel_disparou_nos_ultimos_7_dias: recente\n  }),\n  avisos: { como_publicar: alvo.netlify ? 'Página publicada pelo Netlify em ' + (alvo.url || '?') + '. Abra a página uma vez no navegador para o PageView disparar e rode de novo.' : 'Preencha netlify_site_id (o fluxo publica sozinho) ou suba o arquivo ' + montado.arquivo + ' no seu domínio e preencha url_pagina_publicada. Abra a página uma vez no navegador para o PageView disparar e rode de novo.' }\n} }];"
       }
     },
     {
-      "id": "d4535a8c-46dd-4441-a793-9a308e1f3528",
+      "id": "d7163d1e-8de1-4fcb-8a2c-6f321bf9a576",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        2800,
+        4560,
         300
       ],
       "parameters": {
@@ -315,12 +495,12 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "4c1d92fc-fb6d-4e9a-b02f-aea1042e721d",
+      "id": "32ef02bf-2476-4e40-ae82-c3ae1ad243f8",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        2840,
+        4600,
         560
       ],
       "parameters": {
@@ -337,12 +517,12 @@
       }
     },
     {
-      "id": "36b7a747-ff02-41cb-bb68-8822b6d6fe0b",
+      "id": "51595354-e6e4-4e6d-869d-2f76f7233e59",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3100,
+        4860,
         300
       ],
       "parameters": {
@@ -350,12 +530,12 @@
       }
     },
     {
-      "id": "f0e7a8e1-a4d2-4b3f-8959-6c684b7ecbbc",
+      "id": "f74e891d-6fe3-4318-b21e-9cd41367b9bf",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3100,
+        4860,
         600
       ],
       "parameters": {
@@ -449,6 +629,101 @@
         ]
       ]
     },
+    "Gravar index.html": {
+      "main": [
+        [
+          {
+            "node": "Netlify configurado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Netlify configurado?": {
+      "main": [
+        [
+          {
+            "node": "Preparar deploy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "URL da página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar deploy": {
+      "main": [
+        [
+          {
+            "node": "HTML → index.html",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML → index.html": {
+      "main": [
+        [
+          {
+            "node": "Compactar (zip)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compactar (zip)": {
+      "main": [
+        [
+          {
+            "node": "Netlify · publicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Netlify · publicar": {
+      "main": [
+        [
+          {
+            "node": "Esperar publicação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar publicação": {
+      "main": [
+        [
+          {
+            "node": "Netlify · conferir deploy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Netlify · conferir deploy": {
+      "main": [
+        [
+          {
+            "node": "URL da página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Montar HTML final": {
       "main": [
         [
@@ -471,7 +746,7 @@
         ]
       ]
     },
-    "Gravar index.html": {
+    "URL da página": {
       "main": [
         [
           {

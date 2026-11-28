@@ -2,7 +2,7 @@
   "name": "Direct Response · 02 Headline Killer (copywriter)",
   "nodes": [
     {
-      "id": "36b52072-c986-4aa3-9341-0688b362fb9a",
+      "id": "aa5e7581-e4e2-4b51-8606-03546bb8c6d6",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "6e47c543-1a08-42fc-94c0-a7240164092d",
+      "id": "520a1769-b4d2-4b27-8d20-594f1a14a8a4",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "8f556845-b1a2-4d0b-8296-b902b9385b67",
+      "id": "ce8ccbbe-1907-4f24-ad3a-6897dc807c92",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "980cab6b-bc6d-4b94-9b88-15d4d873bcf9",
+              "id": "d4b4ad78-d055-41e6-8190-12d9c0fb2acf",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "c653e58a-02df-486e-bfb9-bde884a15c45",
+      "id": "8fb58209-89d0-47fd-ba5c-d6357f40f280",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'headline';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Headline Killer',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'headline';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Headline Killer',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'entrega aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "8fff7596-e661-4070-a834-0b92f156c26c",
+      "id": "a68e10fe-dd7a-49d8-9ba7-9a11d5ecd8ea",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "078ff35a-eeba-4c51-a2b8-d2ebd344f606",
+      "id": "ca3b0cc7-699f-4a0f-b980-f02d21c586e3",
       "name": "Página original · baixar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -121,7 +121,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "fa4f8f01-fd39-441f-8d51-90025d4e3569",
+      "id": "1ed29ab8-d43e-4f84-8852-245263a24745",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -134,7 +134,7 @@
       }
     },
     {
-      "id": "7270c7c3-8766-4f14-bbbb-2cc654c66854",
+      "id": "ffbb6a2b-b440-44b8-8c30-911b76fd476e",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -156,7 +156,7 @@
       }
     },
     {
-      "id": "2ccd8dac-63fa-40e4-820f-7a654057502b",
+      "id": "040b49b2-902f-442b-8f47-3125c92625d4",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -178,7 +178,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "0d145f89-5040-49b1-9898-b7f2950e679d",
+      "id": "b3550b4b-6f46-41af-b8fd-178b8fff74c1",
       "name": "Agente · Headline Killer",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -200,7 +200,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "ca511fe3-4390-434d-b952-626d9d816cd8",
+      "id": "78f59c0f-bcbf-4c62-9c2d-c108a93741c5",
       "name": "Conferência pós-agente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -213,7 +213,7 @@
       }
     },
     {
-      "id": "d0881c41-c711-4544-ac25-aea37a3a3af9",
+      "id": "7d2bef5c-9975-45be-998a-db47fb2c773d",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -235,7 +235,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "3d92e434-c057-4970-a8e2-fc09b8762ecc",
+      "id": "c374bdf3-97ff-41d1-88d4-21c94e2397f2",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -257,7 +257,7 @@
       }
     },
     {
-      "id": "742d171c-f054-43e5-a0d2-f5d7dc4b4472",
+      "id": "e495413a-7ef3-44fd-9097-12b9dbefbf75",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -270,7 +270,7 @@
       }
     },
     {
-      "id": "f29a9afc-405e-4410-8cbc-ad18096b4fe8",
+      "id": "d6dd472a-74bd-4536-bc9b-985f08d68635",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

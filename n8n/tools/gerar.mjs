@@ -44,7 +44,9 @@ async function listarTudo(path) {
 const CREDS = {
   xai: { name: 'DR · xAI Grok', type: 'xAiApi', data: { apiKey: 'COLE_AQUI_A_CHAVE_DA_XAI' } },
   meta: { name: 'DR · Meta (token de sistema)', type: 'facebookGraphApi', data: { accessToken: 'COLE_AQUI_O_TOKEN_DA_META' } },
-  hotmart: { name: 'DR · Hotmart', type: 'httpCustomAuth', data: { json: JSON.stringify({ headers: { Authorization: 'Basic COLE_AQUI_O_BASIC_DA_HOTMART' }, qs: { client_id: 'COLE_AQUI_O_CLIENT_ID', client_secret: 'COLE_AQUI_O_CLIENT_SECRET' } }) } }
+  hotmart: { name: 'DR · Hotmart', type: 'httpCustomAuth', data: { json: JSON.stringify({ headers: { Authorization: 'Basic COLE_AQUI_O_BASIC_DA_HOTMART' }, qs: { client_id: 'COLE_AQUI_O_CLIENT_ID', client_secret: 'COLE_AQUI_O_CLIENT_SECRET' } }) } },
+  // Opcional: só é usada se config.netlify_site_id estiver preenchido
+  netlify: { name: 'DR · Netlify', type: 'httpHeaderAuth', data: { name: 'Authorization', value: 'Bearer COLE_AQUI_O_TOKEN_DO_NETLIFY' } }
 };
 const credRef = {}; // chave -> {id, name}
 
@@ -91,14 +93,18 @@ const sticky = (wf, name, content, pos, w = 420, h = 260, color = 5) =>
   wf.add(name, 'n8n-nodes-base.stickyNote', 1, { content, width: w, height: h, color }, pos);
 
 // retry: por padrão só leituras (GET). POST de criação na Meta NUNCA repete (evita duplicar; regra 4 da seção 13 do plano).
-function http(wf, name, pos, { method = 'GET', url, cred, qsJson, headers, bodyJson, texto = false, full = false, retry = method === 'GET', paginarCursor = false }) {
+// binario: nome do campo binário enviado como corpo (zip do Netlify); multipart: [campo do formulário, campo binário] (imagem na Meta)
+function http(wf, name, pos, { method = 'GET', url, cred, qsJson, headers, bodyJson, texto = false, full = false, retry = method === 'GET', paginarCursor = false, binario, multipart }) {
   const p = { method, url: '=' + url, options: {} };
   if (cred === 'meta') { p.authentication = 'predefinedCredentialType'; p.nodeCredentialType = 'facebookGraphApi'; }
   if (cred === 'xai') { p.authentication = 'predefinedCredentialType'; p.nodeCredentialType = 'xAiApi'; }
   if (cred === 'hotmart') { p.authentication = 'genericCredentialType'; p.genericAuthType = 'httpCustomAuth'; }
+  if (cred === 'netlify') { p.authentication = 'genericCredentialType'; p.genericAuthType = 'httpHeaderAuth'; }
   if (qsJson) { p.sendQuery = true; p.specifyQuery = 'json'; p.jsonQuery = '=' + qsJson; }
   if (headers) { p.sendHeaders = true; p.headerParameters = { parameters: headers.map(([n, v]) => ({ name: n, value: v })) }; }
   if (bodyJson) { p.sendBody = true; p.specifyBody = 'json'; p.jsonBody = '=' + bodyJson; }
+  if (binario) { p.sendBody = true; p.contentType = 'binaryData'; p.inputDataFieldName = binario; }
+  if (multipart) { p.sendBody = true; p.contentType = 'multipart-form-data'; p.bodyParameters = { parameters: [{ parameterType: 'formBinaryData', name: multipart[0], inputDataFieldName: multipart[1] }] }; }
   if (texto || full) p.options.response = { response: { fullResponse: full, neverError: true, responseFormat: texto ? 'text' : 'json' } };
   p.options.timeout = 60000;
   if (paginarCursor) {
@@ -115,6 +121,7 @@ function http(wf, name, pos, { method = 'GET', url, cred, qsJson, headers, bodyJ
   if (cred === 'meta') extra.credentials = { facebookGraphApi: credRef.meta };
   if (cred === 'xai') extra.credentials = { xAiApi: credRef.xai };
   if (cred === 'hotmart') extra.credentials = { httpCustomAuth: credRef.hotmart };
+  if (cred === 'netlify') extra.credentials = { httpHeaderAuth: credRef.netlify };
   return wf.add(name, 'n8n-nodes-base.httpRequest', 4.2, p, pos, extra);
 }
 
@@ -130,6 +137,24 @@ function ifTrue(wf, name, expr, pos) {
 }
 
 const sub = (s, map) => Object.entries(map).reduce((a, [k, v]) => a.split(k).join(v), s);
+
+// Publicação no Netlify (opcional): antes -> IF netlify_site_id -> zip -> POST deploy -> espera -> confere -> depois.
+// Sem netlify_site_id, vai direto para "depois". Devolve o x livre seguinte.
+function deployNetlify(wf, antes, origemHtml, depois, x, y) {
+  ifTrue(wf, 'Netlify configurado?', "{{ !!$('Entrada').first().json.config.netlify_site_id }}", [x, y]);
+  code(wf, 'Preparar deploy', sub(C.PREPARAR_DEPLOY, { __ORIGEM__: origemHtml }), [x + 220, y - 200]);
+  wf.add('HTML → index.html', 'n8n-nodes-base.convertToFile', 1.1, { operation: 'toText', sourceProperty: 'html', options: { fileName: 'index.html' } }, [x + 440, y - 200]);
+  wf.add('Compactar (zip)', 'n8n-nodes-base.compression', 1.1, { operation: 'compress', binaryPropertyName: 'data', outputFormat: 'zip', fileName: 'site.zip', binaryPropertyOutput: 'data' }, [x + 660, y - 200]);
+  http(wf, 'Netlify · publicar', [x + 880, y - 200], { method: 'POST', url: "https://api.netlify.com/api/v1/sites/{{ $('Entrada').first().json.config.netlify_site_id }}/deploys", cred: 'netlify',
+    headers: [['Content-Type', 'application/zip']], binario: 'data' });
+  wf.add('Esperar publicação', 'n8n-nodes-base.wait', 1.1, { resume: 'timeInterval', amount: 20, unit: 'seconds' }, [x + 1100, y - 200], { webhookId: randomUUID() });
+  http(wf, 'Netlify · conferir deploy', [x + 1320, y - 200], { url: "https://api.netlify.com/api/v1/deploys/{{ $('Netlify · publicar').first().json.id || 'sem-id' }}", cred: 'netlify' });
+  wf.link(antes, 'Netlify configurado?');
+  wf.link('Netlify configurado?', 'Preparar deploy', 0); wf.link('Preparar deploy', 'HTML → index.html'); wf.link('HTML → index.html', 'Compactar (zip)');
+  wf.link('Compactar (zip)', 'Netlify · publicar'); wf.link('Netlify · publicar', 'Esperar publicação'); wf.link('Esperar publicação', 'Netlify · conferir deploy');
+  wf.link('Netlify · conferir deploy', depois); wf.link('Netlify configurado?', depois, 1);
+  return x + 1540;
+}
 
 // Abertura padrão: Entrada -> Pré-requisitos -> IF -> (false) Bloqueado
 function abertura(wf, chave, preReqBody) {
@@ -216,13 +241,15 @@ if (!cfg.pasta_saida) faltando.push('pasta_saida');`);
     code(wf, 'Montar HTML final', C.CONSTRUTOR_HTML, [x, y]);
     wf.add('HTML → arquivo', 'n8n-nodes-base.convertToFile', 1.1, { operation: 'toText', sourceProperty: 'html', options: { fileName: 'index.html' } }, [x + 220, y]);
     wf.add('Gravar index.html', 'n8n-nodes-base.readWriteFile', 1, { operation: 'write', fileName: "={{ $('Montar HTML final').first().json.arquivo }}", dataPropertyName: 'data', options: {} }, [x + 440, y], { onError: 'continueRegularOutput' });
-    http(wf, 'Página publicada · baixar', [x + 660, y], { url: "{{ $('Entrada').first().json.config.url_pagina_publicada || 'http://invalid.local' }}", texto: true, full: true });
-    http(wf, 'Pixel · último disparo', [x + 880, y], { url: "https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.pixel_id }}", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'name,last_fired_time,is_unavailable' }) }}" });
-    code(wf, 'Conferência do PageView', C.CONSTRUTOR_PAGEVIEW, [x + 1100, y]);
+    const x2 = deployNetlify(wf, 'Gravar index.html', 'Montar HTML final', 'URL da página', x + 660, y);
+    code(wf, 'URL da página', C.URL_DA_PAGINA, [x2, y]);
+    http(wf, 'Página publicada · baixar', [x2 + 220, y], { url: "{{ $('URL da página').first().json.url || 'http://invalid.local' }}", texto: true, full: true });
+    http(wf, 'Pixel · último disparo', [x2 + 440, y], { url: "https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.pixel_id }}", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'name,last_fired_time,is_unavailable' }) }}" });
+    code(wf, 'Conferência do PageView', C.CONSTRUTOR_PAGEVIEW, [x2 + 660, y]);
     wf.link('Montar HTML final', 'HTML → arquivo'); wf.link('HTML → arquivo', 'Gravar index.html');
-    wf.link('Gravar index.html', 'Página publicada · baixar'); wf.link('Página publicada · baixar', 'Pixel · último disparo');
+    wf.link('URL da página', 'Página publicada · baixar'); wf.link('Página publicada · baixar', 'Pixel · último disparo');
     wf.link('Pixel · último disparo', 'Conferência do PageView');
-    return { primeiro: 'Montar HTML final', ultimo: 'Conferência do PageView', xFim: x + 1320 };
+    return { primeiro: 'Montar HTML final', ultimo: 'Conferência do PageView', xFim: x2 + 880 };
   });
   return wf;
 }
@@ -234,24 +261,30 @@ if (!(estado.construtor && estado.construtor.saida && estado.construtor.saida.ht
 if (!cfg.hotmart_checkout_url) faltando.push('hotmart_checkout_url');
 if (!cfg.hotmart_product_id) faltando.push('hotmart_product_id');`);
   http(wf, 'Hotmart · token', [660, 300], { method: 'POST', url: 'https://api-sec-vlc.hotmart.com/security/oauth/token?grant_type=client_credentials', cred: 'hotmart' });
-  http(wf, 'Hotmart · produtos', [880, 300], { url: 'https://developers.hotmart.com/products/api/v1/products', headers: [['Authorization', "=Bearer {{ $json.access_token }}"]] });
-  http(wf, 'Checkout · conferir', [1100, 300], { url: "{{ $('Entrada').first().json.config.hotmart_checkout_url }}", texto: true, full: true });
-  code(wf, 'Dados da etapa', C.FUNIL_DADOS, [1320, 300]);
-  wf.link(ok, 'Hotmart · token', 0); wf.link('Hotmart · token', 'Hotmart · produtos'); wf.link('Hotmart · produtos', 'Checkout · conferir'); wf.link('Checkout · conferir', 'Dados da etapa');
-  fechamento(wf, 'funil', 1540, (x, y) => {
+  const bearer = [['Authorization', "=Bearer {{ $('Hotmart · token').first().json.access_token }}"]];
+  http(wf, 'Hotmart · produtos', [880, 300], { url: 'https://developers.hotmart.com/products/api/v1/products', headers: bearer,
+    qsJson: "{{ JSON.stringify({ id: $('Entrada').first().json.config.hotmart_product_id }) }}" });
+  // Preço e moeda ficam na oferta (G-01): GET /products/{ucode}/offers
+  http(wf, 'Hotmart · ofertas', [1100, 300], { url: "https://developers.hotmart.com/products/api/v1/products/{{ ((($json.items || []).find(p => String(p.id) === String($('Entrada').first().json.config.hotmart_product_id) || String(p.ucode) === String($('Entrada').first().json.config.hotmart_product_id))) || {}).ucode || 'produto-nao-encontrado' }}/offers", headers: bearer });
+  http(wf, 'Checkout · conferir', [1320, 300], { url: "{{ $('Entrada').first().json.config.hotmart_checkout_url }}", texto: true, full: true });
+  code(wf, 'Dados da etapa', C.FUNIL_DADOS, [1540, 300]);
+  wf.link(ok, 'Hotmart · token', 0); wf.link('Hotmart · token', 'Hotmart · produtos'); wf.link('Hotmart · produtos', 'Hotmart · ofertas'); wf.link('Hotmart · ofertas', 'Checkout · conferir'); wf.link('Checkout · conferir', 'Dados da etapa');
+  fechamento(wf, 'funil', 1760, (x, y) => {
     code(wf, 'Link do checkout nos botões', C.FUNIL_LINK, [x, y]);
     wf.add('HTML → arquivo', 'n8n-nodes-base.convertToFile', 1.1, { operation: 'toText', sourceProperty: 'html', options: { fileName: 'index.html' } }, [x + 220, y]);
     wf.add('Regravar index.html', 'n8n-nodes-base.readWriteFile', 1, { operation: 'write', fileName: "={{ $('Link do checkout nos botões').first().json.arquivo }}", dataPropertyName: 'data', options: {} }, [x + 440, y], { onError: 'continueRegularOutput' });
-    code(wf, 'Conferência pós-agente', C.FUNIL_FIM, [x + 660, y]);
-    wf.link('Link do checkout nos botões', 'HTML → arquivo'); wf.link('HTML → arquivo', 'Regravar index.html'); wf.link('Regravar index.html', 'Conferência pós-agente');
-    return { primeiro: 'Link do checkout nos botões', ultimo: 'Conferência pós-agente', xFim: x + 880 };
+    const x2 = deployNetlify(wf, 'Regravar index.html', 'Link do checkout nos botões', 'Conferência pós-agente', x + 660, y);
+    code(wf, 'Conferência pós-agente', C.FUNIL_FIM, [x2, y]);
+    wf.link('Link do checkout nos botões', 'HTML → arquivo'); wf.link('HTML → arquivo', 'Regravar index.html');
+    return { primeiro: 'Link do checkout nos botões', ultimo: 'Conferência pós-agente', xFim: x2 + 220 };
   });
   return wf;
 }
 
 function wfClaquete() {
   const wf = new WF(PREFIXO + '05 Claquete (criativos)');
-  const ok = abertura(wf, 'claquete', `if (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (roteiros aprovados)');
+  const ok = abertura(wf, 'claquete', `if (cfg.criativos_aprovados === true && cfg.criativos_aprovados_hash && estado.claquete && estado.claquete.saida_hash === cfg.criativos_aprovados_hash) return [{ json: { ok: false, pulada: true, congelada: true, versao: cfg.criativos_aprovados_hash, faltando: [] } }];
+if (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (roteiros aprovados)');
 if (!(estado.headline && estado.headline.saida)) faltando.push('roteiros do Headline Killer');
 else if (!cfg.copy_aprovada_hash || estado.headline.saida_hash !== cfg.copy_aprovada_hash) faltando.push('copy_aprovada_hash igual à versão da copy (' + (estado.headline.saida_hash || 'sem versão') + ')');`);
   code(wf, 'Dados da etapa', C.CLAQUETE_DADOS, [660, 300]);
@@ -259,11 +292,14 @@ else if (!cfg.copy_aprovada_hash || estado.headline.saida_hash !== cfg.copy_apro
   fechamento(wf, 'claquete', 880, (x, y) => {
     code(wf, 'Imagens → itens', C.CLAQUETE_ITENS, [x, y]);
     http(wf, 'xAI · gerar imagem', [x + 220, y], { method: 'POST', url: 'https://api.x.ai/v1/images/generations', cred: 'xai',
-      bodyJson: "{{ JSON.stringify({ model: $('Entrada').first().json.config.modelo_imagem || 'grok-2-image', prompt: $json.prompt, n: 1, response_format: 'url' }) }}" });
-    code(wf, 'Conferência pós-agente', C.CLAQUETE_POS, [x + 440, y]);
-    wf.link('Imagens → itens', 'xAI · gerar imagem'); wf.link('xAI · gerar imagem', 'Conferência pós-agente');
+      bodyJson: "{{ JSON.stringify({ model: $('Entrada').first().json.config.modelo_imagem || 'grok-2-image', prompt: $json.prompt, n: 1, response_format: 'b64_json' }) }}" });
+    // O link da xAI expira: a imagem é gravada no disco (pasta_saida\<slug>\criativos) e é esse arquivo que o Tráfego sobe na Meta
+    code(wf, 'Imagens → arquivos', C.CLAQUETE_ARQUIVOS, [x + 440, y]);
+    wf.add('Gravar criativos', 'n8n-nodes-base.readWriteFile', 1, { operation: 'write', fileName: '={{ $json.arquivo }}', dataPropertyName: 'data', options: {} }, [x + 660, y], { onError: 'continueRegularOutput', alwaysOutputData: true });
+    code(wf, 'Conferência pós-agente', C.CLAQUETE_POS, [x + 880, y]);
+    wf.link('Imagens → itens', 'xAI · gerar imagem'); wf.link('xAI · gerar imagem', 'Imagens → arquivos'); wf.link('Imagens → arquivos', 'Gravar criativos'); wf.link('Gravar criativos', 'Conferência pós-agente');
     sticky(wf, 'Vídeos', '### Vídeos\nA Claquete devolve o plano de cada vídeo (cenas, texto na tela, locução). Para renderizar, ligue aqui o gerador de vídeo que preferir (fal.ai, Higgsfield ou o estúdio de vídeo local) com os campos de `saida.plano.videos`.', [x + 180, y + 220], 380, 200, 6);
-    return { primeiro: 'Imagens → itens', ultimo: 'Conferência pós-agente', xFim: x + 660 };
+    return { primeiro: 'Imagens → itens', ultimo: 'Conferência pós-agente', xFim: x + 1100 };
   });
   return wf;
 }
@@ -289,7 +325,12 @@ if (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_accou
 if (!cfg.pixel_id) faltando.push('pixel_id');
 if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');
 const UE = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
-if (UE.includes(String(cfg.pais_destino || '').toUpperCase()) && !(cfg.dsa_pagador && cfg.dsa_beneficiario)) faltando.push('dsa_pagador e dsa_beneficiario (exigidos pela Meta para anunciar na UE)');`);
+if (UE.includes(String(cfg.pais_destino || '').toUpperCase()) && !(cfg.dsa_pagador && cfg.dsa_beneficiario)) faltando.push('dsa_pagador e dsa_beneficiario (exigidos pela Meta para anunciar na UE)');
+if (!/^\\d+$/.test(String(cfg.facebook_page_id || ''))) faltando.push('facebook_page_id (página do Facebook que assina os anúncios)');
+if (!cfg.url_pagina_publicada) faltando.push('url_pagina_publicada (ou netlify_site_id para o Construtor publicar)');
+const imgs = ((estado.claquete && estado.claquete.saida && estado.claquete.saida.imagens_geradas) || []).filter(i => i && i.arquivo);
+if (!imgs.length) faltando.push('imagens da Claquete gravadas no disco');
+if (!(cfg.criativos_aprovados === true && cfg.criativos_aprovados_hash && estado.claquete && estado.claquete.saida_hash === cfg.criativos_aprovados_hash)) faltando.push('criativos_aprovados = true e criativos_aprovados_hash igual à versão dos criativos (' + ((estado.claquete && estado.claquete.saida_hash) || 'sem versão') + ')');`);
   code(wf, 'Dados da etapa', C.TRAFEGO_DADOS, [660, 300]);
   wf.link(ok, 'Dados da etapa', 0);
   const g = "https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}";
@@ -308,18 +349,30 @@ if (UE.includes(String(cfg.pais_destino || '').toUpperCase()) && !(cfg.dsa_pagad
     code(wf, 'Conjuntos → itens', C.TRAFEGO_CONJUNTOS, [x + 440, y]);
     http(wf, 'Meta · criar conjunto (PAUSED)', [x + 660, y], { method: 'POST', url: g + "/{{ $('Entrada').first().json.config.ad_account_id }}/adsets", cred: 'meta',
       bodyJson: "{{ JSON.stringify(Object.assign({}, $json.body, { status: 'PAUSED' })) }}" });
-    code(wf, 'IDs criados', C.TRAFEGO_IDS, [x + 880, y]);
-    http(wf, 'Meta · reforçar PAUSED', [x + 1100, y], { method: 'POST', url: g + '/{{ $json.id }}', cred: 'meta', bodyJson: "{{ JSON.stringify({ status: 'PAUSED' }) }}" });
-    http(wf, 'Meta · conferir status', [x + 1320, y], { url: g + "/{{ $('IDs criados').all()[$itemIndex].json.id }}", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}" });
-    code(wf, 'Conferência PAUSADO', C.TRAFEGO_POS, [x + 1540, y]);
+    // Anúncios (só no caminho de criação): imagem aprovada -> /adimages -> criativo -> anúncio PAUSED em cada conjunto
+    const act = g + "/{{ $('Entrada').first().json.config.ad_account_id }}";
+    code(wf, 'Criativos → arquivos', C.TRAFEGO_CRIATIVOS_ARQUIVOS, [x + 880, y]);
+    wf.add('Criativo · ler arquivo', 'n8n-nodes-base.readWriteFile', 1, { operation: 'read', fileSelector: '={{ $json.arquivo }}', options: {} }, [x + 1100, y], { onError: 'continueRegularOutput', alwaysOutputData: true });
+    http(wf, 'Meta · subir imagem', [x + 1320, y], { method: 'POST', url: act + '/adimages', cred: 'meta', multipart: ['filename', 'data'] });
+    code(wf, 'Anúncios → criativos', C.TRAFEGO_CRIATIVOS, [x + 1540, y]);
+    http(wf, 'Meta · criar criativo', [x + 1760, y], { method: 'POST', url: act + '/adcreatives', cred: 'meta', bodyJson: "{{ JSON.stringify($json.criativo || {}) }}" });
+    code(wf, 'Anúncios → itens', C.TRAFEGO_ANUNCIOS, [x + 1980, y]);
+    http(wf, 'Meta · criar anúncio (PAUSED)', [x + 2200, y], { method: 'POST', url: act + '/ads', cred: 'meta', bodyJson: "{{ JSON.stringify(Object.assign({}, $json.body || {}, { status: 'PAUSED' })) }}" });
+    code(wf, 'IDs criados', C.TRAFEGO_IDS, [x + 2420, y]);
+    http(wf, 'Meta · reforçar PAUSED', [x + 2640, y], { method: 'POST', url: g + '/{{ $json.id }}', cred: 'meta', bodyJson: "{{ JSON.stringify({ status: 'PAUSED' }) }}" });
+    http(wf, 'Meta · conferir status', [x + 2860, y], { url: g + "/{{ $('IDs criados').all()[$itemIndex].json.id }}", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}" });
+    code(wf, 'Conferência PAUSADO', C.TRAFEGO_POS, [x + 3080, y]);
     wf.link('Payload PAUSADO', 'Meta · buscar campanha'); wf.link('Meta · buscar campanha', 'Campanha existente'); wf.link('Campanha existente', 'Campanha já existe?');
     wf.link('Campanha já existe?', 'Meta · conjuntos existentes', 0); wf.link('Meta · conjuntos existentes', 'Reusar campanha');
     wf.link('Reusar campanha', 'Meta · conferir status (existente)'); wf.link('Meta · conferir status (existente)', 'Conferência PAUSADO');
     wf.link('Campanha já existe?', 'Meta · criar campanha (PAUSED)', 1); wf.link('Meta · criar campanha (PAUSED)', 'Conjuntos → itens');
-    wf.link('Conjuntos → itens', 'Meta · criar conjunto (PAUSED)'); wf.link('Meta · criar conjunto (PAUSED)', 'IDs criados');
+    wf.link('Conjuntos → itens', 'Meta · criar conjunto (PAUSED)'); wf.link('Meta · criar conjunto (PAUSED)', 'Criativos → arquivos');
+    wf.link('Criativos → arquivos', 'Criativo · ler arquivo'); wf.link('Criativo · ler arquivo', 'Meta · subir imagem'); wf.link('Meta · subir imagem', 'Anúncios → criativos');
+    wf.link('Anúncios → criativos', 'Meta · criar criativo'); wf.link('Meta · criar criativo', 'Anúncios → itens'); wf.link('Anúncios → itens', 'Meta · criar anúncio (PAUSED)');
+    wf.link('Meta · criar anúncio (PAUSED)', 'IDs criados');
     wf.link('IDs criados', 'Meta · reforçar PAUSED'); wf.link('Meta · reforçar PAUSED', 'Meta · conferir status'); wf.link('Meta · conferir status', 'Conferência PAUSADO');
-    sticky(wf, 'Trava PAUSADO', '### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação forçam `status: PAUSED` no corpo.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\n5. **Buscar campanha** procura pelo nome antes de criar: se já existe, reutiliza e não mexe em nada (sem duplicar).\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.', [x + 200, y - 300], 520, 240, 3);
-    return { primeiro: 'Payload PAUSADO', ultimo: 'Conferência PAUSADO', xFim: x + 1760 };
+    sticky(wf, 'Trava PAUSADO', '### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação (campanha, conjuntos e anúncios) forçam `status: PAUSED` no corpo; **Anúncios → itens** também quebra se achar outro status.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\n5. **Buscar campanha** procura pelo nome antes de criar: se já existe, reutiliza e não mexe em nada (sem duplicar).\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.', [x + 200, y - 300], 520, 240, 3);
+    return { primeiro: 'Payload PAUSADO', ultimo: 'Conferência PAUSADO', xFim: x + 3300 };
   });
   return wf;
 }
@@ -341,7 +394,7 @@ function wfCoordenador(ids) {
   code(wf, 'Estado inicial', C.COORD_ESTADO_INICIAL, [1100, 300]);
   wf.link('Iniciar rodada', '⚙️ Configuração'); wf.link('⚙️ Configuração', 'Arquivo de estado'); wf.link('Arquivo de estado', 'Estado salvo · ler');
   wf.link('Estado salvo · ler', 'Estado salvo · extrair'); wf.link('Estado salvo · extrair', 'Coordenador · plano'); wf.link('Coordenador · plano', 'Estado inicial');
-  sticky(wf, 'Como usar', `## Time Direct Response — Coordenador (GROK BOT)\n1. Cole as chaves nas credenciais **DR · xAI Grok**, **DR · Meta (token de sistema)** e **DR · Hotmart**.\n2. Edite **⚙️ Configuração** (país, oferta, aprovações, pixel, conta de anúncios).\n3. Clique em **Execute workflow**.\n\nCada etapa chama um sub-workflow: integração → GROK BOT orienta → agente → verificações → GROK BOT supervisiona. Se uma etapa não for aprovada, o fluxo para e o relatório numerado diz o que falta.\n\n**Campanhas: sempre PAUSADAS.** Nada é ativado por este fluxo.`, [-60, -60], 640, 320, 4);
+  sticky(wf, 'Como usar', `## Time Direct Response — Coordenador (GROK BOT)\n1. Cole as chaves nas credenciais **DR · xAI Grok**, **DR · Meta (token de sistema)**, **DR · Hotmart** e (opcional) **DR · Netlify**.\n2. Edite **⚙️ Configuração** (país, oferta, IDs, aprovações). As decisões do produto são opcionais: vazias viram marcador e o Revisor segura a página.\n3. Clique em **Execute workflow**.\n\nCada etapa chama um sub-workflow: integração → GROK BOT orienta → agente → verificações → GROK BOT supervisiona. Se uma etapa não for aprovada, o fluxo para e o relatório numerado diz o que falta.\n\n**Campanhas: sempre PAUSADAS.** Nada é ativado por este fluxo.`, [-60, -60], 640, 320, 4);
 
   let prev = 'Estado inicial', x = 1340;
   const falsos = [];

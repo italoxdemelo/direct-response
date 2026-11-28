@@ -2,7 +2,7 @@
   "name": "Direct Response · 07 Tráfego (gestor, sempre PAUSADO)",
   "nodes": [
     {
-      "id": "12bf14d3-58c9-4428-93b0-186486676e7b",
+      "id": "ff18121c-5064-4b0a-a74e-d69bc0d24908",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "476969f7-4a91-487f-95e1-8804e192bcd5",
+      "id": "c44d20b7-dc33-4578-8e07-26fcdf246d85",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -24,11 +24,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'trafego';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(estado.revisor && estado.revisor.aprovado === true && !estado.revisor.de_rodada_anterior)) faltando.push('aprovação do Revisor nesta rodada');\nif (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');\nconst UE = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];\nif (UE.includes(String(cfg.pais_destino || '').toUpperCase()) && !(cfg.dsa_pagador && cfg.dsa_beneficiario)) faltando.push('dsa_pagador e dsa_beneficiario (exigidos pela Meta para anunciar na UE)');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'trafego';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(estado.revisor && estado.revisor.aprovado === true && !estado.revisor.de_rodada_anterior)) faltando.push('aprovação do Revisor nesta rodada');\nif (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');\nconst UE = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];\nif (UE.includes(String(cfg.pais_destino || '').toUpperCase()) && !(cfg.dsa_pagador && cfg.dsa_beneficiario)) faltando.push('dsa_pagador e dsa_beneficiario (exigidos pela Meta para anunciar na UE)');\nif (!/^\\d+$/.test(String(cfg.facebook_page_id || ''))) faltando.push('facebook_page_id (página do Facebook que assina os anúncios)');\nif (!cfg.url_pagina_publicada) faltando.push('url_pagina_publicada (ou netlify_site_id para o Construtor publicar)');\nconst imgs = ((estado.claquete && estado.claquete.saida && estado.claquete.saida.imagens_geradas) || []).filter(i => i && i.arquivo);\nif (!imgs.length) faltando.push('imagens da Claquete gravadas no disco');\nif (!(cfg.criativos_aprovados === true && cfg.criativos_aprovados_hash && estado.claquete && estado.claquete.saida_hash === cfg.criativos_aprovados_hash)) faltando.push('criativos_aprovados = true e criativos_aprovados_hash igual à versão dos criativos (' + ((estado.claquete && estado.claquete.saida_hash) || 'sem versão') + ')');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
       }
     },
     {
-      "id": "576691dc-ea37-4126-b972-7d910472649d",
+      "id": "68736ec6-b6ba-4f25-b4ee-798d013ac8b2",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "d035e3d0-3563-48a4-b579-aa118b72d22d",
+              "id": "ee85fd64-d521-4fd5-bdb0-7b42d8c6a2e0",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "4399dea0-d3af-4ff8-be29-b0db6037e441",
+      "id": "38ff97bc-52f3-4ad4-8af8-e86ca4ba0292",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'trafego';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'trafego';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'entrega aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "9e496c40-550a-4930-b029-c6c7418e8538",
+      "id": "f3ba5a0f-953c-4071-8be9-7c0dc4f71ce5",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "db057156-ac95-4d64-845b-524499da34b6",
+      "id": "4e76a8ff-3a1b-4463-9a5c-7c55bb9868a8",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -101,11 +101,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const cfg = $('Entrada').first().json.config;\nreturn [{ json: { dados: {\n  pais: cfg.pais_destino, oferta: cfg.oferta_escolhida, url_pagina: cfg.url_pagina_publicada,\n  orcamento_diario_centavos: cfg.orcamento_diario_centavos, publico_sugerido: cfg.publico || null\n}, verificacoes: {}, avisos: {} } }];"
+        "jsCode": "const e = $('Entrada').first().json;\nconst cfg = e.config, est = e.estado || {};\nconst headlines = (est.headline && est.headline.saida && est.headline.saida.headlines) || [];\nconst imgs = ((est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || []).filter(i => i && i.arquivo);\nreturn [{ json: { dados: {\n  pais: cfg.pais_destino, oferta: cfg.oferta_escolhida, url_pagina: cfg.url_pagina_publicada,\n  orcamento_diario_centavos: cfg.orcamento_diario_centavos, publico_sugerido: cfg.publico || null,\n  headlines_aprovadas: headlines.map((h, i) => ({ indice: i, texto: h })),\n  imagens_aprovadas: imgs.map(i => ({ id: i.id, texto_na_imagem: i.texto_na_imagem || '' }))\n}, verificacoes: { tem_headlines_aprovadas: headlines.length > 0, tem_imagens_aprovadas: imgs.length > 0 }, avisos: {} } }];"
       }
     },
     {
-      "id": "2afff24f-9912-4041-8402-f09da9772666",
+      "id": "dbd19d0e-3c2d-401f-95e1-65a2e01d9436",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "89c2cadc-86df-442d-858a-9aa77cbbcc4a",
+      "id": "f0c67ce5-a711-4803-a876-f61507b6e6ce",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -149,7 +149,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "cb4feefa-9ce8-445b-8ef6-869eb68b8364",
+      "id": "659fba55-7c9d-4cfa-b146-cfdc81e10ac9",
       "name": "Agente · Tráfego",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -161,7 +161,7 @@
         "promptType": "define",
         "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
         "options": {
-          "systemMessage": "Você é o Tráfego, gestor de campanhas do time.\nMissão: propor a estrutura da campanha de vendas para o país de destino. O código sobe a campanha pela API da Meta sempre com status PAUSED.\n\nRegras do Tráfego:\n- Sempre PAUSADAS. Nunca ativa nada. Você não escolhe status: o código força PAUSED e confere pela API.\n- Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.\n- Público no país de destino; idade e gênero coerentes com a oferta.\n- Orçamento diário só o que estiver na configuração.\n- segmente só por país, idade e género. Não proponha interesses, públicos nem textos ligados a condições de saúde. A faixa etária mínima é 18.\n- O nome da campanha é fixo e vem da configuração (o código ignora campanha_nome). Dê nomes curtos aos conjuntos (ex.: \"50-65 mulheres\"); o código acrescenta campanha e data.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"campanha_nome\":\"\",\"conjuntos\":[{\"nome\":\"\",\"idade_min\":18,\"idade_max\":65,\"generos\":[1,2],\"observacao\":\"\"}],\"observacoes\":[]}",
+          "systemMessage": "Você é o Tráfego, gestor de campanhas do time.\nMissão: propor a estrutura da campanha de vendas para o país de destino. O código sobe a campanha pela API da Meta sempre com status PAUSED.\n\nRegras do Tráfego:\n- Sempre PAUSADAS. Nunca ativa nada. Você não escolhe status: o código força PAUSED e confere pela API.\n- Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.\n- Público no país de destino; idade e gênero coerentes com a oferta.\n- Orçamento diário só o que estiver na configuração.\n- segmente só por país, idade e género. Não proponha interesses, públicos nem textos ligados a condições de saúde. A faixa etária mínima é 18.\n- O nome da campanha é fixo e vem da configuração (o código ignora campanha_nome). Dê nomes curtos aos conjuntos (ex.: \"50-65 mulheres\"); o código acrescenta campanha e data.\n- Anúncios: para cada imagem em imagens_aprovadas, escolha o índice de uma headline em headlines_aprovadas (headline_indice). Você não escreve texto de anúncio: o código usa só a headline aprovada, sem mudar nada.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"campanha_nome\":\"\",\"conjuntos\":[{\"nome\":\"\",\"idade_min\":18,\"idade_max\":65,\"generos\":[1,2],\"observacao\":\"\"}],\"anuncios\":[{\"imagem_id\":\"img1\",\"headline_indice\":0}],\"observacoes\":[]}",
           "maxIterations": 4
         }
       },
@@ -171,7 +171,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "b9a9d693-e96b-4535-98d1-50b8658de33e",
+      "id": "c694a67e-3a27-45e6-b233-106fce0b93d1",
       "name": "Payload PAUSADO",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -184,7 +184,7 @@
       }
     },
     {
-      "id": "2305f256-8194-4866-97ed-8c66d4132a49",
+      "id": "9ab3f58a-4365-4dfc-bd65-9f7f41c3d5ce",
       "name": "Meta · buscar campanha",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -217,7 +217,7 @@
       }
     },
     {
-      "id": "a4318014-7d9b-4622-95fd-a7fc3432b7ab",
+      "id": "8f066624-dcb8-4c08-805e-ef6876bba4ef",
       "name": "Campanha existente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -230,7 +230,7 @@
       }
     },
     {
-      "id": "c2155ab0-fa74-4d9e-9902-d2725837732c",
+      "id": "4b6b58e2-f54e-4a43-a623-82b84aca591c",
       "name": "Campanha já existe?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -248,7 +248,7 @@
           },
           "conditions": [
             {
-              "id": "c67f7ef3-e0c5-468e-9a8b-40ecc6dfeeaf",
+              "id": "046f101a-3959-407e-bb73-268c2d5d65e4",
               "leftValue": "={{ $json.existe === true }}",
               "rightValue": "",
               "operator": {
@@ -265,7 +265,7 @@
       }
     },
     {
-      "id": "36694def-eddc-4a42-ade5-51845bb97d8b",
+      "id": "f5e61b35-8668-41b2-a6ea-e354a20d7898",
       "name": "Meta · conjuntos existentes",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -298,7 +298,7 @@
       }
     },
     {
-      "id": "ba4a3efb-1d2e-4e6f-ad06-0ed2fbfb067d",
+      "id": "f232ea0e-0849-4fd3-814e-c3603d423f4e",
       "name": "Reusar campanha",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -311,7 +311,7 @@
       }
     },
     {
-      "id": "6cd24986-a9c2-4a67-b07b-58f142960192",
+      "id": "93258770-4eda-4728-ab72-fdf35b880131",
       "name": "Meta · conferir status (existente)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -344,7 +344,7 @@
       }
     },
     {
-      "id": "0e736c0e-7a3d-4502-9478-22a0cbe215aa",
+      "id": "716638c5-f880-42e9-88eb-f706052fc79e",
       "name": "Meta · criar campanha (PAUSED)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -374,7 +374,7 @@
       }
     },
     {
-      "id": "fc890cc8-4202-4318-9b79-7a751b3a334d",
+      "id": "bb319886-c3a8-4824-8aa4-8cc7b4b50c6b",
       "name": "Conjuntos → itens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -387,7 +387,7 @@
       }
     },
     {
-      "id": "17e6d6fc-8061-42af-b082-743a75292ebd",
+      "id": "37343b85-d381-4118-98cc-b65338f25c41",
       "name": "Meta · criar conjunto (PAUSED)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -417,8 +417,8 @@
       }
     },
     {
-      "id": "cc24dd9c-3edc-4930-9681-2eb509996117",
-      "name": "IDs criados",
+      "id": "00d35109-1ad0-48df-9c68-db7aa99a433b",
+      "name": "Criativos → arquivos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -426,16 +426,170 @@
         300
       ],
       "parameters": {
-        "jsCode": "const camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst ids = [];\nif (camp && camp.id) ids.push({ json: { id: camp.id, tipo: 'campanha' } });\nfor (const r of $input.all()) if (r.json && r.json.id) ids.push({ json: { id: r.json.id, tipo: 'conjunto' } });\nif (!ids.length) return [{ json: { id: 'nenhum', tipo: 'nenhum' } }];\nreturn ids;"
+        "jsCode": "const est = $('Entrada').first().json.estado || {};\nconst imgs = ((est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || []).filter(i => i && i.arquivo).slice(0, 6);\nif (!imgs.length) return [{ json: { id: null, arquivo: '', sem_imagens: true } }];\nreturn imgs.map(i => ({ json: { id: i.id, arquivo: i.arquivo, versao: i.versao || null } }));"
       }
     },
     {
-      "id": "b6011564-dd0d-48b9-8e99-40e83ae82a9e",
+      "id": "8c600fdc-6d54-47e0-b88f-602370256f8a",
+      "name": "Criativo · ler arquivo",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2580,
+        300
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $json.arquivo }}",
+        "options": {}
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "21c40a1b-57fd-4f67-a7c4-6031fd5fff3c",
+      "name": "Meta · subir imagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2800,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.ad_account_id }}/adimages",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "filename",
+              "inputDataFieldName": "data"
+            }
+          ]
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "c09e9e0c-a878-40ab-bda6-4b1c4d2e5224",
+      "name": "Anúncios → criativos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3020,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst e = $('Entrada').first().json;\nconst cfg = e.config, est = e.estado || {};\nconst plano = $('Payload PAUSADO').first().json.plano || {};\nconst arquivos = $('Criativos → arquivos').all().map(i => i.json);\nconst subidas = $input.all().map(i => i.json || {});\nconst headlines = (est.headline && est.headline.saida && est.headline.saida.headlines) || [];\nconst url = String(cfg.url_pagina_publicada || '');\nconst escolhas = Array.isArray(plano.anuncios) ? plano.anuncios : [];\nconst out = [];\narquivos.forEach((a, i) => {\n  const r = subidas[i] || {};\n  const img = r.images && typeof r.images === 'object' ? Object.values(r.images)[0] : null;\n  if (!a.id || !img || !img.hash) return;\n  const esc = escolhas.find(x => x && x.imagem_id === a.id) || {};\n  const k = Number.isInteger(esc.headline_indice) && headlines[esc.headline_indice] ? esc.headline_indice : (i % Math.max(headlines.length, 1));\n  const texto = String(headlines[k] || '');\n  const titulo = String(headlines[(k + 1) % Math.max(headlines.length, 1)] || texto);\n  if (CLAIMS_SAUDE.test(texto + ' ' + titulo) || PRECO_RISCADO.test(texto + ' ' + titulo)) throw new Error('Trava do Tráfego: texto do anúncio com claim de saúde, escassez ou preço riscado. Nada foi criado.');\n  out.push({ json: { imagem_id: a.id, image_hash: img.hash, criativo: {\n    name: $('Payload PAUSADO').first().json.campanha.name + ' | ' + a.id + (a.versao ? '-' + a.versao : ''),\n    object_story_spec: { page_id: String(cfg.facebook_page_id), link_data: {\n      link: url, message: texto, name: titulo, image_hash: img.hash,\n      call_to_action: { type: cfg.cta_anuncio || 'LEARN_MORE', value: { link: url } } } },\n    url_tags: 'utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.id}}&xcod={{ad.id}}'\n  } } });\n});\nif (!out.length) return [{ json: { sem_criativos: true, criativo: null, erros_upload: subidas.filter(s => s.error).map(s => String(s.error.message || JSON.stringify(s.error)).slice(0, 200)) } }];\nreturn out;"
+      }
+    },
+    {
+      "id": "15c9bff8-ad8e-44b9-bc78-1e42b4d8092c",
+      "name": "Meta · criar criativo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3240,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.ad_account_id }}/adcreatives",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.criativo || {}) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "531a245c-09da-4319-87c2-00961276bd70",
+      "name": "Anúncios → itens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3460,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Entrada').first().json.config;\nconst conjuntos = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json).filter(c => c && c.id);\nconst pedidos = $('Anúncios → criativos').all().map(i => i.json);\nconst criados = $input.all().map(i => i.json || {});\nconst criativos = pedidos.map((p, i) => ({ imagem_id: p.imagem_id, id: criados[i] && criados[i].id })).filter(c => c.imagem_id && c.id);\nconst nomeBase = $('Payload PAUSADO').first().json.campanha.name;\nconst out = [];\nconjuntos.forEach((c, ci) => criativos.forEach(cr => out.push({ json: { body: Object.assign({\n  name: nomeBase + ' | conjunto ' + (ci + 1) + ' | ' + cr.imagem_id,\n  adset_id: c.id, creative: { creative_id: cr.id }, status: 'PAUSED'\n}, cfg.dominio_conversao ? { conversion_domain: String(cfg.dominio_conversao) } : {}) } })));\nconst tudo = JSON.stringify(out);\nif (/\"status\"\\s*:\\s*\"(?!PAUSED)/.test(tudo) || /ACTIVE/.test(tudo)) throw new Error('Trava do Tráfego: anúncio com status diferente de PAUSED. Nada foi enviado.');\nif (!out.length) return [{ json: { sem_anuncios: true, body: null } }];\nreturn out;"
+      }
+    },
+    {
+      "id": "68ecac4a-8d96-44d9-b81c-13f02584a9e3",
+      "name": "Meta · criar anúncio (PAUSED)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3680,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.ad_account_id }}/ads",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $json.body || {}, { status: 'PAUSED' })) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "eeee11a0-bb04-4c9d-9bb6-e9710665249b",
+      "name": "IDs criados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3900,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };\nconst camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst ids = [];\nif (camp && camp.id) ids.push({ json: { id: camp.id, tipo: 'campanha' } });\nfor (const r of $('Meta · criar conjunto (PAUSED)').all()) if (r.json && r.json.id) ids.push({ json: { id: r.json.id, tipo: 'conjunto' } });\nif (ran('Meta · criar anúncio (PAUSED)')) for (const r of $('Meta · criar anúncio (PAUSED)').all()) if (r.json && r.json.id) ids.push({ json: { id: r.json.id, tipo: 'anuncio' } });\nif (!ids.length) return [{ json: { id: 'nenhum', tipo: 'nenhum' } }];\nreturn ids;"
+      }
+    },
+    {
+      "id": "267d504c-b15f-4d39-b15c-3d628957f297",
       "name": "Meta · reforçar PAUSED",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2580,
+        4120,
         300
       ],
       "parameters": {
@@ -460,12 +614,12 @@
       }
     },
     {
-      "id": "6672287f-136c-4923-bb04-81cef5dd9326",
+      "id": "43ab8804-2ed9-4df7-8609-a6646f40cfa1",
       "name": "Meta · conferir status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2800,
+        4340,
         300
       ],
       "parameters": {
@@ -493,20 +647,20 @@
       }
     },
     {
-      "id": "59de912b-7130-4131-900d-520bf567626b",
+      "id": "2889bb1f-316e-4327-ad31-97d16e8f34d4",
       "name": "Conferência PAUSADO",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3020,
+        4560,
         300
       ],
       "parameters": {
-        "jsCode": "const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };\nconst plano = $('Payload PAUSADO').first().json.plano;\nif (ran('Reusar campanha')) {\n  const ids = $('Reusar campanha').all().map(i => i.json);\n  const st0 = $input.all().map(i => i.json).filter(s => s && s.id);\n  const ativos = st0.filter(s => s.status !== 'PAUSED');\n  return [{ json: {\n    saida: { plano, campanha: { id: ids[0].id, reutilizada: true }, conjuntos: ids.slice(1).map(c => ({ id: c.id, reutilizado: true })), status_conferido: st0 },\n    verificacoes: {\n      campanha_criada: true,\n      conjuntos_criados: ids.length > 1,\n      tudo_pausado_conferido_na_api: st0.length > 0 && ativos.length === 0\n    },\n    avisos: { reutilizada: 'A campanha já existia com este nome: nada foi criado nem alterado nesta rodada (sem duplicar).',\n      ativos: ativos.length ? 'Itens já ativos (ativados fora do fluxo): ' + ativos.map(a => a.id + ' ' + a.status).join(', ') : '' }\n  } }];\n}\nconst camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst conj = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json);\nconst st = $input.all().map(i => i.json).filter(s => s && s.id);\nconst naoPausados = st.filter(s => s.status !== 'PAUSED' || (s.effective_status && !['PAUSED', 'CAMPAIGN_PAUSED', 'ADSET_PAUSED'].includes(s.effective_status)));\nreturn [{ json: {\n  saida: { plano, campanha: camp && camp.id ? { id: camp.id } : { erro: camp && camp.error ? camp.error.message : 'não criada' },\n    conjuntos: conj.map(c => c.id ? { id: c.id } : { erro: c.error ? c.error.message : 'não criado' }), status_conferido: st },\n  verificacoes: {\n    campanha_criada: !!(camp && camp.id),\n    conjuntos_criados: conj.length > 0 && conj.every(c => !!c.id),\n    tudo_pausado_conferido_na_api: st.length > 0 && naoPausados.length === 0\n  },\n  avisos: { anuncios: 'Os anúncios (criativos) dentro dos conjuntos ainda não são criados por este fluxo; suba os criativos da Claquete e crie os anúncios também PAUSADOS.' }\n} }];"
+        "jsCode": "const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };\nconst plano = $('Payload PAUSADO').first().json.plano;\nif (ran('Reusar campanha')) {\n  const ids = $('Reusar campanha').all().map(i => i.json);\n  const st0 = $input.all().map(i => i.json).filter(s => s && s.id);\n  const ativos = st0.filter(s => s.status !== 'PAUSED');\n  return [{ json: {\n    saida: { plano, campanha: { id: ids[0].id, reutilizada: true }, conjuntos: ids.slice(1).map(c => ({ id: c.id, reutilizado: true })), status_conferido: st0 },\n    verificacoes: {\n      campanha_criada: true,\n      conjuntos_criados: ids.length > 1,\n      tudo_pausado_conferido_na_api: st0.length > 0 && ativos.length === 0\n    },\n    avisos: { reutilizada: 'A campanha já existia com este nome: nada foi criado nem alterado nesta rodada (sem duplicar). Os anúncios dela não são conferidos aqui; veja no Gerenciador. Para subir de novo, troque campanha_nome.',\n      ativos: ativos.length ? 'Itens já ativos (ativados fora do fluxo): ' + ativos.map(a => a.id + ' ' + a.status).join(', ') : '' }\n  } }];\n}\nconst camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst conj = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json);\nconst ads = ran('Meta · criar anúncio (PAUSED)') ? $('Meta · criar anúncio (PAUSED)').all().map(i => i.json || {}) : [];\nconst st = $input.all().map(i => i.json).filter(s => s && s.id);\n// Pausado = status PAUSED e nunca entregando. Anúncio novo fica em PENDING_REVIEW / IN_PROCESS: isso não é ativo.\nconst naoPausados = st.filter(s => s.status !== 'PAUSED' || s.effective_status === 'ACTIVE');\nconst erro = x => x && x.error ? String(x.error.message || JSON.stringify(x.error)).slice(0, 200) : null;\nreturn [{ json: {\n  saida: { plano, campanha: camp && camp.id ? { id: camp.id } : { erro: erro(camp) || 'não criada' },\n    conjuntos: conj.map(c => c.id ? { id: c.id } : { erro: erro(c) || 'não criado' }),\n    anuncios: ads.map(a => a.id ? { id: a.id } : { erro: erro(a) || 'não criado' }), status_conferido: st },\n  verificacoes: {\n    campanha_criada: !!(camp && camp.id),\n    conjuntos_criados: conj.length > 0 && conj.every(c => !!c.id),\n    anuncios_criados: ads.length > 0 && ads.every(a => !!a.id),\n    tudo_pausado_conferido_na_api: st.length > 0 && naoPausados.length === 0\n  },\n  avisos: { quem_ativa: 'Tudo ficou PAUSADO. Quem ativa é o Arthur, no Gerenciador de Anúncios.' }\n} }];"
       }
     },
     {
-      "id": "c07ead4c-e2e0-45ff-b717-4d21cec366fc",
+      "id": "e343b437-cf98-4eb3-b420-3917a7999c91",
       "name": "Trava PAUSADO",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -515,19 +669,19 @@
         0
       ],
       "parameters": {
-        "content": "### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação forçam `status: PAUSED` no corpo.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\n5. **Buscar campanha** procura pelo nome antes de criar: se já existe, reutiliza e não mexe em nada (sem duplicar).\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.",
+        "content": "### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação (campanha, conjuntos e anúncios) forçam `status: PAUSED` no corpo; **Anúncios → itens** também quebra se achar outro status.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\n5. **Buscar campanha** procura pelo nome antes de criar: se já existe, reutiliza e não mexe em nada (sem duplicar).\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.",
         "width": 520,
         "height": 240,
         "color": 3
       }
     },
     {
-      "id": "1bbbfb11-076c-4429-a1c4-90d68af6fad6",
+      "id": "2d68b0c0-835c-4883-a85c-fd0c84b85104",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        3240,
+        4780,
         300
       ],
       "parameters": {
@@ -544,12 +698,12 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "51e2c155-d924-4481-9fde-33a95ecaa699",
+      "id": "2025ecf3-9923-4ed9-b993-d7bc274295db",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        3280,
+        4820,
         560
       ],
       "parameters": {
@@ -566,12 +720,12 @@
       }
     },
     {
-      "id": "97165511-15fa-499b-9d87-40a00c817990",
+      "id": "0fe68890-cabd-4555-a151-95193a1c56be",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3540,
+        5080,
         300
       ],
       "parameters": {
@@ -579,12 +733,12 @@
       }
     },
     {
-      "id": "6e38b20b-764b-4751-837b-1f0c60c4f56f",
+      "id": "f78fdc55-7aa9-4cfa-bcc6-294792200a45",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3540,
+        5080,
         600
       ],
       "parameters": {
@@ -785,6 +939,83 @@
       ]
     },
     "Meta · criar conjunto (PAUSED)": {
+      "main": [
+        [
+          {
+            "node": "Criativos → arquivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criativos → arquivos": {
+      "main": [
+        [
+          {
+            "node": "Criativo · ler arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criativo · ler arquivo": {
+      "main": [
+        [
+          {
+            "node": "Meta · subir imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · subir imagem": {
+      "main": [
+        [
+          {
+            "node": "Anúncios → criativos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anúncios → criativos": {
+      "main": [
+        [
+          {
+            "node": "Meta · criar criativo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · criar criativo": {
+      "main": [
+        [
+          {
+            "node": "Anúncios → itens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anúncios → itens": {
+      "main": [
+        [
+          {
+            "node": "Meta · criar anúncio (PAUSED)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · criar anúncio (PAUSED)": {
       "main": [
         [
           {

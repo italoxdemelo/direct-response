@@ -324,7 +324,7 @@ O script `dr-utm` repassa `utm_source`, `utm_medium`, `utm_campaign`, `utm_conte
 
 **Lacunas:**
 
-- **Publicação é manual.** O fluxo grava o HTML no disco; alguém sobe para o domínio e preenche `url_pagina_publicada`. Por isso a primeira rodada sempre reprova o Construtor. Falta um nó de deploy (T-05). Domínio e hospedagem ainda não foram definidos.
+- ~~Publicação é manual~~ (T-05, `H-20261127-italo-11`): depois de `Gravar index.html`, o IF `Netlify configurado?` (`config.netlify_site_id`) leva a `Preparar deploy` → `HTML → index.html` → `Compactar (zip)` → `Netlify · publicar` (POST `https://api.netlify.com/api/v1/sites/{site}/deploys`, `Content-Type: application/zip`, credencial `DR · Netlify`, sem retry) → `Esperar publicação` (20 s) → `Netlify · conferir deploy` (GET `/api/v1/deploys/{id}`) → `URL da página`. Sem `netlify_site_id`, vai direto para `URL da página`. A URL usada é `url_pagina_publicada` ou, se vazia, o `ssl_url` do Netlify; sai em `saida.url_publicada` e o Coordenador repassa para Revisor e Tráfego. Verificação extra quando há Netlify: `netlify_publicou`. Falta validar com token real; com domínio próprio, preencha `url_pagina_publicada`.
 - O Construtor monta a página **antes** do Funil ter o link do checkout (os botões ficam com `{{CHECKOUT_URL}}`, e o Funil regrava depois). A ordem 03 → 04 funciona, mas a página publicada só fica certa depois do Funil.
 
 **Como testar:** rodar `headline` + `construtor` com `copy_aprovada: true` e `pixel_id` de teste; abrir o `index.html` gerado, confirmar no Gerenciador de Eventos da Meta (aba Testar eventos) que o PageView chega; publicar, preencher a URL e rodar de novo até todas as 11 verificações ficarem `true`.
@@ -355,7 +355,9 @@ O script `dr-utm` repassa `utm_source`, `utm_medium`, `utm_campaign`, `utm_conte
 
 **Limite conhecido:** a API pública da Hotmart **não cria** produto, checkout, order bump nem upsell. Isso é feito no painel pelo Arthur, seguindo `passos_no_painel`. O fluxo só confere.
 
-**Lacunas:** o HTML regravado precisa ser publicado de novo (mesma lacuna do deploy, T-05). Falta conferir o preço no checkout com um navegador headless, já que o HTML não traz o preço (T-08).
+**Atualização (`H-20261127-italo-11`):** `Hotmart · produtos` filtra por `id` e `Hotmart · ofertas` (GET `/products/api/v1/products/{ucode}/offers`, G-01) traz a oferta principal (`is_main_offer`). Verificações novas: `oferta_principal_encontrada`, `preco_da_oferta_igual_ao_aprovado` (`price.value` contra `preco_aprovado`), `moeda_da_oferta_igual_a_config` (`price.currency_code` contra `moeda`). `payment_mode` e `is_currency_conversion_enabled` viram avisos. Depois de `Regravar index.html`, o mesmo bloco do Netlify republica a página com o link do checkout (`netlify_republicou_com_checkout`).
+
+**Lacunas:** conferir o preço desenhado no checkout em navegador headless continua opcional (T-08): o preço já é conferido pela API.
 
 **Como testar:** com credencial real, rodar `funil` e conferir `hotmart_api_autenticou` e `produto_existe_na_hotmart`; abrir o checkout no navegador e conferir preço, moeda e idioma; conferir no `index.html` que não sobrou `{{CHECKOUT_URL}}`.
 
@@ -372,21 +374,24 @@ O script `dr-utm` repassa `utm_source`, `utm_medium`, `utm_campaign`, `utm_conte
 | Nó | Tipo | Configuração |
 |---|---|---|
 | `Imagens → itens` | `code` | até 6 imagens do plano do agente; prompt + `Text on image: "<texto>"` |
-| `xAI · gerar imagem` | `httpRequest` POST `https://api.x.ai/v1/images/generations` | credencial `DR · xAI Grok`; body `{model: modelo_imagem, prompt, n:1, response_format:'url'}` |
-| `Conferência pós-agente` | `code` | junta URLs e erros |
+| `xAI · gerar imagem` | `httpRequest` POST `https://api.x.ai/v1/images/generations` | credencial `DR · xAI Grok`; body `{model: modelo_imagem, prompt, n:1, response_format:'b64_json'}` |
+| `Imagens → arquivos` | `code` | base64 vira binário; arquivo `<pasta_saida>\<slug>\criativos\<id>-<versão>.jpg` (versão = hash da imagem) |
+| `Gravar criativos` | `readWriteFile` write | um arquivo por imagem |
+| `Conferência pós-agente` | `code` | junta arquivos e erros; `saida.pasta` |
 
 **Saída do agente (JSON):**
 `{"imagens":[{"id","prompt","texto_na_imagem","formato"}],"videos":[{"id","duracao_s","cenas":[{"t","visual","texto_tela","locucao"}],"trilha"}]}`
 
 Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4:5, 9:16; sem antes/depois, sem corpo "transformado", sem claim de saúde.
 
-**Verificações por código:** `tem_roteiros`, `saida_do_agente_em_json`, `imagens_geradas` (todas com URL), `videos_roteirizados`.
+**Verificações por código:** `tem_roteiros`, `saida_do_agente_em_json`, `imagens_geradas_e_gravadas` (todas com arquivo no disco), `videos_roteirizados`.
+
+**Aprovação dos criativos (`H-20261127-italo-11`):** igual à copy. O relatório mostra "Versão dos criativos: v…" e a pasta das imagens. Quem aprova põe esse código em `criativos_aprovados_hash` e `criativos_aprovados: true`. Com a versão aprovada, a Claquete fica congelada (não gera de novo) e o Revisor (item 7) e o Tráfego liberam. Imagem nova = versão nova = precisa de nova aprovação.
 
 **Lacunas:**
 
-- As URLs devolvidas pela xAI podem expirar. As imagens precisam ser **baixadas e guardadas** (disco ou storage) antes do Tráfego usá-las (T-06).
-- Vídeos só saem roteirizados; o render fica com o gerador que o time escolher (decisão pendente).
-- Falta a aprovação dos criativos pelo Arthur como campo da config (`criativos_aprovados`), no mesmo modelo de `copy_aprovada` (T-04).
+- ~~As URLs da xAI podem expirar~~: as imagens vêm em base64 e são gravadas no disco (T-06).
+- Vídeos só saem roteirizados; o render fica com o gerador que o time escolher (fora do fluxo).
 
 **Como testar:** rodar `claquete` e abrir cada URL; conferir texto na imagem em pt-PT e ausência de claims.
 
@@ -417,7 +422,7 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 
 **Verificações por código:** os 7 itens + `saida_do_agente_em_json` + `revisor_aprovou` (`aprovado === true` e nenhum erro).
 
-**Lacunas:** o Revisor confere a página só pelo HTML; não roda JavaScript, então não vê o preço desenhado pelo checkout nem confere o PageView em navegador real (T-08). O item 7 deve passar a exigir `criativos_aprovados` (T-04).
+**Lacunas:** o Revisor confere a página só pelo HTML; não roda JavaScript, então não vê o preço desenhado pelo checkout nem confere o PageView em navegador real (T-08, opcional). O item 7 agora é `7_criativos_prontos_e_aprovados`: imagens gravadas + `criativos_aprovados` + `criativos_aprovados_hash` igual à versão da Claquete (`H-20261127-italo-11`).
 
 **Como testar:** quebrar de propósito cada item (tirar o pixel, trocar o link, colocar "você") e confirmar que o Revisor reprova com a evidência certa.
 
@@ -441,20 +446,28 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 | `Meta · criar campanha (PAUSED)` | `httpRequest` POST `/{v}/{ad_account_id}/campaigns` | só se não existe; body = campanha do `Payload PAUSADO` com `status: 'PAUSED'` reforçado na expressão. **Sem retry** (POST de criação) |
 | `Conjuntos → itens` | `code` | um item por conjunto com `campaign_id` |
 | `Meta · criar conjunto (PAUSED)` | `httpRequest` POST `/{v}/{ad_account_id}/adsets` | `status: 'PAUSED'` reforçado |
-| `IDs criados` | `code` | lista campanha + conjuntos |
+| `Criativos → arquivos` | `code` | imagens aprovadas da Claquete com arquivo (até 6) |
+| `Criativo · ler arquivo` | `readWriteFile` read | lê o `.jpg` do disco |
+| `Meta · subir imagem` | `httpRequest` POST `/{v}/{ad_account_id}/adimages` | multipart, campo `filename`; devolve `images.<nome>.hash` |
+| `Anúncios → criativos` | `code` | um criativo por imagem: `object_story_spec.page_id = facebook_page_id`, `link_data {link: página, message e name = headlines APROVADAS (o agente só escolhe o índice), image_hash, call_to_action}` e `url_tags` com `utm_*` e `xcod={{ad.id}}`. **Trava:** claim de saúde, escassez ou preço riscado no texto quebra a execução |
+| `Meta · criar criativo` | `httpRequest` POST `/{v}/{ad_account_id}/adcreatives` | sem retry |
+| `Anúncios → itens` | `code` | cada conjunto × cada criativo: `{name, adset_id, creative:{creative_id}, status: PAUSED, conversion_domain?}`. **Trava** igual à do payload |
+| `Meta · criar anúncio (PAUSED)` | `httpRequest` POST `/{v}/{ad_account_id}/ads` | `status: 'PAUSED'` reforçado; sem retry |
+| `IDs criados` | `code` | lista campanha + conjuntos + anúncios |
 | `Meta · reforçar PAUSED` | `httpRequest` POST `/{v}/{id}` | body `{status: 'PAUSED'}` para cada ID |
 | `Meta · conferir status` | `httpRequest` GET `/{v}/{id}?fields=id,name,status,effective_status` | — |
-| `Conferência PAUSADO` | `code` | reprova se algum `status ≠ PAUSED` ou `effective_status` fora de `PAUSED`, `CAMPAIGN_PAUSED`, `ADSET_PAUSED` |
+| `Conferência PAUSADO` | `code` | reprova se algum `status ≠ PAUSED` ou `effective_status === ACTIVE` (anúncio novo em `PENDING_REVIEW` com status PAUSED é aceito, G-02) |
 
 **Saída do agente (JSON):** `{"campanha_nome","conjuntos":[{"nome","idade_min","idade_max","generos","observacao"}],"observacoes"}`. O nome da campanha **não vem do agente**: é `config.campanha_nome` ou `DR | <oferta> | <país>` (fixo, para a busca por nome funcionar). Conjuntos: `<campanha> | <nome do agente> | <data>`. O agente **não escolhe status**.
 
-**Verificações por código:** `campanha_criada`, `conjuntos_criados`, `tudo_pausado_conferido_na_api`.
+**Pré-requisitos novos (`H-20261127-italo-11`):** `facebook_page_id`; `url_pagina_publicada` (ou a do Netlify); imagens da Claquete gravadas; `criativos_aprovados` com `criativos_aprovados_hash` igual à versão da Claquete.
+
+**Verificações por código:** `campanha_criada`, `conjuntos_criados`, `anuncios_criados`, `tudo_pausado_conferido_na_api`.
 
 **Lacunas:**
 
 - Conjuntos levam `dsa_payor` e `dsa_beneficiary` (de `dsa_pagador`/`dsa_beneficiario`); em país da UE, sem eles a etapa fica bloqueada (P-14).
-- Ao criar anúncios (T-06), lembrar que anúncio recém-criado pode ficar em `PENDING_REVIEW` mesmo pausado: a conferência deve olhar `status` e aceitar esse `effective_status` (G-02).
-- **Os anúncios não são criados.** Falta: subir as imagens (`/{act}/adimages`), criar `adcreative` com link da página + UTMs, e criar `ads` com `status: PAUSED`, passando pela mesma trava e conferência (T-06).
+- ~~Os anúncios não são criados~~: imagens → `adimages` → `adcreatives` → `ads` PAUSED (T-06, `H-20261127-italo-11`). No caminho de campanha reutilizada, nada é criado nem conferido nos anúncios (aviso no relatório). Falta validar com conta de teste.
 - ~~Rodada repetida duplica campanha~~: busca por nome antes de criar (T-07, `H-20261127-italo-06`). Falta validar com conta de teste.
 - O `orcamento_diario_centavos: 1000` é valor de exemplo do gerador; **só o Arthur define** (tarefa de decisão D-08).
 
@@ -515,9 +528,9 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 | D-02 | Preencher `DR · Meta (token de sistema)` com as permissões da seção 1.2 | P-09, P-12 | Arthur + Italo | ⬜ | | | |
 | D-03 | Preencher `DR · Hotmart` | P-09, P-12 | Arthur + Italo | ⬜ | | | |
 | D-04 | `pixel_id` e `ad_account_id` na config | P-09 | Arthur | ⬜ | | | |
-| D-05 | Decisões da oferta: formato, preço, garantia, instrutora, depoimentos, números, entregáveis | P-01 a P-07 | Arthur | ⬜ | | | |
+| D-05 | Decisões da oferta: formato, preço, garantia, instrutora, depoimentos, números, entregáveis. **Não bloqueia o fluxo** (28/11): são entradas opcionais em `config.decisoes`; vazio vira marcador e o Revisor segura a página até preencher | P-01 a P-07 | quem opera o fluxo | ➖ opcional | Claude | 2026-11-27 | H-20261127-italo-11 |
 | D-06 | Aprovar a copy (`copy_aprovada`) | P-08 | Arthur | ⬜ | | | |
-| D-07 | Domínio e hospedagem da página | — | Italo + Arthur | ⬜ | | | |
+| D-07 | Domínio e hospedagem da página. O fluxo já publica no Netlify se `netlify_site_id` e a credencial `DR · Netlify` estiverem preenchidos; domínio próprio é opcional (`url_pagina_publicada`) | — | Italo + Arthur | ⬜ | | | |
 | D-08 | Orçamento diário e público de teste | — | Arthur | ⬜ | | | |
 
 ### 15.2 Construção (o que falta no fluxo)
@@ -527,11 +540,11 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 | T-01 | Trazer o código gerador (`tools/`, `workflows/*.json` sem credenciais) para este repositório em `n8n/`, para a outra máquina e a outra IA terem a mesma fonte | todos | — | ✅ | Claude | 2026-11-27 | H-20261127-italo-03 |
 | T-02 | Workflow `99 Erros` + retries (seção 13) | todos | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-04 |
 | T-03 | Persistir estado entre rodadas (n8n Data Table ou arquivo JSON por oferta) e **congelar a copy aprovada** (hash + versão); Construtor e Claquete leem a versão congelada, não a da rodada | 00, 02, 03, 05 | — | 🟡 código pronto e testado (arquivo `estado.json` por oferta + `copy_aprovada_hash`); publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-05 |
-| T-04 | Levar as decisões do Arthur para a config (`decisoes: {formato, preco, garantia, instrutora, ...}`) e para o prompt do Headline Killer; criar `criativos_aprovados` | 00, 02, 05, 06 | D-05 | 🟡 estrutura `config.decisoes` e prompts revisados (G-04) no gerador; faltam os valores (D-05) e `criativos_aprovados` | Claude | 2026-11-27 | H-20261127-italo-09 |
-| T-05 | Nó de deploy da página (API da hospedagem escolhida) que preenche `url_pagina_publicada` sozinho, depois do Construtor e de novo depois do Funil | 03, 04 | D-07 | ⬜ | | | |
-| T-06 | Baixar e guardar as imagens da Claquete; no Tráfego, criar `adimages` → `adcreative` → `ads` **PAUSED**, com UTMs no link, passando pela trava e pela conferência | 05, 07 | D-02, D-04 | ⬜ | | | |
+| T-04 | Levar as decisões para a config (`decisoes: {formato, preco, garantia, instrutora, ...}`) e para o prompt do Headline Killer; criar `criativos_aprovados` | 00, 02, 05, 06 | — | ✅ decisões são entradas opcionais (vazio = marcador); `criativos_aprovados` + `criativos_aprovados_hash` congelam as imagens | Claude | 2026-11-27 | H-20261127-italo-11 |
+| T-05 | Nó de deploy da página (Netlify, G-03) que preenche `url_pagina_publicada` sozinho, depois do Construtor e de novo depois do Funil | 03, 04 | — | 🟡 código pronto e testado; publicado; falta validar com token real | Claude | 2026-11-27 | H-20261127-italo-11 |
+| T-06 | Guardar as imagens da Claquete; no Tráfego, criar `adimages` → `adcreative` → `ads` **PAUSED**, com UTMs no link, passando pela trava e pela conferência | 05, 07 | — | 🟡 código pronto e testado; publicado; falta validar com conta de teste | Claude | 2026-11-27 | H-20261127-italo-11 |
 | T-07 | Idempotência: Tráfego procura campanha pelo nome antes de criar; Radar pagina a Ad Library até o fim | 01, 07 | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-06 |
-| T-08 | Conferência em navegador real (headless) para PageView e preço no checkout | 04, 06 | T-05 | ⬜ | | | |
+| T-08 | Conferência em navegador real (headless) para PageView e preço no checkout. Opcional: o preço já é conferido pela API de ofertas (`H-20261127-italo-11`) | 04, 06 | T-05 | ⬜ opcional | | | |
 | T-09 | Agendamento (`scheduleTrigger`) e envio do relatório pelo Telegram | 00 | T-02 | ⬜ | | | |
 
 ### 15.3 Validação

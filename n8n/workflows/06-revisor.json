@@ -2,7 +2,7 @@
   "name": "Direct Response · 06 Revisor",
   "nodes": [
     {
-      "id": "11a9f524-04c7-4384-b08f-c790b318c29e",
+      "id": "87dccd67-b1dd-4a00-a3b2-5577e5761cec",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "eee013ee-6e4a-4b8d-8f48-68756dfbe567",
+      "id": "021f0a97-64b5-4db1-8edf-a07de39b7300",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "d0172baf-e5ce-4d27-aa38-e17e9c87e927",
+      "id": "a571ce34-1849-46ef-a767-c9e175255f2f",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "8b725186-03bf-4d06-a1a1-1c2fb63b06c4",
+              "id": "214bdfd4-9451-43ef-910f-880e6c87ebc4",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "c51c41e5-5af9-4b14-8fb9-eff7466168da",
+      "id": "04529906-acb0-488c-8169-a390646209f5",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'revisor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Revisor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'revisor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Revisor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'entrega aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "268aff74-7d50-4cbc-8492-9f56aa584e98",
+      "id": "7ff124b5-b766-4c15-8866-1110073fa70c",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "5be28622-bd90-4f3d-8a7f-b1abf3aebd73",
+      "id": "eaf5d92c-7a26-4975-8111-970059957a55",
       "name": "Revisor · página no ar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -121,7 +121,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "7c052c8a-502e-4e42-ad39-ecbf20ad0e8e",
+      "id": "77f35c07-dedd-4abf-a363-07c5de6ad117",
       "name": "Revisor · checkout",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -150,7 +150,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "704496b8-76d7-4fb4-a3e2-734cd463d19b",
+      "id": "2b3b0aa9-1509-473f-97e9-2f4ec735db70",
       "name": "Revisor · pixel",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -183,7 +183,7 @@
       }
     },
     {
-      "id": "5ccbe270-ea6d-4a94-b388-0e673fec5f55",
+      "id": "a9ef26cc-24c6-4c14-b9ab-42245b4c855c",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -192,11 +192,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst e = $('Entrada').first().json;\nconst cfg = e.config, est = e.estado || {};\nconst pag = $('Revisor · página no ar').first().json;\nconst chk = $('Revisor · checkout').first().json;\nconst px = $('Revisor · pixel').first().json;\nconst html = typeof pag.body === 'string' ? pag.body : '';\nconst pixel = String(cfg.pixel_id || '');\nconst reInit = new RegExp(\"fbq\\\\(\\\\s*['\\\"]init['\\\"]\\\\s*,\\\\s*['\\\"]\" + pixel + \"['\\\"]\");\nconst ancoras = [...html.matchAll(/<a\\b[^>]*>/gi)].map(m => m[0]);\nconst hrefDe = a => (a.match(/href=[\"']([^\"']+)[\"']/i) || [])[1] || '';\n// todos os botões a.cta + qualquer link que pareça checkout\nconst linksCheckout = ancoras.filter(a => /class=[\"'][^\"']*\\bcta\\b/i.test(a) || /hotmart|pay\\.|checkout/i.test(hrefDe(a))).map(hrefDe);\nconst urlChk = String(cfg.hotmart_checkout_url || '');\nconst precoNum = String(cfg.preco_aprovado || '').replace(/[^\\d,\\.]/g, '');\nconst rePreco = precoNum ? new RegExp('(^|[^\\\\d.,])' + precoNum.replace(/[.,]/g, m => '\\\\' + m) + '(?![\\\\d])') : null;\nconst idi = String(cfg.idioma || '').toLowerCase();\nconst lang = (html.match(/<html[^>]*\\blang=[\"']([^\"']+)[\"']/i) || [])[1] || '';\nconst texto = textoDoHtml(html);\nconst imgs = (est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || [];\nconst checklist = {\n  '1_pagina_no_ar': pag.statusCode === 200,\n  '2_pixel_certo_e_pageview': pixel.length > 5 && reInit.test(html) && /fbq\\(\\s*['\"]track['\"]\\s*,\\s*['\"]PageView['\"]/.test(html),\n  '3_pixel_ja_disparou': !!(px && px.last_fired_time),\n  '4_links_de_checkout_certos_e_no_ar': linksCheckout.length > 0 && linksCheckout.every(h => h.split('?')[0] === urlChk.split('?')[0]) && !html.includes('{{CHECKOUT_URL}}') && chk.statusCode === 200,\n  '5_preco_aprovado_e_sem_preco_riscado': !!rePreco && rePreco.test(texto) && !PRECO_RISCADO.test(html),\n  '6_idioma_do_destino': (idi.includes('-') ? lang.toLowerCase() === idi : lang.toLowerCase().split('-')[0] === idi) && (idi !== 'pt-pt' || !/(^|[^\\p{L}])voc[eê]s?(?![\\p{L}])/iu.test(texto)),\n  '7_criativos_prontos': imgs.length > 0 && imgs.every(i => !!i.url),\n  '8_sem_marcadores_pendentes': !!html && !MARCADOR_PENDENTE.test(html)\n};\nreturn [{ json: {\n  dados: { checklist, decisoes_usadas: (est.headline && est.headline.saida && est.headline.saida.decisoes_usadas) || null, decisoes: cfg.decisoes || {}, url: cfg.url_pagina_publicada, lang_da_pagina: lang, links_de_checkout: linksCheckout, preco_aprovado: cfg.preco_aprovado, texto_da_pagina: texto.slice(0, 20000), criativos: imgs },\n  verificacoes: checklist, avisos: {}\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst e = $('Entrada').first().json;\nconst cfg = e.config, est = e.estado || {};\nconst pag = $('Revisor · página no ar').first().json;\nconst chk = $('Revisor · checkout').first().json;\nconst px = $('Revisor · pixel').first().json;\nconst html = typeof pag.body === 'string' ? pag.body : '';\nconst pixel = String(cfg.pixel_id || '');\nconst reInit = new RegExp(\"fbq\\\\(\\\\s*['\\\"]init['\\\"]\\\\s*,\\\\s*['\\\"]\" + pixel + \"['\\\"]\");\nconst ancoras = [...html.matchAll(/<a\\b[^>]*>/gi)].map(m => m[0]);\nconst hrefDe = a => (a.match(/href=[\"']([^\"']+)[\"']/i) || [])[1] || '';\n// todos os botões a.cta + qualquer link que pareça checkout\nconst linksCheckout = ancoras.filter(a => /class=[\"'][^\"']*\\bcta\\b/i.test(a) || /hotmart|pay\\.|checkout/i.test(hrefDe(a))).map(hrefDe);\nconst urlChk = String(cfg.hotmart_checkout_url || '');\nconst precoNum = String(cfg.preco_aprovado || '').replace(/[^\\d,\\.]/g, '');\nconst rePreco = precoNum ? new RegExp('(^|[^\\\\d.,])' + precoNum.replace(/[.,]/g, m => '\\\\' + m) + '(?![\\\\d])') : null;\nconst idi = String(cfg.idioma || '').toLowerCase();\nconst lang = (html.match(/<html[^>]*\\blang=[\"']([^\"']+)[\"']/i) || [])[1] || '';\nconst texto = textoDoHtml(html);\nconst imgs = (est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || [];\nconst checklist = {\n  '1_pagina_no_ar': pag.statusCode === 200,\n  '2_pixel_certo_e_pageview': pixel.length > 5 && reInit.test(html) && /fbq\\(\\s*['\"]track['\"]\\s*,\\s*['\"]PageView['\"]/.test(html),\n  '3_pixel_ja_disparou': !!(px && px.last_fired_time),\n  '4_links_de_checkout_certos_e_no_ar': linksCheckout.length > 0 && linksCheckout.every(h => h.split('?')[0] === urlChk.split('?')[0]) && !html.includes('{{CHECKOUT_URL}}') && chk.statusCode === 200,\n  '5_preco_aprovado_e_sem_preco_riscado': !!rePreco && rePreco.test(texto) && !PRECO_RISCADO.test(html),\n  '6_idioma_do_destino': (idi.includes('-') ? lang.toLowerCase() === idi : lang.toLowerCase().split('-')[0] === idi) && (idi !== 'pt-pt' || !/(^|[^\\p{L}])voc[eê]s?(?![\\p{L}])/iu.test(texto)),\n  '7_criativos_prontos_e_aprovados': imgs.length > 0 && imgs.every(i => !!(i.arquivo || i.url)) && cfg.criativos_aprovados === true && !!cfg.criativos_aprovados_hash && !!est.claquete && est.claquete.saida_hash === cfg.criativos_aprovados_hash,\n  '8_sem_marcadores_pendentes': !!html && !MARCADOR_PENDENTE.test(html)\n};\nreturn [{ json: {\n  dados: { checklist, decisoes_usadas: (est.headline && est.headline.saida && est.headline.saida.decisoes_usadas) || null, decisoes: cfg.decisoes || {}, url: cfg.url_pagina_publicada, lang_da_pagina: lang, links_de_checkout: linksCheckout, preco_aprovado: cfg.preco_aprovado, texto_da_pagina: texto.slice(0, 20000), criativos: imgs },\n  verificacoes: checklist, avisos: {}\n} }];"
       }
     },
     {
-      "id": "e0fb8fd9-1e79-41d6-9a72-37054b1494f0",
+      "id": "e4b95988-83d0-4bbf-99a4-440305f07cc6",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -218,7 +218,7 @@
       }
     },
     {
-      "id": "377e1e5e-da6a-4a46-8a61-84b121d9380b",
+      "id": "1fbf35c9-1023-4aee-b713-a2d8a4baa35c",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -240,7 +240,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "2391e88d-216a-419a-9612-91ab3b819ee4",
+      "id": "36fcf19e-533f-419a-8a3a-124c100837ee",
       "name": "Agente · Revisor",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -252,7 +252,7 @@
         "promptType": "define",
         "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
         "options": {
-          "systemMessage": "Você é o Revisor do time Direct Response.\nMissão: conferir tudo antes de entregar e só aprovar com 100%.\n\nVocê recebe o checklist automático de 7 itens (página no ar, pixel com o ID certo e PageView, pixel já disparou, links de checkout certos e no ar, preço igual ao aprovado e sem preço riscado, idioma, criativos prontos) e o texto da página.\nSua parte: revisar idioma (variante do país de destino), erros de ortografia e gramática, coerência entre página, checkout e criativos, e claims proibidos.\n\nConfira também, e reprove com o trecho exato quando falhar:\n1. Idioma: em pt-PT, procure brasileirismos além de \"você\": gerúndio (\"estou fazendo\"), celular, tela, time (equipa), café da manhã, arquivo, baixar, compartilhar, acessar, usuário, cadastro, academia, \"a gente\", \"seu/sua\" sem artigo. O verificador automático só vê \"você\" e o atributo lang (e deixa passar lang pt-BR): esta parte é SUA.\n2. Marcadores pendentes na página: qualquer texto entre colchetes em maiúsculas ([PREÇO], [ESPAÇO PARA PROVA REAL], [FORMATO A DEFINIR], [AVISO DE SAÚDE A DEFINIR]) ou {{...}}. Qualquer um reprova.\n3. Atributos de saúde: frase ou pergunta que afirme ou sugira que o leitor tem uma condição (\"Tem dores…?\", \"Sofre de…?\").\n4. Prova social e números: depoimento, nome de aluna, \"mais de N\", \"N anos de experiência\" que não estejam em decisoes_usadas ou em numeros_confirmados. Sem prova, reprove.\n5. Coerência com as decisões: formato, garantia, preço e entregáveis da página iguais aos de decisoes_usadas. Qualquer promessa além do formato (ex.: \"ao vivo\" num curso gravado) reprova.\n6. Urgência ou escassez: \"só hoje\", \"últimas vagas\", \"últimas N vagas\", contagens regressivas.\n7. Preço de comparação (\"de X por Y\") em qualquer formato, incluindo \"de 29,90 € por 14,90 €\" (o verificador automático não pega o símbolo depois do número).\n8. Texto da página dentro de imagens: se o criativo tem texto na imagem, aplique as mesmas regras.\n\nRegras do Revisor:\n- Só aprove se TODOS os 7 itens automáticos estiverem verdadeiros e você não achar nenhum erro.\n- Cada problema vem com evidência (trecho exato ou item do checklist) e a correção sugerida.\n- Nunca aprove \"quase pronto\".\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nRegras de pt-PT (copy e textos para o público de Portugal; valem quando o idioma é pt-PT):\n- A variante é português de Portugal (pt-PT), não do Brasil. Escreva como um texto de anúncio feito em Portugal.\n- Trate o leitor por \"si\" e na terceira pessoa (\"Descubra\", \"para si\", \"consigo\"). Nunca use \"você\", \"vocês\", \"seu/sua\" sem artigo (\"o seu\", \"a sua\") nem \"a gente\".\n- Use \"a + infinitivo\" em vez de gerúndio: \"a fazer\", \"a treinar\", nunca \"fazendo\", \"treinando\".\n- Vocabulário: telemóvel (não celular), ecrã (não tela), equipa (não time), pequeno-almoço (não café da manhã), ficheiro (não arquivo), descarregar (não baixar), partilhar (não compartilhar), aceder (não acessar), utilizador (não usuário), registo ou inscrição (não cadastro), ginásio (não academia), tapete (não colchonete), autocarro (não ônibus).\n- Ortografia: siga o que o dono decidir (config.decisoes.ortografia). Se estiver vazio, use o Acordo Ortográfico de 1990 e deixe a pendência \"ortografia a confirmar\" em pendencias_do_dono.\n- Na dúvida entre uma palavra do Brasil e uma de Portugal, use a de Portugal e anote em pendencias_do_dono para um falante nativo de Portugal conferir.\n\nRegras de saúde e de atributos pessoais da Meta (anúncios e páginas):\n- Nada de frases ou perguntas que afirmem ou sugiram que o leitor tem uma condição de saúde, física ou mental. Proibido: \"Tem dores nas costas?\", \"Sofre de artrose?\", \"Já tentou de tudo para a sua barriga?\". Permitido: descrever o programa e o benefício (\"Aulas de pilates suaves, em casa\").\n- Pode citar género e faixa etária de passagem (\"para mulheres com mais de 50 anos\"). Não pode dizer o que o leitor é ou sente por causa da idade (\"Aos 50 anos o seu corpo já não…\").\n- Sem promessa de cura, de tratamento ou de eliminar doença. Sem \"resultado garantido\". Sem resultado numérico num prazo fixo (\"perca 5 kg em 7 dias\"), com ou sem ressalva.\n- Sem antes e depois, sem comparar corpos, sem frases que ataquem a aparência ou partes do corpo, sem imagem de pinçar gordura.\n- Sem urgência ou escassez falsa: \"só hoje\", \"últimas vagas\", \"últimas 10 vagas\", \"acaba à meia-noite\", contagem decrescente que reinicia. Só use prazo real que o dono confirmou.\n- Sem prova social que não esteja em config.decisoes (depoimentos_verificados, numeros_confirmados). Sem nome, foto ou voz de pessoa real sem autorização registada em config.decisoes.instrutora.\n- Se tiver dúvida de que uma frase é permitida, não a escreva: coloque-a em pendencias_do_dono.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"erros\":[{\"onde\":\"\",\"trecho\":\"\",\"problema\":\"\",\"correcao\":\"\"}],\"comentario\":\"\"}",
+          "systemMessage": "Você é o Revisor do time Direct Response.\nMissão: conferir tudo antes de entregar e só aprovar com 100%.\n\nVocê recebe o checklist automático de 8 itens (página no ar, pixel com o ID certo e PageView, pixel já disparou, links de checkout certos e no ar, preço igual ao aprovado e sem preço riscado, idioma, criativos gravados e aprovados pelo dono, sem marcadores pendentes) e o texto da página.\nSua parte: revisar idioma (variante do país de destino), erros de ortografia e gramática, coerência entre página, checkout e criativos, e claims proibidos.\n\nConfira também, e reprove com o trecho exato quando falhar:\n1. Idioma: em pt-PT, procure brasileirismos além de \"você\": gerúndio (\"estou fazendo\"), celular, tela, time (equipa), café da manhã, arquivo, baixar, compartilhar, acessar, usuário, cadastro, academia, \"a gente\", \"seu/sua\" sem artigo. O verificador automático só vê \"você\" e o atributo lang (e deixa passar lang pt-BR): esta parte é SUA.\n2. Marcadores pendentes na página: qualquer texto entre colchetes em maiúsculas ([PREÇO], [ESPAÇO PARA PROVA REAL], [FORMATO A DEFINIR], [AVISO DE SAÚDE A DEFINIR]) ou {{...}}. Qualquer um reprova.\n3. Atributos de saúde: frase ou pergunta que afirme ou sugira que o leitor tem uma condição (\"Tem dores…?\", \"Sofre de…?\").\n4. Prova social e números: depoimento, nome de aluna, \"mais de N\", \"N anos de experiência\" que não estejam em decisoes_usadas ou em numeros_confirmados. Sem prova, reprove.\n5. Coerência com as decisões: formato, garantia, preço e entregáveis da página iguais aos de decisoes_usadas. Qualquer promessa além do formato (ex.: \"ao vivo\" num curso gravado) reprova.\n6. Urgência ou escassez: \"só hoje\", \"últimas vagas\", \"últimas N vagas\", contagens regressivas.\n7. Preço de comparação (\"de X por Y\") em qualquer formato, incluindo \"de 29,90 € por 14,90 €\" (o verificador automático não pega o símbolo depois do número).\n8. Texto da página dentro de imagens: se o criativo tem texto na imagem, aplique as mesmas regras.\n\nRegras do Revisor:\n- Só aprove se TODOS os 8 itens automáticos estiverem verdadeiros e você não achar nenhum erro.\n- Cada problema vem com evidência (trecho exato ou item do checklist) e a correção sugerida.\n- Nunca aprove \"quase pronto\".\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nRegras de pt-PT (copy e textos para o público de Portugal; valem quando o idioma é pt-PT):\n- A variante é português de Portugal (pt-PT), não do Brasil. Escreva como um texto de anúncio feito em Portugal.\n- Trate o leitor por \"si\" e na terceira pessoa (\"Descubra\", \"para si\", \"consigo\"). Nunca use \"você\", \"vocês\", \"seu/sua\" sem artigo (\"o seu\", \"a sua\") nem \"a gente\".\n- Use \"a + infinitivo\" em vez de gerúndio: \"a fazer\", \"a treinar\", nunca \"fazendo\", \"treinando\".\n- Vocabulário: telemóvel (não celular), ecrã (não tela), equipa (não time), pequeno-almoço (não café da manhã), ficheiro (não arquivo), descarregar (não baixar), partilhar (não compartilhar), aceder (não acessar), utilizador (não usuário), registo ou inscrição (não cadastro), ginásio (não academia), tapete (não colchonete), autocarro (não ônibus).\n- Ortografia: siga o que o dono decidir (config.decisoes.ortografia). Se estiver vazio, use o Acordo Ortográfico de 1990 e deixe a pendência \"ortografia a confirmar\" em pendencias_do_dono.\n- Na dúvida entre uma palavra do Brasil e uma de Portugal, use a de Portugal e anote em pendencias_do_dono para um falante nativo de Portugal conferir.\n\nRegras de saúde e de atributos pessoais da Meta (anúncios e páginas):\n- Nada de frases ou perguntas que afirmem ou sugiram que o leitor tem uma condição de saúde, física ou mental. Proibido: \"Tem dores nas costas?\", \"Sofre de artrose?\", \"Já tentou de tudo para a sua barriga?\". Permitido: descrever o programa e o benefício (\"Aulas de pilates suaves, em casa\").\n- Pode citar género e faixa etária de passagem (\"para mulheres com mais de 50 anos\"). Não pode dizer o que o leitor é ou sente por causa da idade (\"Aos 50 anos o seu corpo já não…\").\n- Sem promessa de cura, de tratamento ou de eliminar doença. Sem \"resultado garantido\". Sem resultado numérico num prazo fixo (\"perca 5 kg em 7 dias\"), com ou sem ressalva.\n- Sem antes e depois, sem comparar corpos, sem frases que ataquem a aparência ou partes do corpo, sem imagem de pinçar gordura.\n- Sem urgência ou escassez falsa: \"só hoje\", \"últimas vagas\", \"últimas 10 vagas\", \"acaba à meia-noite\", contagem decrescente que reinicia. Só use prazo real que o dono confirmou.\n- Sem prova social que não esteja em config.decisoes (depoimentos_verificados, numeros_confirmados). Sem nome, foto ou voz de pessoa real sem autorização registada em config.decisoes.instrutora.\n- Se tiver dúvida de que uma frase é permitida, não a escreva: coloque-a em pendencias_do_dono.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"erros\":[{\"onde\":\"\",\"trecho\":\"\",\"problema\":\"\",\"correcao\":\"\"}],\"comentario\":\"\"}",
           "maxIterations": 4
         }
       },
@@ -262,7 +262,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "b85ff8a9-949b-49b2-b8c9-81214a887242",
+      "id": "f39f3b2d-1b64-43d2-a272-bb544ee41719",
       "name": "Conferência pós-agente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -275,7 +275,7 @@
       }
     },
     {
-      "id": "734de2f5-b025-40c7-98c6-fe6594445aab",
+      "id": "741678a7-cbcf-4e49-adc7-fa77e95daf01",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -297,7 +297,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "b40f4255-13c2-4b4c-999e-759ebdcb29b8",
+      "id": "d31cd8c5-a36c-4773-bb55-16186cbc3e45",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -319,7 +319,7 @@
       }
     },
     {
-      "id": "3506487e-8078-44b1-be09-5482c7953dc1",
+      "id": "5e6af7e4-8ca2-4d92-af02-4a7ba75bd740",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -332,7 +332,7 @@
       }
     },
     {
-      "id": "bae71128-cf17-4db8-97f0-e10a0681779d",
+      "id": "196df42c-9d8d-4022-bb41-ebc26274e0b7",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

@@ -2,7 +2,7 @@
   "name": "Direct Response · 00 Coordenador (GROK BOT)",
   "nodes": [
     {
-      "id": "f425c891-d86c-4b3f-b887-5e0e2771a41f",
+      "id": "b03f7ab7-bc29-4d89-aacf-7826d0962fb1",
       "name": "Iniciar rodada",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -13,7 +13,7 @@
       "parameters": {}
     },
     {
-      "id": "9d8ef4ed-75c2-4659-acba-3f0602d0d24c",
+      "id": "6613531a-602d-4cb1-a520-1a7b83a4f1a5",
       "name": "⚙️ Configuração",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -22,11 +22,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "// ⚙️ CONFIGURAÇÃO DA RODADA — edite aqui e clique em \"Execute workflow\".\n// Campos vazios bloqueiam as etapas que dependem deles (o relatório diz o que falta).\nreturn [{ json: {\n  // País de destino (ISO-2). O projeto começou por Portugal; troque se quiser outro país.\n  pais_origem: 'BR',\n  pais_destino: 'PT',\n  nome_pais: 'Portugal',\n  idioma: 'pt-PT',\n  moeda: 'EUR',\n\n  // Etapas que rodam nesta rodada (tire as que não quer repetir).\n  etapas_ativas: ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'],\n\n  // RADAR — termos para buscar concorrência no destino e ofertas candidatas do Brasil.\n  // A API da Meta não devolve anúncios comerciais do Brasil: os números BR vêm dos prints (senão ficam \"não verificado\").\n  termos_busca: ['desafio pilates', 'pilates em casa', 'pilates mulheres 50'],\n  ofertas_br: [\n    { nome: 'Desafio Pilates em Casa 50+', page_id_br: '2016271568674266', url_pagina: 'https://pilates.laystrancoso.com/', preco_br: 'R$ 29,90',\n      anuncios_ativos_br: null, anuncio_mais_antigo_br: null, print_br: null }\n  ],\n\n  // HEADLINE KILLER — oferta escolhida pelo dono.\n  oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },\n\n  // Decisões do dono (P-01 a P-07, P-13; perguntas em plano/rascunhos/perguntas-arthur.md). Vazio = não decidido (o agente usa marcador).\n  decisoes: {\n    formato: '',\n    garantia: { dias: null, texto_aprovado: '', renuncia_14_dias: null },\n    instrutora: { assina: '', nome_autorizado: '', autorizacao_por_escrito: false },\n    depoimentos_verificados: [],   // { texto, nome, autorizacao }\n    numeros_confirmados: [],       // { frase, prova }\n    bumps: [],                     // { nome, preco, entregavel }\n    upsell: null,                  // { nome, preco, entregavel }\n    aviso_saude: '',\n    ortografia: ''\n  },\n\n  // Aprovações do dono (só você muda isto).\n  copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)\n  copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo\n  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil\n  entregaveis_confirmados: [],\n\n  // CONSTRUTOR / PIXEL\n  pixel_id: '',\n  pasta_saida: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response',\n  url_pagina_publicada: '',\n  url_privacidade: '',\n  url_termos: '',\n\n  // FUNIL (Hotmart)\n  hotmart_product_id: '',\n  hotmart_checkout_url: '',\n\n  // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS\n  ad_account_id: '',         // formato act_1234567890\n  campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha\n  dsa_pagador: '',           // UE: quem paga os anúncios (P-14). Obrigatório para anunciar em Portugal\n  dsa_beneficiario: '',      // UE: quem se beneficia dos anúncios (P-14)\n  orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta\n  publico: 'mulheres 50+ em Portugal',\n\n  // CLAQUETE\n  modelo_imagem: 'grok-2-image',\n\n  // Prazos por agente (AAAA-MM-DD)\n  prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },\n\n  graph_version: 'v26.0'      // v23.0 expirou em 2026-06-09 (G-02)\n} }];"
+        "jsCode": "// ⚙️ CONFIGURAÇÃO DA RODADA — edite aqui e clique em \"Execute workflow\".\n// Campos vazios bloqueiam as etapas que dependem deles (o relatório diz o que falta).\nreturn [{ json: {\n  // País de destino (ISO-2). O projeto começou por Portugal; troque se quiser outro país.\n  pais_origem: 'BR',\n  pais_destino: 'PT',\n  nome_pais: 'Portugal',\n  idioma: 'pt-PT',\n  moeda: 'EUR',\n\n  // Etapas que rodam nesta rodada (tire as que não quer repetir).\n  etapas_ativas: ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'],\n\n  // RADAR — termos para buscar concorrência no destino e ofertas candidatas do Brasil.\n  // A API da Meta não devolve anúncios comerciais do Brasil: os números BR vêm dos prints (senão ficam \"não verificado\").\n  termos_busca: ['desafio pilates', 'pilates em casa', 'pilates mulheres 50'],\n  ofertas_br: [\n    { nome: 'Desafio Pilates em Casa 50+', page_id_br: '2016271568674266', url_pagina: 'https://pilates.laystrancoso.com/', preco_br: 'R$ 29,90',\n      anuncios_ativos_br: null, anuncio_mais_antigo_br: null, print_br: null }\n  ],\n\n  // HEADLINE KILLER — oferta escolhida pelo dono.\n  oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },\n\n  // Decisões do produto: ENTRADAS OPCIONAIS. O fluxo roda com tudo vazio; campo vazio vira marcador na página\n  // (ex.: [GARANTIA A DEFINIR PELO PRODUTOR]) e o Revisor segura a página até ele ser preenchido. Nada é inventado.\n  decisoes: {\n    formato: '',\n    garantia: { dias: null, texto_aprovado: '', renuncia_14_dias: null },\n    instrutora: { assina: '', nome_autorizado: '', autorizacao_por_escrito: false },\n    depoimentos_verificados: [],   // { texto, nome, autorizacao }\n    numeros_confirmados: [],       // { frase, prova }\n    bumps: [],                     // { nome, preco, entregavel }\n    upsell: null,                  // { nome, preco, entregavel }\n    aviso_saude: '',\n    ortografia: ''\n  },\n\n  // Aprovações do dono (só você muda isto).\n  copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)\n  copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo\n  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil (conferido contra a oferta principal na Hotmart)\n  entregaveis_confirmados: [],\n  criativos_aprovados: false,     // libera o Tráfego (junto com criativos_aprovados_hash)\n  criativos_aprovados_hash: '',   // versão aprovada das imagens (sai no relatório). Congela os criativos: a Claquete não gera de novo\n\n  // CONSTRUTOR / PIXEL\n  pixel_id: '',\n  pasta_saida: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response',\n  netlify_site_id: '',       // preenchido = o fluxo publica a página no Netlify sozinho (credencial DR · Netlify)\n  url_pagina_publicada: '',  // vazio + Netlify = usa o endereço do Netlify; preencha se usar domínio próprio\n  url_privacidade: '',\n  url_termos: '',\n\n  // FUNIL (Hotmart)\n  hotmart_product_id: '',\n  hotmart_checkout_url: '',\n\n  // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS\n  ad_account_id: '',         // formato act_1234567890\n  facebook_page_id: '',      // página do Facebook que assina os anúncios\n  dominio_conversao: '',     // opcional: domínio da página para o Meta (ex.: exemplo.pt)\n  cta_anuncio: 'LEARN_MORE', // botão do anúncio (LEARN_MORE, SHOP_NOW...)\n  campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha\n  dsa_pagador: '',           // UE: quem paga os anúncios (P-14). Obrigatório para anunciar em Portugal\n  dsa_beneficiario: '',      // UE: quem se beneficia dos anúncios (P-14)\n  orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta\n  publico: 'mulheres 50+ em Portugal',\n\n  // CLAQUETE\n  modelo_imagem: 'grok-2-image',\n\n  // Prazos por agente (AAAA-MM-DD)\n  prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },\n\n  graph_version: 'v26.0'      // v23.0 expirou em 2026-06-09 (G-02)\n} }];"
       }
     },
     {
-      "id": "bd0fe05b-48cf-40f4-a514-367f5da239ad",
+      "id": "62ef6475-15ca-4b6a-ba5c-badc3f269de5",
       "name": "Arquivo de estado",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "a66805c7-e784-429b-8d77-724ff65af99d",
+      "id": "cd6f0c81-b6aa-4995-8596-7fdc27e1ff36",
       "name": "Estado salvo · ler",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -56,7 +56,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "f104e70d-a2c7-4ba4-a4ea-4ac73c79a1a7",
+      "id": "16142ba6-6d60-43ad-8cd9-14cd22ce0a07",
       "name": "Estado salvo · extrair",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
@@ -73,7 +73,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "a92d67b1-9b96-4f07-8de5-510e7602d2b0",
+      "id": "2f218801-5b73-4769-a5f6-3f172a853b6d",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -95,7 +95,7 @@
       }
     },
     {
-      "id": "30301086-aafd-46b8-9597-094cfdf1f432",
+      "id": "68c5be0d-5fe3-442b-ba5d-d4f2c17711a9",
       "name": "Coordenador · plano",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -117,7 +117,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "04dd85a7-3279-4b8f-887d-9759fa3230ff",
+      "id": "3a89fbcf-1285-477c-b6e9-722527ddd465",
       "name": "Estado inicial",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -126,11 +126,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const config = $('⚙️ Configuração').first().json;\nconst ETAPAS = ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'];\nlet salvo = {};\ntry { const d = $('Estado salvo · extrair').first().json; salvo = d && d.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : {}; } catch (e) { salvo = {}; }\nconst estado = { plano_do_coordenador: $json.output || '(plano indisponível: o modelo não respondeu)', inicio_rodada: new Date().toISOString() };\n// Etapas de rodadas anteriores entram marcadas: valem como entrega (ex.: copy congelada), nunca como aprovação \"desta rodada\"\nfor (const k of ETAPAS) if (salvo[k] && typeof salvo[k] === 'object') estado[k] = Object.assign({}, salvo[k], { de_rodada_anterior: true });\nreturn [{ json: { config, estado, arquivo_estado: $('Arquivo de estado').first().json.arquivo_estado } }];"
+        "jsCode": "const config = $('⚙️ Configuração').first().json;\nconst ETAPAS = ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'];\nlet salvo = {};\ntry { const d = $('Estado salvo · extrair').first().json; salvo = d && d.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : {}; } catch (e) { salvo = {}; }\nconst estado = { plano_do_coordenador: $json.output || '(plano indisponível: o modelo não respondeu)', inicio_rodada: new Date().toISOString() };\n// Etapas de rodadas anteriores entram marcadas: valem como entrega (ex.: copy congelada), nunca como aprovação \"desta rodada\"\nfor (const k of ETAPAS) if (salvo[k] && typeof salvo[k] === 'object') estado[k] = Object.assign({}, salvo[k], { de_rodada_anterior: true });\nconst u = estado.construtor && estado.construtor.saida && estado.construtor.saida.url_publicada;\nconst cfg = Object.assign({}, config, !config.url_pagina_publicada && u ? { url_pagina_publicada: u } : {});\nreturn [{ json: { config: cfg, estado, arquivo_estado: $('Arquivo de estado').first().json.arquivo_estado } }];"
       }
     },
     {
-      "id": "6d75d22c-2e2d-4e3e-be28-ef4147862174",
+      "id": "7b53a65f-595f-4763-bec6-5837b44096ec",
       "name": "Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -139,14 +139,14 @@
         -60
       ],
       "parameters": {
-        "content": "## Time Direct Response — Coordenador (GROK BOT)\n1. Cole as chaves nas credenciais **DR · xAI Grok**, **DR · Meta (token de sistema)** e **DR · Hotmart**.\n2. Edite **⚙️ Configuração** (país, oferta, aprovações, pixel, conta de anúncios).\n3. Clique em **Execute workflow**.\n\nCada etapa chama um sub-workflow: integração → GROK BOT orienta → agente → verificações → GROK BOT supervisiona. Se uma etapa não for aprovada, o fluxo para e o relatório numerado diz o que falta.\n\n**Campanhas: sempre PAUSADAS.** Nada é ativado por este fluxo.",
+        "content": "## Time Direct Response — Coordenador (GROK BOT)\n1. Cole as chaves nas credenciais **DR · xAI Grok**, **DR · Meta (token de sistema)**, **DR · Hotmart** e (opcional) **DR · Netlify**.\n2. Edite **⚙️ Configuração** (país, oferta, IDs, aprovações). As decisões do produto são opcionais: vazias viram marcador e o Revisor segura a página.\n3. Clique em **Execute workflow**.\n\nCada etapa chama um sub-workflow: integração → GROK BOT orienta → agente → verificações → GROK BOT supervisiona. Se uma etapa não for aprovada, o fluxo para e o relatório numerado diz o que falta.\n\n**Campanhas: sempre PAUSADAS.** Nada é ativado por este fluxo.",
         "width": 640,
         "height": 320,
         "color": 4
       }
     },
     {
-      "id": "ecd37413-3df7-47da-a70c-4ce8e8dd68f8",
+      "id": "567e7209-7d83-47e7-ab9f-fd40cbb78497",
       "name": "01 · Radar",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -167,7 +167,7 @@
       }
     },
     {
-      "id": "ffba2f17-04a4-4a20-b3d2-cf3708bde018",
+      "id": "f80c6dff-1fab-478e-b597-ec396b74618c",
       "name": "Estado · Radar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -176,11 +176,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Estado inicial').first().json));\nconst anterior = base.estado['radar'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['radar'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['radar'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Estado inicial').first().json));\nconst anterior = base.estado['radar'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['radar'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['radar'] = $json;\n// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração\nconst u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;\nif (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "902b8b02-f0b7-4d6e-8bb3-d2217d7a342d",
+      "id": "5a6dcf90-ffb4-48be-9665-75bd810fd489",
       "name": "Radar liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -198,7 +198,7 @@
           },
           "conditions": [
             {
-              "id": "4fcfbbae-f9d7-4d43-96c4-c0cb40ad9b8a",
+              "id": "89f8215b-4864-44da-9e4a-6cec21dbe946",
               "leftValue": "={{ $json.estado['radar'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -215,7 +215,7 @@
       }
     },
     {
-      "id": "1f3a0a02-97e5-4d42-b7f5-9bc2aad0a308",
+      "id": "26f0d811-cfe5-4581-886f-b4e040c3e091",
       "name": "02 · Headline Killer",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -236,7 +236,7 @@
       }
     },
     {
-      "id": "b0db79da-22c8-4050-921a-8b6f9e12df03",
+      "id": "9c1903bb-e977-4e42-9bc8-36c4604eb1fd",
       "name": "Estado · Headline Killer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -245,11 +245,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Radar liberou?').first().json));\nconst anterior = base.estado['headline'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['headline'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['headline'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Radar liberou?').first().json));\nconst anterior = base.estado['headline'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['headline'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['headline'] = $json;\n// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração\nconst u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;\nif (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "a3e47c09-5f85-4229-a854-95699cb70297",
+      "id": "51da996b-0aeb-4cc4-96fc-99045d268f76",
       "name": "Headline Killer liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -267,7 +267,7 @@
           },
           "conditions": [
             {
-              "id": "1ab10424-8b6d-4e9a-8ed2-95a405f55001",
+              "id": "ad682a66-7a3e-4324-9473-60abb98e5c60",
               "leftValue": "={{ $json.estado['headline'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -284,7 +284,7 @@
       }
     },
     {
-      "id": "da11d9ab-f12c-4d22-8a0f-faf8c7401e45",
+      "id": "d2e5aa44-3404-49d1-83fc-2b23e59c1fd7",
       "name": "03 · Construtor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -305,7 +305,7 @@
       }
     },
     {
-      "id": "e78b5e7c-0a1d-4a56-86b1-72c6ce9fb653",
+      "id": "81a521a7-c1c0-475b-8197-67e67575f0fb",
       "name": "Estado · Construtor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -314,11 +314,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Headline Killer liberou?').first().json));\nconst anterior = base.estado['construtor'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['construtor'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['construtor'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Headline Killer liberou?').first().json));\nconst anterior = base.estado['construtor'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['construtor'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['construtor'] = $json;\n// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração\nconst u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;\nif (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "74694507-e58a-48f3-99a6-5f4e0224c320",
+      "id": "c0fde9af-e22d-4c4f-a6fa-3d67019093b3",
       "name": "Construtor liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -336,7 +336,7 @@
           },
           "conditions": [
             {
-              "id": "5226c158-e8c4-4239-b4b3-d724b7834a2d",
+              "id": "61b684fc-64d7-45f6-aa8f-596bd6a7bb50",
               "leftValue": "={{ $json.estado['construtor'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -353,7 +353,7 @@
       }
     },
     {
-      "id": "73992ebc-ecb6-4a00-a55a-8f9aff9640f8",
+      "id": "ff6f54ea-c809-4a71-ba5c-f4dbcf4d53dc",
       "name": "04 · Funil",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -374,7 +374,7 @@
       }
     },
     {
-      "id": "56bdabc0-ceb8-4e00-94f1-6068e2d9f3d8",
+      "id": "307fdd08-effc-4f92-9f3f-ea0fb15ea8ec",
       "name": "Estado · Funil",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -383,11 +383,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Construtor liberou?').first().json));\nconst anterior = base.estado['funil'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['funil'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['funil'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Construtor liberou?').first().json));\nconst anterior = base.estado['funil'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['funil'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['funil'] = $json;\n// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração\nconst u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;\nif (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "99428a7d-4670-4056-a572-990445f4469c",
+      "id": "dfd3f76a-3cc3-454e-9c91-cf222c8fcbc1",
       "name": "Funil liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -405,7 +405,7 @@
           },
           "conditions": [
             {
-              "id": "37643226-5b8c-4315-b531-bc3eb06761b1",
+              "id": "a4c8f3c2-be27-4372-9ba3-fb911a17375c",
               "leftValue": "={{ $json.estado['funil'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -422,7 +422,7 @@
       }
     },
     {
-      "id": "9e9c44e5-2f0a-4dbe-b0c0-5ccbfe00ac2a",
+      "id": "c1c56409-4b64-4ee5-8ccc-4081d31b7b9c",
       "name": "05 · Claquete",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -443,7 +443,7 @@
       }
     },
     {
-      "id": "02a0c13d-5444-4ec5-956b-ac42228cebdc",
+      "id": "1e43b986-1cb8-4759-bbe5-9de610e979b0",
       "name": "Estado · Claquete",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -452,11 +452,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Funil liberou?').first().json));\nconst anterior = base.estado['claquete'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['claquete'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['claquete'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Funil liberou?').first().json));\nconst anterior = base.estado['claquete'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['claquete'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['claquete'] = $json;\n// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração\nconst u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;\nif (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "91076ec5-103d-4a8e-8973-ac9ea444c242",
+      "id": "91080a2a-dc4a-4e9a-98fb-01d4126896dd",
       "name": "Claquete liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -474,7 +474,7 @@
           },
           "conditions": [
             {
-              "id": "02478a72-bfd8-427c-86d9-f7e238fc2252",
+              "id": "51f17a89-946b-444b-95d9-2e581fc5cc9f",
               "leftValue": "={{ $json.estado['claquete'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -491,7 +491,7 @@
       }
     },
     {
-      "id": "e648c140-a641-4b9a-8965-b075da26782a",
+      "id": "55efbc4b-7419-4074-8157-3064f9933c56",
       "name": "06 · Revisor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -512,7 +512,7 @@
       }
     },
     {
-      "id": "c2492793-3f4b-426b-8c78-d25a31696925",
+      "id": "8f5f751f-fde2-4ee8-aaff-29c90dac86d9",
       "name": "Estado · Revisor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -521,11 +521,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Claquete liberou?').first().json));\nconst anterior = base.estado['revisor'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['revisor'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['revisor'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Claquete liberou?').first().json));\nconst anterior = base.estado['revisor'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['revisor'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['revisor'] = $json;\n// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração\nconst u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;\nif (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "c72468ae-e331-4399-b54b-ad1c5542f6c1",
+      "id": "9cb6871f-c39a-4de0-8ab0-261d872d4505",
       "name": "Revisor liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -543,7 +543,7 @@
           },
           "conditions": [
             {
-              "id": "f275cb7f-ead3-425c-98fc-c426b61a8f65",
+              "id": "ad3fa671-2786-4765-84d6-bb915678a5e6",
               "leftValue": "={{ $json.estado['revisor'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -560,7 +560,7 @@
       }
     },
     {
-      "id": "2daa20c4-81c2-4da5-b3c5-3d43fbe9ac7a",
+      "id": "5c3a8b61-db46-4657-afcd-61be61439141",
       "name": "07 · Tráfego",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -581,7 +581,7 @@
       }
     },
     {
-      "id": "fac9d5db-a264-497e-98cb-d84ebf83b621",
+      "id": "d2aebad2-22f4-44e1-a7ca-58995b4a5a4a",
       "name": "Estado · Tráfego",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -590,11 +590,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Revisor liberou?').first().json));\nconst anterior = base.estado['trafego'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['trafego'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['trafego'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Revisor liberou?').first().json));\nconst anterior = base.estado['trafego'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['trafego'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['trafego'] = $json;\n// Página publicada pelo fluxo (Netlify): o endereço vale para Revisor e Tráfego sem editar a configuração\nconst u = base.estado.construtor && base.estado.construtor.saida && base.estado.construtor.saida.url_publicada;\nif (!base.config.url_pagina_publicada && u) base.config.url_pagina_publicada = u;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "45bca213-31f8-4d0b-940c-adcc54661c36",
+      "id": "4a342825-c168-4e21-9f65-6c51c94b0f22",
       "name": "Tráfego liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -612,7 +612,7 @@
           },
           "conditions": [
             {
-              "id": "c128d936-c4f0-46dc-b7e8-1653e96f11c9",
+              "id": "5ebbbb22-4db1-4f5c-bb6e-f73825e66e97",
               "leftValue": "={{ $json.estado['trafego'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -629,7 +629,7 @@
       }
     },
     {
-      "id": "a7cb8e76-c9fd-4e29-ba6d-69c85086ae17",
+      "id": "544ab2a1-5c07-4db0-b72f-da662729bd35",
       "name": "Prazos e resumo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -642,7 +642,7 @@
       }
     },
     {
-      "id": "b892cc45-0abb-4e96-bb3b-cbd6730578cb",
+      "id": "da2d3f10-0a2d-4b97-a061-033a87564041",
       "name": "Grok (xAI) relatório",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -664,7 +664,7 @@
       }
     },
     {
-      "id": "95d67acc-fcf4-45a3-a4f7-83ea831bea70",
+      "id": "8b105e62-59b1-4797-828e-b3b2c0323123",
       "name": "Coordenador · relatório",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -686,7 +686,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "717a0e46-5c76-44ff-872d-c0934f527de2",
+      "id": "10a414d6-0bae-44e3-9d43-0ec8052381cb",
       "name": "Progresso (lista numerada)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -695,11 +695,11 @@
         600
       ],
       "parameters": {
-        "jsCode": "const p = $('Prazos e resumo').first().json;\nconst h = p.estado.headline;\nlet texto = $json.output;\nif (!texto) texto = '(relatório do modelo indisponível)\\n' + p.prazos.map(l => l.n + '. ' + l.agente + ': ' + l.status + (l.motivo ? ' (' + l.motivo + ')' : '')).join('\\n');\nif (h && h.saida_hash) texto += '\\n\\nVersão da copy: ' + h.saida_hash + (p.config.copy_aprovada_hash === h.saida_hash ? ' (é a aprovada)' : ' (para aprovar esta versão, o Arthur confere a copy e o Italo põe este código em copy_aprovada_hash e copy_aprovada: true)');\nreturn [{ json: { progresso: texto, prazos: p.prazos, estado: p.estado } }];"
+        "jsCode": "const p = $('Prazos e resumo').first().json;\nconst h = p.estado.headline;\nconst cq = p.estado.claquete;\nlet texto = $json.output;\nif (!texto) texto = '(relatório do modelo indisponível)\\n' + p.prazos.map(l => l.n + '. ' + l.agente + ': ' + l.status + (l.motivo ? ' (' + l.motivo + ')' : '')).join('\\n');\nif (h && h.saida_hash) texto += '\\n\\nVersão da copy: ' + h.saida_hash + (p.config.copy_aprovada_hash === h.saida_hash ? ' (é a aprovada)' : ' (para aprovar esta versão, o Arthur confere a copy e o Italo põe este código em copy_aprovada_hash e copy_aprovada: true)');\nif (cq && cq.saida_hash && cq.saida && (cq.saida.imagens_geradas || []).length) texto += '\\nVersão dos criativos: ' + cq.saida_hash + (p.config.criativos_aprovados_hash === cq.saida_hash ? ' (é a aprovada)' : ' (imagens em ' + (cq.saida.pasta || 'pasta_saida') + '; para aprovar, ponha este código em criativos_aprovados_hash e criativos_aprovados: true)');\nreturn [{ json: { progresso: texto, prazos: p.prazos, estado: p.estado } }];"
       }
     },
     {
-      "id": "4cad9655-1fcf-49fe-98bb-0a523854ce10",
+      "id": "edce1757-1e54-47e1-bd12-0da6b1346b97",
       "name": "Estado → salvar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -712,7 +712,7 @@
       }
     },
     {
-      "id": "ed4b4dc4-b9d9-4a55-ae07-747ed85685a1",
+      "id": "a1c68508-12f8-4e21-ba0e-4e2245ed3690",
       "name": "Estado → arquivo",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
@@ -729,7 +729,7 @@
       }
     },
     {
-      "id": "48f58338-5689-4a01-9260-c7b47a545cfb",
+      "id": "273f7c23-954f-4c9c-b94b-a4e55a22b357",
       "name": "Gravar estado.json",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -746,7 +746,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "1b78cd61-65d0-4b36-a6e9-586abf6c38e8",
+      "id": "bc3d4235-3439-4e21-815b-473fece5adf3",
       "name": "Enviar no Telegram (opcional)",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
