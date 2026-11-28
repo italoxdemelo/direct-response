@@ -51,6 +51,11 @@ flowchart TD
   H03 --> H06
   C01 --> H03
 
+  HG01["H-20261127-grok-01 G-05 perguntas para o Arthur"]
+  HG01 --> P13
+  HG01 --> P14
+  H12 --> HG01
+
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
   P02{{"P-02 Preço em euro"}}
@@ -64,6 +69,8 @@ flowchart TD
   P10{{"P-10 Convidar ArthurSantosss no GitHub ✅"}}
   P11{{"P-11 Claude GitHub App no repositório"}}
   P12{{"P-12 Preencher credenciais DR no n8n"}}
+  P13{{"P-13 Bumps e upsell: conteúdo e preços"}}
+  P14{{"P-14 Página, moeda da conta e pagador/beneficiário DSA"}}
   H02 --> P10
   H04 --> P10
   H04 --> P11
@@ -90,6 +97,8 @@ flowchart TD
   E03 --> E01
   E02 & E03 & E04 --> E05
   E05 --> E06 --> E07
+  P13 --> E03
+  P14 --> E06
 ```
 
 > O GitHub renderiza este bloco como diagrama. Num editor sem Mermaid, use a tabela abaixo, que tem a mesma informação.
@@ -126,6 +135,7 @@ flowchart TD
 | H-20261127-italo-05 | Estado entre rodadas em `estado.json` e copy congelada por `copy_aprovada_hash` (T-03, falta publicar). | H-20261127-italo-04 | H-20261127-italo-03 | — | — |
 | H-20261127-italo-06 | Tráfego procura campanha por nome antes de criar; Radar paginado (T-07, falta publicar). | H-20261127-italo-05 | H-20261127-italo-03 | — | — |
 | H-20261127-italo-07 | Gerador publicado no n8n do PC: 99 Erros `rUNQVY24WtvxDK5l` ativo e *Error workflow* dos outros 8; gerador passa a ativar o 99 Erros (o n8n 2.x exige). | H-20261127-italo-06 | H-20261127-italo-03 | — | — |
+| H-20261127-grok-01 | G-05: mensagem com as perguntas para o Arthur em `plano/rascunhos/perguntas-arthur.md`. | H-20261127-italo-07 | — | — | P-13, P-14 |
 
 ### Pendências
 
@@ -143,6 +153,8 @@ flowchart TD
 | P-10 | Convidar `ArthurSantosss` como colaborador do repositório (a API bloqueou). | ✅ resolvida em H-20261126-italo-01 | italoxdemelo (dono) | — | H-20261125-italo-02 |
 | P-11 | Instalar a Claude GitHub App em `italoxdemelo` com acesso a `direct-response`, para o Claude registrar sem usar o navegador. | ⏳ aberta | Italo | — | H-20261126-italo-01 |
 | P-12 | Preencher no n8n as credenciais `DR · xAI Grok`, `DR · Meta (token de sistema)` e `DR · Hotmart` (valores nunca no Git). | ⏳ aberta | Italo / Arthur | workflows do n8n (E-01 a E-06 automatizados) | H-20261125-italo-03 |
+| P-13 | Conteúdo e preço em euro de 2 a 3 order bumps e 1 upsell (contexto: o Arthur pediu "front, bumps e upsell" na conversa; os valores não vieram). | ⏳ aberta | Arthur | E-03 | `plano/rascunhos/perguntas-arthur.md` (H-20261127-grok-01) |
+| P-14 | Página do Facebook (e conta do Instagram) que assina os anúncios, moeda da conta de anúncios e pagador e beneficiário (DSA, anúncios na UE). Hipótese para confirmar: a Marketing API exige `page_id` no criativo e `daily_budget` na moeda da conta; conjuntos que miram a UE pedem `dsa_payor` e `dsa_beneficiary`. | ⏳ aberta | Arthur / Italo | E-06 | `plano/rascunhos/perguntas-arthur.md` (H-20261127-grok-01) |
 
 Ao fechar uma pendência: troque `⏳ aberta` por `✅ resolvida em H-...` e, no grafo, adicione a seta `Hxx --> Pxx`.
 
@@ -152,8 +164,8 @@ Ao fechar uma pendência: troque `⏳ aberta` por `✅ resolvida em H-...` e, no
 |---|---|---|---|---|
 | E-01 | Montar e publicar página com pixel e UTM | Construtor | P-08, P-09, E-03 (link do checkout) | Só copy aprovada pelo Arthur. |
 | E-02 | Conferir que o PageView dispara | Construtor / Revisor | E-01 | Antes de qualquer anúncio. |
-| E-03 | Produto, checkout em €, bumps e upsells na Hotmart | Funil | P-02, P-03, P-07, P-09 | Preço só com ok do Arthur. |
+| E-03 | Produto, checkout em €, bumps e upsells na Hotmart | Funil | P-02, P-03, P-07, P-09, P-13 | Preço só com ok do Arthur. |
 | E-04 | Criativos (vídeo e imagem) | Claquete | P-08 | Sem prova social falsa nem claims proibidos. |
 | E-05 | Revisão final, checklist de 7 itens | Revisor | E-02, E-03, E-04 | Só aprova a 100%, com evidência. |
-| E-06 | Subir campanhas | Tráfego | E-05 | **Sempre pausadas**; conferir pela API. |
+| E-06 | Subir campanhas | Tráfego | E-05, P-14 | **Sempre pausadas**; conferir pela API. |
 | E-07 | Ativar campanhas | Arthur | E-06 | Só o Arthur ativa. |

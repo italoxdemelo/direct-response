@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-01 — Preparar as perguntas para o Arthur (G-05)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/rascunhos/perguntas-arthur.md` com a mensagem pronta (PT-BR, 12 perguntas em múltipla escolha) que cobre P-01 a P-08 e D-08, mais bumps e upsell, pixel, Página do Facebook, moeda da conta de anúncios e domínio. Cada pergunta diz o que a resposta destrava. Abertas duas pendências novas no mapa: P-13 (bumps e upsell) e P-14 (Página e moeda da conta).
+- **Por quê:** Tarefa G-05 de `plano/DIVISAO-TAREFAS.md`: as decisões do Arthur são o maior gargalo (risco R-1). O Italo pediu ao Grok para assumir as tarefas na ordem sugerida.
+- **Arquivos tocados:** `plano/rascunhos/perguntas-arthur.md`, `plano/DIVISAO-TAREFAS.md` (status G-05), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-italo-07
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** P-13, P-14
+- **Verificação:** Perguntas conferidas contra `contexto/00-LEIA-PRIMEIRO.md` §5 e `historico/MAPA-DEPENDENCIAS.md` (P-01 a P-09, D-07, D-08). Nenhuma senha, token, `pixel_id` ou `ad_account_id` no arquivo. A mensagem **ainda não foi enviada** ao Arthur. A copy do Método EIXO 7 não está no repositório (só a primeira adaptação, em `contexto/`), então o Italo precisa anexá-la. Sobre garantia e 14 dias, o texto da Diretiva 2011/83/UE **não foi aberto** (EUR-Lex bloqueou a leitura): ficou como **não verificado**, com a fonte.
+- **Próximo passo:** Italo (I-03) envia a mensagem ao Arthur, anexa a copy do Método EIXO 7 e registra as respostas em nova entrada, fechando P-01 a P-08 conforme o caso.
+
 ### H-20261127-italo-07 — Publicar no n8n o gerador com 99 Erros, estado e Tráfego sem duplicar
 
 - **Data/hora:** 2026-11-27 22:16 (America/Bahia UTC-3)
