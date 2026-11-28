@@ -2,7 +2,7 @@
   "name": "Direct Response · 99 Erros",
   "nodes": [
     {
-      "id": "783b32f9-53bb-4e93-bf6b-6394ef13bb61",
+      "id": "367f74cb-eaea-409e-a264-86c49cc2549d",
       "name": "Erro em workflow DR",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -13,7 +13,7 @@
       "parameters": {}
     },
     {
-      "id": "90b9230c-0cda-46f6-b31a-5f6fcf2a1d05",
+      "id": "0145909a-cd20-4675-87b6-8d600192b243",
       "name": "Montar alerta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -26,7 +26,7 @@
       }
     },
     {
-      "id": "9304d5b8-d845-4617-83e4-78c0ef3bdeab",
+      "id": "748fe067-869a-4c0b-943e-e5d3c288cabf",
       "name": "Alerta → arquivo",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
@@ -43,7 +43,7 @@
       }
     },
     {
-      "id": "5b6a8236-7e71-41cd-a132-dad1a6bab8fb",
+      "id": "dd23053a-a039-4a06-a549-5f8f2f04613e",
       "name": "Gravar erro no disco",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -60,7 +60,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "c214fe22-cfe0-4230-8ed4-6f585b3626e4",
+      "id": "3a92a9de-42d7-4ad6-9b3d-c3df81990645",
       "name": "Enviar alerta no Telegram (opcional)",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
@@ -84,7 +84,7 @@
       }
     },
     {
-      "id": "fd3d1f6e-bbe0-4745-a78c-ce15bc4ea2aa",
+      "id": "40e7c61c-6794-4171-9705-3aa8ac904a39",
       "name": "Sobre os erros",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,

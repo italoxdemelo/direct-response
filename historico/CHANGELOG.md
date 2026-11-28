@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-12 — Publicar no n8n o fluxo completo (anúncios, Netlify, ofertas Hotmart)
+
+- **Data/hora:** 2026-11-27 23:16 (America/Bahia UTC-3)
+- **Autor:** italo — Claude Code
+- **Tipo:** ação externa
+- **O que mudou:** `node tools/gerar.mjs` rodou no n8n do PC (`localhost:5678`) e atualizou os 9 workflows (99 Erros `rUNQVY24WtvxDK5l`, 01 Radar `ZEwHqbQbTRpqwbZm`, 02 Headline Killer `HcVTPRfIrVr5pEpS`, 03 Construtor `dIRHcPq6GOQjGjlf`, 04 Funil `4ZrBWdTNmlj5cnez`, 05 Claquete `b0Mtxcsxf2hZPAQZ`, 06 Revisor `cqkhx6Mc2PENjylp`, 07 Tráfego `8nsN0jKDEmNyID9M`, 00 Coordenador `WiHxKHcgbaLG7iFy`) e a tag "Direct Response". Credencial nova `DR · Netlify` criada como **placeholder** (sem valor); as 3 anteriores (xAI Grok, Meta, Hotmart) já existiam e não foram alteradas. Os JSON em `n8n/workflows/` foram regravados com o fluxo da `H-20261127-italo-11`.
+- **Por quê:** levar ao n8n o fluxo completo da `H-20261127-italo-11` (pedido do Italo pelo chat do projeto).
+- **Arquivos tocados:** `n8n/workflows/*.json`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`; fora do repositório: n8n local (`localhost:5678`)
+- **Continua:** H-20261127-italo-11
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs`: TODOS OS TESTES PASSARAM. `gerar.mjs` publicou na primeira tentativa (sem o 400 "no published version"). `checar.mjs`: ok nos 9 (00: 38 nós, 01: 16, 02: 15, 03: 27, 04: 28, 05: 19, 06: 17, 07: 35, 99: 6); a contagem de nós pela API do n8n bate com os JSON. Pela API: o Coordenador está inativo; ativos do DR são só os sub-workflows 01 a 07 e o 99 Erros. Execuções dos 9 workflows: nenhuma nova (as únicas são do 01 Radar e do 03 Construtor, de 2026-11-26, anteriores a esta rodada). Grep nos JSON: sem chave, token ou senha; só 2 `COLE_AQUI` (00 Coordenador e 99 Erros) e 37 referências a credenciais por id. **Não verificado:** execução real dos agentes (nenhum workflow foi rodado) e as chamadas reais listadas na `H-20261127-italo-11`.
+- **Próximo passo:** revisar e fazer merge do PR do branch `n8n/H-20261127-italo-11`; depois preencher credenciais (incluindo `DR · Netlify`), IDs e aprovações conforme `n8n/README.md`.
+
 ### H-20261127-italo-11 — Deixar o fluxo do n8n completo sem depender das respostas do Arthur
 
 - **Data/hora:** 2026-11-27 23:15 (America/Bahia UTC-3)

@@ -80,6 +80,8 @@ flowchart TD
   HG02 --> H16
   HG03 --> H16
   HG04 --> H16
+  H17["H-20261127-italo-12 Fluxo completo publicado no n8n"]
+  H16 --> H17
   HG06 --> P15
   HG05 --> HG06
 
@@ -174,6 +176,7 @@ flowchart TD
 | H-20261127-italo-09 | Correções do Grok no gerador: prompts G-04, `config.decisoes`, regex, Revisor item 8, Tráfego compara nome, DSA, `v26.0`. | H-20261127-italo-08 | H-20261127-grok-03, -05, -06 | — | — |
 | H-20261127-italo-10 | Gerador com as correções do Grok republicado no n8n do PC: 9 workflows atualizados, `checar.mjs` ok, `errorWorkflow` do 99 Erros nos 8, Coordenador inativo. | H-20261127-italo-09 | — | — | — |
 | H-20261127-italo-11 | Decisões do produto viram entradas opcionais (fluxo não espera o Arthur); imagens da Claquete no disco; anúncios PAUSED no Tráfego; deploy opcional no Netlify; preço e moeda pela API de ofertas da Hotmart; `criativos_aprovados` + hash. | H-20261127-italo-10 | H-20261127-grok-02, -03, -04 | — | — |
+| H-20261127-italo-12 | Fluxo completo da -11 publicado no n8n do PC: 9 workflows atualizados, `checar.mjs` ok, credencial `DR · Netlify` criada como placeholder, Coordenador inativo, nada executado. | H-20261127-italo-11 | — | — | — |
 
 ### Pendências
 
