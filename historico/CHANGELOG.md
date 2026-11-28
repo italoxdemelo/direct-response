@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-03 — Pesquisar a Meta Marketing API para anúncios pausados e a Ad Library (G-02)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/pesquisa/meta-ads-api.md`: passo a passo `adimages` → `adcreatives` (com `url_tags` `utm_content={{ad.id}}` e `xcod={{ad.id}}`) → `ads` com `status=PAUSED`, campos obrigatórios, ensaio com `validate_only`, conferência por API, busca de campanha por nome, limites de taxa, limites da Ad Library API fora da UE e 10 propostas de ajuste no plano. Também ajustados: pergunta 10 de `plano/rascunhos/perguntas-arthur.md` e a pendência P-14 (agora inclui pagador e beneficiário DSA).
+- **Por quê:** Tarefa G-02 de `plano/DIVISAO-TAREFAS.md` (T-06, T-07, risco R-6). Só documentação oficial da Meta.
+- **Arquivos tocados:** `plano/pesquisa/meta-ads-api.md`, `plano/rascunhos/perguntas-arthur.md`, `plano/DIVISAO-TAREFAS.md` (status G-02), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-02
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Nenhuma chamada real (sem credencial, P-12). Achados da leitura da documentação: (1) `graph_version` do plano (`v23.0`) expirou em 2026-06-09; (2) conjuntos que miram a UE exigem `dsa_payor` e `dsa_beneficiary`, e o payload do Tráfego não tem; (3) anúncio exige `conversion_domain` com pixel; (4) a conferência `effective_status` do plano reprovaria anúncio recém-criado (fica em `PENDING_REVIEW`); (5) a Ad Library API não devolve anúncio comercial só do Brasil. Filtro por nome de campanha, upload multipart de imagem, permissões do token e retenção/token da Ad Library ficaram **não verificado** (seção 9 do arquivo). Sem segredo, `pixel_id`, `ad_account_id`, `page_id` nem dado pessoal: só marcadores. O plano **não foi alterado**.
+- **Conferido também contra o código do `main` (3354704):** o Tráfego usa o filtro `filtering` por nome, que não está na documentação oficial que li, e reaproveita o 1.º resultado sem comparar o nome (seção 5, item 7 do arquivo); `v23.0` continua em três lugares do código. **Próximo passo:** Claude (C-06, C-07) aplica as propostas 1 a 8 no workflow 07 Tráfego depois de o Italo confirmar a versão. Arthur responde a pergunta 10 (Página, moeda, pagador e beneficiário).
+
 ### H-20261127-grok-02 — Pesquisar a API da Hotmart na documentação oficial (G-01)
 
 - **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
