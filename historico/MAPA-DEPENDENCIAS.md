@@ -38,7 +38,9 @@ flowchart TD
   H04["H-20261126-italo-01 Acessos ao GitHub registrados"]
   H05["H-20261126-italo-02 Plano de ação criado"]
   H06["H-20261127-italo-01 Plano vira especificação técnica do n8n"]
+  H07["H-20261127-italo-02 Avaliação + divisão Claude × Grok"]
   H01 --> H02 --> H04 --> H05 --> H06
+  H06 --> H07
   H03 --> H06
   C01 --> H03
 
@@ -111,6 +113,7 @@ flowchart TD
 | H-20261126-italo-01 | `Italomelo01` virou colaborador; `ArthurSantosss` já aparece como colaborador; Claude GitHub App ainda não instalada no repositório. | H-20261125-italo-02 | — | P-10 | P-11 |
 | H-20261126-italo-02 | Plano de ação editável criado em `plano/PLANO-DE-ACAO.md` (fases 0 a 9, cobre P-01 a P-12 e E-01 a E-07). | H-20261126-italo-01 | — | — | — |
 | H-20261127-italo-01 | `plano/PLANO-DE-ACAO.md` reescrito como especificação técnica dos 8 workflows do n8n, com backlog D/T/V. | H-20261126-italo-02 | H-20261125-italo-03 | — | — |
+| H-20261127-italo-02 | Avaliação da estrutura e divisão de tarefas Claude (C-01..08) × Grok (G-01..06) × Italo (I-01..05) em `plano/DIVISAO-TAREFAS.md`. | H-20261127-italo-01 | — | — | — |
 
 ### Pendências
 
