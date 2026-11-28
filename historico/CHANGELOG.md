@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-04 — Comparar hospedagens para a página (G-03)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/pesquisa/hospedagem.md`: comparação de Netlify, Render, Cloudflare (Workers com arquivos estáticos e Pages) e Vercel por custo, domínio próprio com HTTPS, deploy por API a partir do n8n e tempo até ir ao ar. Recomendação: Netlify (deploy por zip em uma chamada), com aviso do limite duro do plano grátis; Cloudflare como plano B; Render em terceiro; Vercel Hobby descartado (Termos proíbem uso comercial).
+- **Por quê:** Tarefa G-03 de `plano/DIVISAO-TAREFAS.md` (D-07, T-05). Só preços e documentação oficial de cada serviço.
+- **Arquivos tocados:** `plano/pesquisa/hospedagem.md`, `plano/DIVISAO-TAREFAS.md` (status G-03), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-03
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Nenhuma conta criada, nenhum deploy feito. Preços em dólar, conforme as páginas oficiais em 2026-11-27. Termos da Vercel lidos na fonte. Contas de visitas por mês são estimativas e dizem as suposições. Ficaram **não verificado**: excedente de banda do Render, rota de deploy da API do Render, envio de arquivos do Pages por API, Pages com DNS externo, registros DNS do Netlify (página de domínios deu 404) e se o nó `Execute Command` está ligado no n8n (seção 9 do arquivo). Sem segredo nem dado pessoal.
+- **Próximo passo:** Arthur aprova a escolha de hospedagem e o domínio (gasto: só com ok dele); Italo cria a conta, o token e a credencial `DR · Netlify` no n8n; Claude implementa o T-05.
+
 ### H-20261127-grok-03 — Pesquisar a Meta Marketing API para anúncios pausados e a Ad Library (G-02)
 
 - **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)

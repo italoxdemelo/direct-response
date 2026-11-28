@@ -63,6 +63,9 @@ flowchart TD
   HG03 --> P14
   HG02 --> HG03
 
+  HG04["H-20261127-grok-04 G-03 hospedagem"]
+  HG03 --> HG04
+
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
   P02{{"P-02 Preço em euro"}}
@@ -145,6 +148,7 @@ flowchart TD
 | H-20261127-grok-01 | G-05: mensagem com as perguntas para o Arthur em `plano/rascunhos/perguntas-arthur.md`. | H-20261127-italo-07 | — | — | P-13, P-14 |
 | H-20261127-grok-02 | G-01: pesquisa da API da Hotmart em `plano/pesquisa/hotmart-api.md`. | H-20261127-grok-01 | — | — | — |
 | H-20261127-grok-03 | G-02: pesquisa da Meta Marketing API e da Ad Library em `plano/pesquisa/meta-ads-api.md`; ajusta P-14 (inclui DSA). | H-20261127-grok-02 | — | — | — |
+| H-20261127-grok-04 | G-03: comparação de hospedagens em `plano/pesquisa/hospedagem.md` (recomendação: Netlify; plano B Cloudflare). | H-20261127-grok-03 | — | — | — |
 
 ### Pendências
 
