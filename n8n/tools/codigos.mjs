@@ -20,14 +20,18 @@ function textoDoHtml(html) {
     .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
     .replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
 }
-const PRECO_RISCADO = /(<s>|<del>|line-through|\bde\s*:?\s*(R\$|€|EUR|US\$|\$)\s?\d[\d.,]*\s*(por|para|apenas|só)\b)/i;
+// "de € 29,90 por", "de 29,90 € por" (formato de Portugal) e "de 29,90 por"
+const PRECO_RISCADO = /(<s>|<del>|line-through|\bde\s*:?\s*(R\$|€|EUR|US\$|\$)\s?\d[\d.,]*\s*(por|para|apenas|só)\b|\bde\s*:?\s*\d+[.,]\d{2}\s*(€|EUR|euros?|R\$|reais)?\s*(por|para|apenas|só)\b)/i;
 function hashTexto(t) {
   // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)
   let h = 0x811c9dc5; const s = String(t);
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
   return 'v' + h.toString(16).padStart(8, '0');
 }
-const CLAIMS_SAUDE = /(antes\s+e\s+depois|\bperd(a|e|er)\s+(até\s+)?\d+\s*(kg|quilos)|\bemagre[cç]a\s+\d|\bcura(r|do|da)?\b|resultado\s+garantido|últimas\s+vagas)/i;
+// Ampliada com os casos do G-06 (H-20261127-grok-05): "Perca 10 kg", "perda de 10 kg", "Elimine 5 quilos", "Cure", "Só hoje", "Últimas 10 vagas", "antes/depois"
+const CLAIMS_SAUDE = /(antes\s*(e|\/)\s*depois|\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\s+(de\s+)?(até\s+)?\d+([.,]\d+)?\s*(kg|quilos)|\bemagre[cç]a\s+\d|\bcur(a|ar|ado|ada|e|em)\b|resultado\s+garantido|últimas\s+(\d+\s+)?vagas|\bsó\s+hoje\b)/i;
+// Marcadores que não podem sobrar na página publicada
+const MARCADOR_PENDENTE = /\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \-]{2,}\]|\{\{[^}]+\}\}/;
 `;
 
 export function preReq(fnBody) {
@@ -90,7 +94,7 @@ return [{ json: {
 // ---------------- RADAR ----------------
 export const RADAR_ITENS = String.raw`
 const cfg = $('Entrada').first().json.config;
-const v = cfg.graph_version || 'v23.0';
+const v = cfg.graph_version || 'v26.0';
 const campos = 'id,page_id,page_name,ad_delivery_start_time,ad_snapshot_url,ad_creative_link_titles';
 const pais = JSON.stringify([cfg.pais_destino]);
 const itens = [];
@@ -177,7 +181,9 @@ const riscos = [];
 if (PRECO_RISCADO.test(html)) riscos.push('a original usa preço riscado / de-por');
 if (CLAIMS_SAUDE.test(texto)) riscos.push('a original tem claim de saúde ou escassez (antes/depois, kg, cura, últimas vagas)');
 return [{ json: {
-  dados: { oferta: cfg.oferta_escolhida, idioma_destino: cfg.idioma, pais_destino: cfg.nome_pais, texto_da_pagina_original: texto, riscos_detectados_na_original: riscos },
+  dados: { oferta: cfg.oferta_escolhida, idioma_destino: cfg.idioma, pais_destino: cfg.nome_pais, texto_da_pagina_original: texto, riscos_detectados_na_original: riscos,
+    // decisões do dono (vazio = não decidido: o agente usa marcador, nunca inventa)
+    decisoes: Object.assign({}, cfg.decisoes || {}, { preco_aprovado: cfg.preco_aprovado || '', entregaveis_confirmados: cfg.entregaveis_confirmados || [] }) },
   verificacoes: { pagina_original_baixada: texto.length > 500 },
   avisos: {}
 } }];`;
@@ -186,7 +192,8 @@ export const HEADLINE_POS = String.raw`
 ${UTIL}
 const cfg = $('Entrada').first().json.config;
 const saida = parseJSON($json.output);
-const txt = JSON.stringify(saida);
+// Só o texto que vai para o público: removido_por_risco e pendencias_do_dono ficam de fora (citam o que foi tirado)
+const txt = JSON.stringify({ pagina: saida.pagina, headlines: saida.headlines, roteiros_video: saida.roteiros_video, briefings_imagem: saida.briefings_imagem });
 const v = {
   saida_do_agente_em_json: !saida.erro_parse,
   sem_preco_riscado: !PRECO_RISCADO.test(txt),
@@ -213,7 +220,7 @@ const saida = parseJSON($json.output);
 let html = String(saida.html || '');
 const pixel = String(cfg.pixel_id || '').trim();
 const PIXEL = '<!-- Meta Pixel (injetado pelo n8n) -->\n<script>\n!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");\nfbq(\'init\', \'' + pixel + '\');\nfbq(\'track\', \'PageView\');\n</script>\n<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=' + pixel + '&ev=PageView&noscript=1"/></noscript>\n';
-const UTM = '<!-- dr-utm: repassa utm_*, fbclid e src/sck para os links de checkout -->\n<script id="dr-utm">\n(function(){var q=new URLSearchParams(location.search);var keep=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","fbclid","src","sck"];var p=new URLSearchParams();keep.forEach(function(k){if(q.get(k))p.set(k,q.get(k));});if(!p.get("src")&&q.get("utm_source"))p.set("src",q.get("utm_source"));if(!p.get("sck")){var s=[q.get("utm_source"),q.get("utm_campaign"),q.get("utm_content")].filter(Boolean).join("|");if(s)p.set("sck",s);}if(![...p.keys()].length)return;document.querySelectorAll("a.cta,a[href*=\'hotmart\'],a[href*=\'pay.\']").forEach(function(a){try{var u=new URL(a.href);p.forEach(function(v,k){if(!u.searchParams.get(k))u.searchParams.set(k,v);});a.href=u.toString();}catch(e){}});})();\n</script>\n';
+const UTM = '<!-- dr-utm: repassa utm_*, fbclid, src/sck e xcod para os links de checkout -->\n<script id="dr-utm">\n(function(){var q=new URLSearchParams(location.search);var keep=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","fbclid","src","sck","xcod"];var p=new URLSearchParams();keep.forEach(function(k){if(q.get(k))p.set(k,q.get(k));});if(!p.get("src")&&q.get("utm_source"))p.set("src",q.get("utm_source"));if(!p.get("sck")){var s=[q.get("utm_source"),q.get("utm_campaign"),q.get("utm_content")].filter(Boolean).join("|");if(s)p.set("sck",s);}if(![...p.keys()].length)return;document.querySelectorAll("a.cta,a[href*=\'hotmart\'],a[href*=\'pay.\']").forEach(function(a){try{var u=new URL(a.href);p.forEach(function(v,k){if(!u.searchParams.get(k))u.searchParams.set(k,v);});a.href=u.toString();}catch(e){}});})();\n</script>\n';
 if (html && !html.includes("fbq('init'")) html = /<\/head>/i.test(html) ? html.replace(/<\/head>/i, PIXEL + '</head>') : PIXEL + html;
 if (html && !html.includes('dr-utm')) html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, UTM + '</body>') : html + UTM;
 html = html.split('{{URL_PRIVACIDADE}}').join(cfg.url_privacidade || '#privacidade')
@@ -339,10 +346,14 @@ const px = $('Revisor · pixel').first().json;
 const html = typeof pag.body === 'string' ? pag.body : '';
 const pixel = String(cfg.pixel_id || '');
 const reInit = new RegExp("fbq\\(\\s*['\"]init['\"]\\s*,\\s*['\"]" + pixel + "['\"]");
-const links = [...html.matchAll(/<a[^>]+href=["']([^"']+)["'][^>]*>/gi)].map(m => m[1]);
-const linksCheckout = links.filter(h => /hotmart|pay\.|checkout/i.test(h));
+const ancoras = [...html.matchAll(/<a\b[^>]*>/gi)].map(m => m[0]);
+const hrefDe = a => (a.match(/href=["']([^"']+)["']/i) || [])[1] || '';
+// todos os botões a.cta + qualquer link que pareça checkout
+const linksCheckout = ancoras.filter(a => /class=["'][^"']*\bcta\b/i.test(a) || /hotmart|pay\.|checkout/i.test(hrefDe(a))).map(hrefDe);
 const urlChk = String(cfg.hotmart_checkout_url || '');
 const precoNum = String(cfg.preco_aprovado || '').replace(/[^\d,\.]/g, '');
+const rePreco = precoNum ? new RegExp('(^|[^\\d.,])' + precoNum.replace(/[.,]/g, m => '\\' + m) + '(?![\\d])') : null;
+const idi = String(cfg.idioma || '').toLowerCase();
 const lang = (html.match(/<html[^>]*\blang=["']([^"']+)["']/i) || [])[1] || '';
 const texto = textoDoHtml(html);
 const imgs = (est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || [];
@@ -351,12 +362,13 @@ const checklist = {
   '2_pixel_certo_e_pageview': pixel.length > 5 && reInit.test(html) && /fbq\(\s*['"]track['"]\s*,\s*['"]PageView['"]/.test(html),
   '3_pixel_ja_disparou': !!(px && px.last_fired_time),
   '4_links_de_checkout_certos_e_no_ar': linksCheckout.length > 0 && linksCheckout.every(h => h.split('?')[0] === urlChk.split('?')[0]) && !html.includes('{{CHECKOUT_URL}}') && chk.statusCode === 200,
-  '5_preco_aprovado_e_sem_preco_riscado': !!precoNum && texto.includes(precoNum) && !PRECO_RISCADO.test(html),
-  '6_idioma_do_destino': lang.toLowerCase().startsWith(String(cfg.idioma || '').toLowerCase().slice(0, 2)) && (String(cfg.idioma).toLowerCase() !== 'pt-pt' || !/(^|[^\p{L}])voc[eê]s?(?![\p{L}])/iu.test(texto)),
-  '7_criativos_prontos': imgs.length > 0 && imgs.every(i => !!i.url)
+  '5_preco_aprovado_e_sem_preco_riscado': !!rePreco && rePreco.test(texto) && !PRECO_RISCADO.test(html),
+  '6_idioma_do_destino': (idi.includes('-') ? lang.toLowerCase() === idi : lang.toLowerCase().split('-')[0] === idi) && (idi !== 'pt-pt' || !/(^|[^\p{L}])voc[eê]s?(?![\p{L}])/iu.test(texto)),
+  '7_criativos_prontos': imgs.length > 0 && imgs.every(i => !!i.url),
+  '8_sem_marcadores_pendentes': !!html && !MARCADOR_PENDENTE.test(html)
 };
 return [{ json: {
-  dados: { checklist, url: cfg.url_pagina_publicada, lang_da_pagina: lang, links_de_checkout: linksCheckout, preco_aprovado: cfg.preco_aprovado, texto_da_pagina: texto.slice(0, 20000), criativos: imgs },
+  dados: { checklist, decisoes_usadas: (est.headline && est.headline.saida && est.headline.saida.decisoes_usadas) || null, decisoes: cfg.decisoes || {}, url: cfg.url_pagina_publicada, lang_da_pagina: lang, links_de_checkout: linksCheckout, preco_aprovado: cfg.preco_aprovado, texto_da_pagina: texto.slice(0, 20000), criativos: imgs },
   verificacoes: checklist, avisos: {}
 } }];`;
 
@@ -392,6 +404,8 @@ const conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? pl
   daily_budget: Number(cfg.orcamento_diario_centavos),
   billing_event: 'IMPRESSIONS', optimization_goal: 'OFFSITE_CONVERSIONS', bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
   promoted_object: { pixel_id: String(cfg.pixel_id), custom_event_type: 'PURCHASE' },
+  // DSA: conjuntos que miram a UE exigem pagador e beneficiário (G-02, P-14)
+  dsa_payor: cfg.dsa_pagador || undefined, dsa_beneficiary: cfg.dsa_beneficiario || undefined,
   targeting: {
     geo_locations: { countries: [cfg.pais_destino] },
     age_min: Number(c.idade_min) || 18, age_max: Number(c.idade_max) || 65,
@@ -418,9 +432,19 @@ for (const r of $input.all()) if (r.json && r.json.id) ids.push({ json: { id: r.
 if (!ids.length) return [{ json: { id: 'nenhum', tipo: 'nenhum' } }];
 return ids;`;
 
+export const TRAFEGO_EXISTENTE = String.raw`
+// Compara o nome no código (o filtro por nome da Graph API não está documentado; G-02).
+// Se a busca falhar, PARA: sem saber se a campanha existe, criar poderia duplicar.
+const nome = $('Payload PAUSADO').first().json.campanha.name;
+const r = $json || {};
+if (r.error || !Array.isArray(r.data)) throw new Error('Tráfego: a busca de campanhas falhou (' + String((r.error && r.error.message) || 'resposta sem data').slice(0, 200) + '). Nada foi criado.');
+const achada = r.data.find(c => c && c.name === nome) || null;
+if (!achada && r.paging && r.paging.next) throw new Error('Tráfego: a conta tem mais campanhas do que uma página da busca e a campanha "' + nome + '" não apareceu na primeira. Nada foi criado; confira no Gerenciador.');
+return [{ json: { existe: !!achada, campanha: achada } }];`;
+
 export const TRAFEGO_REUSAR = String.raw`
 // A campanha com este nome já existe: não cria nada de novo e NÃO mexe no status (o Arthur pode já ter ativado).
-const camp = $('Meta · buscar campanha').first().json.data[0];
+const camp = $('Campanha existente').first().json.campanha;
 const r = $json || {};
 const lista = Array.isArray(r.data) ? r.data : [];
 return [{ json: { id: camp.id, tipo: 'campanha', reutilizada: true } }].concat(lista.map(c => ({ json: { id: c.id, tipo: 'conjunto', reutilizada: true } })));`;
@@ -542,6 +566,19 @@ return [{ json: {
   // HEADLINE KILLER — oferta escolhida pelo dono.
   oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },
 
+  // Decisões do dono (P-01 a P-07, P-13; perguntas em plano/rascunhos/perguntas-arthur.md). Vazio = não decidido (o agente usa marcador).
+  decisoes: {
+    formato: '',
+    garantia: { dias: null, texto_aprovado: '', renuncia_14_dias: null },
+    instrutora: { assina: '', nome_autorizado: '', autorizacao_por_escrito: false },
+    depoimentos_verificados: [],   // { texto, nome, autorizacao }
+    numeros_confirmados: [],       // { frase, prova }
+    bumps: [],                     // { nome, preco, entregavel }
+    upsell: null,                  // { nome, preco, entregavel }
+    aviso_saude: '',
+    ortografia: ''
+  },
+
   // Aprovações do dono (só você muda isto).
   copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)
   copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo
@@ -562,6 +599,8 @@ return [{ json: {
   // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS
   ad_account_id: '',         // formato act_1234567890
   campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha
+  dsa_pagador: '',           // UE: quem paga os anúncios (P-14). Obrigatório para anunciar em Portugal
+  dsa_beneficiario: '',      // UE: quem se beneficia dos anúncios (P-14)
   orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta
   publico: 'mulheres 50+ em Portugal',
 
@@ -571,7 +610,7 @@ return [{ json: {
   // Prazos por agente (AAAA-MM-DD)
   prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },
 
-  graph_version: 'v23.0'
+  graph_version: 'v26.0'      // v23.0 expirou em 2026-06-09 (G-02)
 } }];`;
 
 // ---------------- 99 ERROS ----------------

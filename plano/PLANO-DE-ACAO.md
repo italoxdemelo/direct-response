@@ -140,7 +140,9 @@ Tudo que trafega entre coordenador e etapas é **um único item** JSON com duas 
 | `publico` | texto | `mulheres 50+ em Portugal` | Arthur | 07 |
 | `modelo_imagem` | texto | `grok-2-image` | Italo | 05 |
 | `prazos` | `{radar: 'AAAA-MM-DD', ...}` | vazios | Arthur | 00 |
-| `graph_version` | texto | `v23.0` | Italo | 01, 03, 06, 07 |
+| `graph_version` | texto | `v26.0` (a `v23.0` expirou em 2026-06-09, segundo a pesquisa G-02) | Italo | 01, 03, 06, 07 |
+| `decisoes` | objeto `{formato, garantia{dias, texto_aprovado, renuncia_14_dias}, instrutora{assina, nome_autorizado, autorizacao_por_escrito}, depoimentos_verificados[], numeros_confirmados[], bumps[], upsell, aviso_saude, ortografia}` | tudo vazio | **só o Arthur** (respostas de `plano/rascunhos/perguntas-arthur.md`) | 02 (e 03, 04, 05, 06 pelo prompt) |
+| `dsa_pagador`, `dsa_beneficiario` | texto | vazios | Arthur (P-14) | 07 (obrigatórios para anunciar na UE; sem eles o Tráfego fica bloqueado) |
 
 `pixel_id`, `ad_account_id` e `hotmart_product_id` não são segredos, mas por cautela ficam **só no n8n**, porque este repositório é público.
 
@@ -405,10 +407,11 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 | `1_pagina_no_ar` | HTTP 200 |
 | `2_pixel_certo_e_pageview` | `fbq('init', '<pixel_id>')` e `fbq('track','PageView')` no HTML publicado |
 | `3_pixel_ja_disparou` | `last_fired_time` existe |
-| `4_links_de_checkout_certos_e_no_ar` | há links de checkout, todos com a mesma base de `hotmart_checkout_url`, sem `{{CHECKOUT_URL}}`, checkout responde 200 |
-| `5_preco_aprovado_e_sem_preco_riscado` | número do `preco_aprovado` aparece no texto e não há preço riscado |
-| `6_idioma_do_destino` | `<html lang>` começa com o idioma do destino; em pt-PT, sem "você" |
+| `4_links_de_checkout_certos_e_no_ar` | **todos os botões `a.cta`** e links de checkout com a mesma base de `hotmart_checkout_url`, sem `{{CHECKOUT_URL}}`, checkout responde 200 |
+| `5_preco_aprovado_e_sem_preco_riscado` | número do `preco_aprovado` aparece no texto **como número inteiro** ("114,90" não vale por "14,90") e não há preço riscado (inclusive "de 29,90 € por") |
+| `6_idioma_do_destino` | `<html lang>` **igual** ao idioma do destino (`pt-PT` não aceita `pt-BR`); em pt-PT, sem "você" |
 | `7_criativos_prontos` | todas as imagens da Claquete têm URL |
+| `8_sem_marcadores_pendentes` | nenhum `[MARCADOR EM MAIÚSCULAS]` nem `{{...}}` na página publicada (desde `H-20261127-italo-09`) |
 
 **Saída do agente (JSON):** `{"aprovado","erros":[{"onde","trecho","problema","correcao"}],"comentario"}`.
 
@@ -431,8 +434,9 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 | Nó | Tipo | Configuração |
 |---|---|---|
 | `Payload PAUSADO` | `code` | campanha `{name, objective: OUTCOME_SALES, buying_type: AUCTION, special_ad_categories: [], is_adset_budget_sharing_enabled: false, status: PAUSED}`; até 3 conjuntos `{status: PAUSED, daily_budget, billing_event: IMPRESSIONS, optimization_goal: OFFSITE_CONVERSIONS, bid_strategy: LOWEST_COST_WITHOUT_CAP, promoted_object: {pixel_id, custom_event_type: PURCHASE}, targeting: {geo_locations.countries:[pais_destino], age_min, age_max, genders?, targeting_automation.advantage_audience: 0}}`. **Trava:** se o JSON tiver qualquer `status` diferente de `PAUSED` ou a palavra `ACTIVE`, lança erro e nada é enviado |
-| `Meta · buscar campanha` | `httpRequest` GET `/{v}/{ad_account_id}/campaigns` | `filtering: [{field: name, operator: EQUAL, value: <nome>}]`. **Idempotência (T-07)** |
-| `Campanha já existe?` | `if` | `data.length > 0` |
+| `Meta · buscar campanha` | `httpRequest` GET `/{v}/{ad_account_id}/campaigns?fields=id,name,status,effective_status&limit=500` | sem filtro por nome (não está documentado, G-02). **Idempotência (T-07)** |
+| `Campanha existente` | `code` | compara o `name` exato no código. Se a busca deu erro, ou a campanha não apareceu e há mais páginas, **lança erro e nada é criado** (na dúvida, não cria) |
+| `Campanha já existe?` | `if` | `existe === true` |
 | *se existe:* `Meta · conjuntos existentes` → `Reusar campanha` → `Meta · conferir status (existente)` → `Conferência PAUSADO` | GET `/{campaign_id}/adsets` → `code` → GET status | **não cria nem altera nada** (nem reforça PAUSED, porque o Arthur pode já ter ativado); a conferência avisa se algo já está ativo |
 | `Meta · criar campanha (PAUSED)` | `httpRequest` POST `/{v}/{ad_account_id}/campaigns` | só se não existe; body = campanha do `Payload PAUSADO` com `status: 'PAUSED'` reforçado na expressão. **Sem retry** (POST de criação) |
 | `Conjuntos → itens` | `code` | um item por conjunto com `campaign_id` |
@@ -448,6 +452,8 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 
 **Lacunas:**
 
+- Conjuntos levam `dsa_payor` e `dsa_beneficiary` (de `dsa_pagador`/`dsa_beneficiario`); em país da UE, sem eles a etapa fica bloqueada (P-14).
+- Ao criar anúncios (T-06), lembrar que anúncio recém-criado pode ficar em `PENDING_REVIEW` mesmo pausado: a conferência deve olhar `status` e aceitar esse `effective_status` (G-02).
 - **Os anúncios não são criados.** Falta: subir as imagens (`/{act}/adimages`), criar `adcreative` com link da página + UTMs, e criar `ads` com `status: PAUSED`, passando pela mesma trava e conferência (T-06).
 - ~~Rodada repetida duplica campanha~~: busca por nome antes de criar (T-07, `H-20261127-italo-06`). Falta validar com conta de teste.
 - O `orcamento_diario_centavos: 1000` é valor de exemplo do gerador; **só o Arthur define** (tarefa de decisão D-08).
@@ -521,7 +527,7 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 | T-01 | Trazer o código gerador (`tools/`, `workflows/*.json` sem credenciais) para este repositório em `n8n/`, para a outra máquina e a outra IA terem a mesma fonte | todos | — | ✅ | Claude | 2026-11-27 | H-20261127-italo-03 |
 | T-02 | Workflow `99 Erros` + retries (seção 13) | todos | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-04 |
 | T-03 | Persistir estado entre rodadas (n8n Data Table ou arquivo JSON por oferta) e **congelar a copy aprovada** (hash + versão); Construtor e Claquete leem a versão congelada, não a da rodada | 00, 02, 03, 05 | — | 🟡 código pronto e testado (arquivo `estado.json` por oferta + `copy_aprovada_hash`); publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-05 |
-| T-04 | Levar as decisões do Arthur para a config (`decisoes: {formato, preco, garantia, instrutora, ...}`) e para o prompt do Headline Killer; criar `criativos_aprovados` | 00, 02, 05, 06 | D-05 | ⬜ | | | |
+| T-04 | Levar as decisões do Arthur para a config (`decisoes: {formato, preco, garantia, instrutora, ...}`) e para o prompt do Headline Killer; criar `criativos_aprovados` | 00, 02, 05, 06 | D-05 | 🟡 estrutura `config.decisoes` e prompts revisados (G-04) no gerador; faltam os valores (D-05) e `criativos_aprovados` | Claude | 2026-11-27 | H-20261127-italo-09 |
 | T-05 | Nó de deploy da página (API da hospedagem escolhida) que preenche `url_pagina_publicada` sozinho, depois do Construtor e de novo depois do Funil | 03, 04 | D-07 | ⬜ | | | |
 | T-06 | Baixar e guardar as imagens da Claquete; no Tráfego, criar `adimages` → `adcreative` → `ads` **PAUSED**, com UTMs no link, passando pela trava e pela conferência | 05, 07 | D-02, D-04 | ⬜ | | | |
 | T-07 | Idempotência: Tráfego procura campanha pelo nome antes de criar; Radar pagina a Ad Library até o fim | 01, 07 | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-06 |

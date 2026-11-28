@@ -9,7 +9,7 @@ function rodar(js, nodes, $json, inputAll, inputItens) {
 }
 const cfg = { pais_origem: 'BR', pais_destino: 'PT', nome_pais: 'Portugal', idioma: 'pt-PT', pixel_id: '123456789', pasta_saida: 'C:\\x\\data\\dr',
   oferta_escolhida: { nome: 'Pilates', slug: 'pilates50-pt' }, hotmart_checkout_url: 'https://pay.hotmart.com/ABC123', preco_aprovado: '14,90 €',
-  url_pagina_publicada: 'https://exemplo.pt', ad_account_id: 'act_1', orcamento_diario_centavos: 1000, graph_version: 'v23.0',
+  url_pagina_publicada: 'https://exemplo.pt', ad_account_id: 'act_1', orcamento_diario_centavos: 1000, graph_version: 'v26.0', dsa_pagador: 'Empresa X', dsa_beneficiario: 'Empresa X',
   termos_busca: ['desafio pilates'], ofertas_br: [{ nome: 'P', page_id_br: '201' }] };
 
 // 1. Construtor injeta pixel e UTM
@@ -36,10 +36,20 @@ nodes['Revisor · página no ar'] = { statusCode: 200, body: f.json.html.replace
 const [r2] = rodar(C.REVISOR_DADOS, nodes, {});
 assert.equal(r2.json.verificacoes['5_preco_aprovado_e_sem_preco_riscado'], false);
 console.log('revisor reprova preço riscado ok');
+// lacunas do G-06 (testes-revisor.md, seção 1A) agora reprovam
+const revisa = (html, extraCfg) => { const n = JSON.parse(JSON.stringify(nodes)); n['Revisor · página no ar'] = { statusCode: 200, body: html }; if (extraCfg) n.Entrada.config = Object.assign({}, cfg, extraCfg); return rodar(C.REVISOR_DADOS, n, {})[0].json.verificacoes; };
+assert.equal(revisa(f.json.html.replace('lang="pt-PT"', 'lang="pt-BR"'))['6_idioma_do_destino'], false);
+assert.equal(revisa(f.json.html.replace('Preço 14,90 €', 'Preço de 29,90 € por 14,90 €'))['5_preco_aprovado_e_sem_preco_riscado'], false);
+assert.equal(revisa(f.json.html.replace('Preço 14,90 €', 'Preço 114,90 €'))['5_preco_aprovado_e_sem_preco_riscado'], false);
+assert.equal(revisa(f.json.html.replace('Preço 14,90 €', 'Preço 14,90 € [ESPAÇO PARA PROVA REAL]'))['8_sem_marcadores_pendentes'], false);
+assert.equal(revisa(f.json.html.replace('</body>', '<a class="cta" href="https://outro.invalid/x">Comprar</a></body>'))['4_links_de_checkout_certos_e_no_ar'], false);
+assert.ok(Object.values(revisa(f.json.html)).every(Boolean), 'página certa continua passando');
+console.log('revisor lacunas do G-06 ok');
 
 // 4. Tráfego: payload pausado e trava
 const [t] = rodar(C.TRAFEGO_PAYLOAD, { Entrada: { config: cfg } }, { output: JSON.stringify({ campanha_nome: 'DR | x', conjuntos: [{ nome: 'a', idade_min: 50, idade_max: 65, generos: [2] }] }) });
 assert.equal(t.json.campanha.status, 'PAUSED'); assert.equal(t.json.conjuntos[0].status, 'PAUSED');
+assert.equal(t.json.conjuntos[0].dsa_payor, 'Empresa X'); assert.equal(t.json.conjuntos[0].dsa_beneficiary, 'Empresa X');
 assert.throws(() => rodar(C.TRAFEGO_PAYLOAD, { Entrada: { config: cfg } }, { output: JSON.stringify({ conjuntos: [{ nome: 'ACTIVE agora' }] }) }));
 // nome da campanha não depende do modelo (idempotência)
 const [t2] = rodar(C.TRAFEGO_PAYLOAD, { Entrada: { config: cfg } }, { output: JSON.stringify({ campanha_nome: 'outro nome qualquer' }) });
@@ -52,7 +62,14 @@ const st2 = rodar(C.TRAFEGO_POS, { 'Payload PAUSADO': t.json, 'Meta · criar cam
 assert.equal(st2[0].json.verificacoes.tudo_pausado_conferido_na_api, false);
 console.log('tráfego conferência ok');
 // reutilização: campanha já existe -> não cria nada e lista os IDs existentes
-const reuso = rodar(C.TRAFEGO_REUSAR, { 'Meta · buscar campanha': { data: [{ id: '77', name: 'DR | Pilates | PT' }] } }, { data: [{ id: '78' }, { id: '79' }] });
+// a busca compara o nome no código: outra campanha da conta não é reaproveitada
+const nosBusca = { 'Payload PAUSADO': t.json };
+assert.equal(rodar(C.TRAFEGO_EXISTENTE, nosBusca, { data: [{ id: '5', name: 'Outra campanha' }] })[0].json.existe, false);
+const [ex] = rodar(C.TRAFEGO_EXISTENTE, nosBusca, { data: [{ id: '5', name: 'Outra' }, { id: '77', name: 'DR | Pilates | PT' }] });
+assert.equal(ex.json.existe, true); assert.equal(ex.json.campanha.id, '77');
+assert.throws(() => rodar(C.TRAFEGO_EXISTENTE, nosBusca, { error: { message: 'Invalid parameter' } }));
+assert.throws(() => rodar(C.TRAFEGO_EXISTENTE, nosBusca, { data: [{ id: '5', name: 'Outra' }], paging: { next: 'x' } }));
+const reuso = rodar(C.TRAFEGO_REUSAR, { 'Campanha existente': ex.json }, { data: [{ id: '78' }, { id: '79' }] });
 assert.deepEqual(reuso.map(i => i.json.id), ['77', '78', '79']);
 const nosReuso = { 'Payload PAUSADO': t.json, 'Reusar campanha': reuso.map(i => i.json) };
 const st3 = rodar(C.TRAFEGO_POS, nosReuso, {}, [{ id: '77', status: 'PAUSED' }, { id: '78', status: 'PAUSED' }, { id: '79', status: 'PAUSED' }]);
@@ -80,6 +97,15 @@ console.log('radar ok (com paginação)');
 // 6. Headline pós (pt-PT sem "você")
 const [h] = rodar(C.HEADLINE_POS, { Entrada: { config: cfg } }, { output: JSON.stringify({ headlines: Array(10).fill('Para si'), roteiros_video: Array(5).fill({}), briefings_imagem: Array(3).fill({}), pagina: [{ texto: 'você vai perder 3 kg' }] }) });
 assert.equal(h.json.verificacoes.sem_voce_em_pt_pt, false); assert.equal(h.json.verificacoes.sem_claims_de_saude_ou_escassez, false);
+// removido_por_risco cita o que foi tirado e não reprova a copy (falso positivo do G-06)
+const [h2] = rodar(C.HEADLINE_POS, { Entrada: { config: cfg } }, { output: JSON.stringify({ headlines: Array(10).fill('Para si'), roteiros_video: Array(5).fill({}), briefings_imagem: Array(3).fill({}), pagina: [{ texto: 'Aulas suaves em casa' }], removido_por_risco: ['antes e depois', 'últimas vagas'] }) });
+assert.equal(h2.json.verificacoes.sem_claims_de_saude_ou_escassez, true);
+const claims = new Function(C.UTIL + '; return CLAIMS_SAUDE;')();
+for (const f of ['Perca 10 kg em 1 semana', 'perda de 10 kg', 'Elimine 5 quilos', 'Cure as suas dores', 'Só hoje', 'Últimas 10 vagas', 'Antes/depois']) assert.ok(claims.test(f), 'claims deveria pegar: ' + f);
+for (const f of ['Procure um lugar calmo', 'Aulas de pilates suaves, em casa', 'Programa de 21 dias']) assert.ok(!claims.test(f), 'claims não deveria pegar: ' + f);
+const riscado = new Function(C.UTIL + '; return PRECO_RISCADO;')();
+for (const f of ['de 29,90 € por 14,90 €', 'de 29,90 por 14,90', 'de € 29,90 por']) assert.ok(riscado.test(f), 'riscado: ' + f);
+for (const f of ['acesso de 12 meses por apenas 14,90 €', 'desafio de 21 dias para si']) assert.ok(!riscado.test(f), 'não é riscado: ' + f);
 console.log('headline ok');
 
 // 7. Estado entre rodadas e copy congelada

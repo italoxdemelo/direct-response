@@ -79,7 +79,7 @@ Legenda: ⬜ a fazer · 🟡 em andamento · ✅ feito · ⛔ bloqueado. "Liga a
 | C-02 | Workflow `99 Erros` + retries nos nós Agent e HTTP | T-02 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-04 |
 | C-03 | Persistir estado entre rodadas e congelar a copy aprovada (hash + versão) | T-03 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-05 |
 | C-04 | Idempotência do Tráfego (procurar campanha por nome) + paginação da Ad Library | T-07 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-06 |
-| C-05 | `config.decisoes` e `criativos_aprovados` no gerador, usando os prompts revisados pelo Grok | T-04 | G-04, D-05 | ⛔ | | |
+| C-05 | `config.decisoes` e `criativos_aprovados` no gerador, usando os prompts revisados pelo Grok | T-04 | G-04, D-05 | 🟡 estrutura e prompts aplicados; faltam os valores do Arthur (D-05) e `criativos_aprovados` | 2026-11-27 | H-20261127-italo-09 |
 | C-06 | Imagens da Claquete guardadas + `adimages` → `adcreative` → `ads` **PAUSED** no Tráfego | T-06 | G-02, D-02, D-04 | ⛔ | | |
 | C-07 | Nó de deploy da página | T-05 | G-03, D-07 | ⛔ | | |
 | C-08 | Rodadas de teste com credenciais reais, etapa por etapa | V-02 | D-01..D-04 | ⛔ | | |
