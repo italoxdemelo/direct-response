@@ -2,7 +2,7 @@
   "name": "Direct Response · 03 Construtor (página)",
   "nodes": [
     {
-      "id": "c44aad85-b6a9-4b20-9c55-63073713c6fd",
+      "id": "a09a7241-0c79-4fe2-a568-f2d882153f1f",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "ee9e82a1-b7b8-4147-adbb-c19b59cc1a8d",
+      "id": "0ca0332a-bf44-4b14-b0cc-0a9c3b68e463",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -24,11 +24,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'construtor';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (aprovação do dono)');\nif (!(estado.headline && estado.headline.saida)) faltando.push('entrega do Headline Killer');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!cfg.pasta_saida) faltando.push('pasta_saida');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'construtor';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (aprovação do dono)');\nif (!(estado.headline && estado.headline.saida)) faltando.push('entrega do Headline Killer');\nelse if (!cfg.copy_aprovada_hash || estado.headline.saida_hash !== cfg.copy_aprovada_hash) faltando.push('copy_aprovada_hash igual à versão da copy (' + (estado.headline.saida_hash || 'sem versão') + '): só a versão aprovada vira página');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!cfg.pasta_saida) faltando.push('pasta_saida');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
       }
     },
     {
-      "id": "828402b5-d8e4-4795-b21b-883320f7b41a",
+      "id": "7ff2691f-067f-417e-a537-d9b12ead6227",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "f8cb7739-97ea-43a4-a5a9-9281d4e3d10f",
+              "id": "d78f7f57-1182-45bc-a606-12d76058e399",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "cfb4545f-7063-4008-bf19-9d6bba8106bc",
+      "id": "6b3ca455-0273-43b6-8b71-544b73d20780",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'construtor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Construtor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'construtor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Construtor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "8a630015-29af-4f88-aae8-61b2e4c1dc56",
+      "id": "7adbe98b-a11c-414a-96d5-ca56ccc0d239",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "b2265ebb-9276-4e72-b27e-8112ef391d03",
+      "id": "1180f49c-f488-4f9a-a81c-7e00766fb5f6",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "id": "80f5f4a5-005b-4ccb-83ce-146acf6f4821",
+      "id": "1285c906-5e99-4c92-ab0b-cda59bf23e52",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "d11f8b81-fc2f-46ee-81c7-df8c965ed2a0",
+      "id": "3aaaad7a-c32a-41f4-b676-7b742b9089d0",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -142,10 +142,14 @@
           "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (página de vendas, pixel e UTM) você orienta o agente Construtor (página) antes de ele trabalhar.\nPapel do agente: Monta e publica a página de vendas traduzida, com o pixel do Meta e o script de UTM, e confere que o PageView dispara antes de qualquer anúncio.\n\nCom base na configuração, no estado do projeto e nos dados da integração, escreva um briefing curto e objetivo para o agente: o que fazer agora, o que observar nos dados, o que é proibido nesta etapa e o critério de pronto. Aponte dados que estão faltando ou não verificados.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em no máximo 12 linhas numeradas.",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "a818a185-ea30-486f-8aa2-03326c898a65",
+      "id": "a0a59718-bf89-47e9-b571-dc1b9a2c2a09",
       "name": "Agente · Construtor",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -160,10 +164,14 @@
           "systemMessage": "Você é o Construtor, responsável pela página de vendas.\nMissão: transformar a copy aprovada em uma página de vendas HTML única, leve, responsiva e rápida.\n\nRegras do Construtor:\n- Use exatamente a copy aprovada que receber; não reescreva promessas nem acrescente prova social.\n- Gere um documento HTML completo (<!doctype html> ... </html>), CSS embutido, sem frameworks externos, mobile first.\n- Todo botão de compra é <a class=\"cta\" href=\"{{CHECKOUT_URL}}\">...</a>.\n- NÃO coloque o pixel do Meta nem script de UTM: eles são injetados depois por código, para garantir o ID certo.\n- Inclua <html lang=\"...\"> com o idioma do destino e <meta name=\"viewport\">.\n- Rodapé com links de política de privacidade e termos ({{URL_PRIVACIDADE}} e {{URL_TERMOS}}).\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown: {\"html\":\"<!doctype html>...\",\"titulo\":\"\",\"observacoes\":[]}",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "7c43957a-ceb8-43f2-aa52-b1779764096c",
+      "id": "762f6135-d133-41f6-8ae5-f613c24bbf32",
       "name": "Montar HTML final",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -172,11 +180,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst saida = parseJSON($json.output);\nlet html = String(saida.html || '');\nconst pixel = String(cfg.pixel_id || '').trim();\nconst PIXEL = '<!-- Meta Pixel (injetado pelo n8n) -->\\n<script>\\n!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version=\"2.0\";n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,\"script\",\"https://connect.facebook.net/en_US/fbevents.js\");\\nfbq(\\'init\\', \\'' + pixel + '\\');\\nfbq(\\'track\\', \\'PageView\\');\\n</script>\\n<noscript><img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=' + pixel + '&ev=PageView&noscript=1\"/></noscript>\\n';\nconst UTM = '<!-- dr-utm: repassa utm_*, fbclid e src/sck para os links de checkout -->\\n<script id=\"dr-utm\">\\n(function(){var q=new URLSearchParams(location.search);var keep=[\"utm_source\",\"utm_medium\",\"utm_campaign\",\"utm_content\",\"utm_term\",\"fbclid\",\"src\",\"sck\"];var p=new URLSearchParams();keep.forEach(function(k){if(q.get(k))p.set(k,q.get(k));});if(!p.get(\"src\")&&q.get(\"utm_source\"))p.set(\"src\",q.get(\"utm_source\"));if(!p.get(\"sck\")){var s=[q.get(\"utm_source\"),q.get(\"utm_campaign\"),q.get(\"utm_content\")].filter(Boolean).join(\"|\");if(s)p.set(\"sck\",s);}if(![...p.keys()].length)return;document.querySelectorAll(\"a.cta,a[href*=\\'hotmart\\'],a[href*=\\'pay.\\']\").forEach(function(a){try{var u=new URL(a.href);p.forEach(function(v,k){if(!u.searchParams.get(k))u.searchParams.set(k,v);});a.href=u.toString();}catch(e){}});})();\\n</script>\\n';\nif (html && !html.includes(\"fbq('init'\")) html = /<\\/head>/i.test(html) ? html.replace(/<\\/head>/i, PIXEL + '</head>') : PIXEL + html;\nif (html && !html.includes('dr-utm')) html = /<\\/body>/i.test(html) ? html.replace(/<\\/body>/i, UTM + '</body>') : html + UTM;\nhtml = html.split('{{URL_PRIVACIDADE}}').join(cfg.url_privacidade || '#privacidade')\n           .split('{{URL_TERMOS}}').join(cfg.url_termos || '#termos');\nconst slug = String(cfg.oferta_escolhida && cfg.oferta_escolhida.slug || 'oferta').replace(/[^a-z0-9-]/gi, '-');\nconst arquivo = String(cfg.pasta_saida).replace(/[\\\\/]+$/, '') + '\\\\' + slug + '\\\\index.html';\ndelete saida.html;\nreturn [{ json: { html, arquivo, saida, verificacoes: {\n  saida_do_agente_em_json: !saida.erro_parse,\n  html_completo: /<html[\\s>]/i.test(html) && /<\\/html>/i.test(html),\n  pixel_injetado: pixel.length > 5 && html.includes(\"fbq('init', '\" + pixel + \"')\"),\n  pageview_injetado: html.includes(\"fbq('track', 'PageView')\"),\n  utm_injetado: html.includes('dr-utm'),\n  botoes_marcados_para_checkout: html.includes('{{CHECKOUT_URL}}')\n} } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst saida = parseJSON($json.output);\nlet html = String(saida.html || '');\nconst pixel = String(cfg.pixel_id || '').trim();\nconst PIXEL = '<!-- Meta Pixel (injetado pelo n8n) -->\\n<script>\\n!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version=\"2.0\";n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,\"script\",\"https://connect.facebook.net/en_US/fbevents.js\");\\nfbq(\\'init\\', \\'' + pixel + '\\');\\nfbq(\\'track\\', \\'PageView\\');\\n</script>\\n<noscript><img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=' + pixel + '&ev=PageView&noscript=1\"/></noscript>\\n';\nconst UTM = '<!-- dr-utm: repassa utm_*, fbclid e src/sck para os links de checkout -->\\n<script id=\"dr-utm\">\\n(function(){var q=new URLSearchParams(location.search);var keep=[\"utm_source\",\"utm_medium\",\"utm_campaign\",\"utm_content\",\"utm_term\",\"fbclid\",\"src\",\"sck\"];var p=new URLSearchParams();keep.forEach(function(k){if(q.get(k))p.set(k,q.get(k));});if(!p.get(\"src\")&&q.get(\"utm_source\"))p.set(\"src\",q.get(\"utm_source\"));if(!p.get(\"sck\")){var s=[q.get(\"utm_source\"),q.get(\"utm_campaign\"),q.get(\"utm_content\")].filter(Boolean).join(\"|\");if(s)p.set(\"sck\",s);}if(![...p.keys()].length)return;document.querySelectorAll(\"a.cta,a[href*=\\'hotmart\\'],a[href*=\\'pay.\\']\").forEach(function(a){try{var u=new URL(a.href);p.forEach(function(v,k){if(!u.searchParams.get(k))u.searchParams.set(k,v);});a.href=u.toString();}catch(e){}});})();\\n</script>\\n';\nif (html && !html.includes(\"fbq('init'\")) html = /<\\/head>/i.test(html) ? html.replace(/<\\/head>/i, PIXEL + '</head>') : PIXEL + html;\nif (html && !html.includes('dr-utm')) html = /<\\/body>/i.test(html) ? html.replace(/<\\/body>/i, UTM + '</body>') : html + UTM;\nhtml = html.split('{{URL_PRIVACIDADE}}').join(cfg.url_privacidade || '#privacidade')\n           .split('{{URL_TERMOS}}').join(cfg.url_termos || '#termos');\nconst slug = String(cfg.oferta_escolhida && cfg.oferta_escolhida.slug || 'oferta').replace(/[^a-z0-9-]/gi, '-');\nconst arquivo = String(cfg.pasta_saida).replace(/[\\\\/]+$/, '') + '\\\\' + slug + '\\\\index.html';\ndelete saida.html;\nreturn [{ json: { html, arquivo, saida, verificacoes: {\n  saida_do_agente_em_json: !saida.erro_parse,\n  html_completo: /<html[\\s>]/i.test(html) && /<\\/html>/i.test(html),\n  pixel_injetado: pixel.length > 5 && html.includes(\"fbq('init', '\" + pixel + \"')\"),\n  pageview_injetado: html.includes(\"fbq('track', 'PageView')\"),\n  utm_injetado: html.includes('dr-utm'),\n  botoes_marcados_para_checkout: html.includes('{{CHECKOUT_URL}}')\n} } }];"
       }
     },
     {
-      "id": "c90b0ec6-31a0-4716-b2c4-3bd3e11af155",
+      "id": "b166aee0-83a7-46f2-9612-de9f4bff56c2",
       "name": "HTML → arquivo",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
@@ -193,7 +201,7 @@
       }
     },
     {
-      "id": "ff3e90fd-7a76-43dc-bebc-d7b7b46913aa",
+      "id": "4a888319-b95b-43a6-8a1d-de8b001fb798",
       "name": "Gravar index.html",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -210,7 +218,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "448bd0de-044e-4418-9aed-f991669fd689",
+      "id": "dac67e3b-0c49-4e32-8054-3e09d4b41452",
       "name": "Página publicada · baixar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -233,10 +241,13 @@
         }
       },
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
-      "id": "d7b11d49-9a1b-4b89-83f3-19ed16f185a4",
+      "id": "3bc9bec6-af09-4f38-8807-047c1f719dfe",
       "name": "Pixel · último disparo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -258,6 +269,9 @@
       },
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
       "credentials": {
         "facebookGraphApi": {
           "id": "qS4MswIcQLVPM874",
@@ -266,7 +280,7 @@
       }
     },
     {
-      "id": "c896a85e-c50c-4ef4-8612-b4b99b713f8e",
+      "id": "af634d12-aae4-4e37-91bf-313671563a5d",
       "name": "Conferência do PageView",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -279,7 +293,7 @@
       }
     },
     {
-      "id": "438b97c7-20ad-43a8-af62-fe4c47899cf5",
+      "id": "94b6cb13-d468-43d4-a491-1ef9c4fbec0c",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -294,10 +308,14 @@
           "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (página de vendas, pixel e UTM) você fiscaliza a entrega do agente Construtor (página).\nPapel do agente: Monta e publica a página de vendas traduzida, com o pixel do Meta e o script de UTM, e confere que o PageView dispara antes de qualquer anúncio.\n\nVocê recebe: os dados brutos da integração, as verificações automáticas feitas por código e a saída do agente.\nVerifique: (1) se a entrega cumpre o papel; (2) se algum número, data, preço, depoimento ou prova social NÃO aparece nos dados brutos (isso é dado inventado e reprova); (3) se alguma regra do time foi quebrada; (4) se as verificações automáticas falharam.\nSe qualquer verificação automática falhou, você não pode aprovar.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"nota\":0,\"problemas\":[],\"orientacao_para_o_agente\":\"\",\"proximo_passo\":\"\"}",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "e5624376-2e56-4b5e-ba8e-ddbbdd2fe4cf",
+      "id": "738fc8d1-30c7-4477-aba1-c707fad4c034",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -319,7 +337,7 @@
       }
     },
     {
-      "id": "cc793d33-dfb4-4100-be6c-25a85627d0a4",
+      "id": "347aa81b-73c9-47a4-9a75-c87b69569e1b",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -328,7 +346,20 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'construtor';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência do PageView').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Construtor',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, supervisor: sup, em: new Date().toISOString()\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'construtor';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência do PageView').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Construtor',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+      }
+    },
+    {
+      "id": "f8d0d618-0b1f-4430-9975-99679c32ad77",
+      "name": "Falha do modelo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3100,
+        600
+      ],
+      "parameters": {
+        "jsCode": "const ETAPA = 'construtor';\nconst e = $json.error || {};\nconst msg = String((e && (e.message || e.description)) || (typeof e === 'string' ? e : '') || 'erro desconhecido').slice(0, 500);\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Construtor',\n  aprovado: false, seguir: false, pulada: false, bloqueado: false,\n  motivo: 'falha do modelo (Grok/xAI) depois de 3 tentativas: ' + msg,\n  falhas_automaticas: ['modelo_respondeu'], verificacoes: { modelo_respondeu: false },\n  em: new Date().toISOString()\n} }];"
       }
     }
   ],
@@ -389,6 +420,13 @@
         [
           {
             "node": "Agente · Construtor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
             "type": "main",
             "index": 0
           }
@@ -474,6 +512,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -507,6 +552,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -514,6 +566,7 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "rUNQVY24WtvxDK5l"
   }
 }

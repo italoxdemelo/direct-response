@@ -43,8 +43,10 @@ flowchart TD
   H09["H-20261127-italo-04 99 Erros + repetições"]
   H10["H-20261127-italo-05 Estado entre rodadas + copy congelada"]
   H11["H-20261127-italo-06 Tráfego sem duplicar + Radar paginado"]
+  H12["H-20261127-italo-07 Gerador publicado no n8n"]
   H01 --> H02 --> H04 --> H05 --> H06
   H06 --> H07 --> H08 --> H09 --> H10 --> H11
+  H11 --> H12
   H03 --> H08
   H03 --> H06
   C01 --> H03
@@ -123,6 +125,7 @@ flowchart TD
 | H-20261127-italo-04 | Workflow `99 Erros` e repetições dos nós Grok/HTTP no gerador (T-02, falta publicar). | H-20261127-italo-03 | H-20261127-italo-03 | — | — |
 | H-20261127-italo-05 | Estado entre rodadas em `estado.json` e copy congelada por `copy_aprovada_hash` (T-03, falta publicar). | H-20261127-italo-04 | H-20261127-italo-03 | — | — |
 | H-20261127-italo-06 | Tráfego procura campanha por nome antes de criar; Radar paginado (T-07, falta publicar). | H-20261127-italo-05 | H-20261127-italo-03 | — | — |
+| H-20261127-italo-07 | Gerador publicado no n8n do PC: 99 Erros `rUNQVY24WtvxDK5l` ativo e *Error workflow* dos outros 8; gerador passa a ativar o 99 Erros (o n8n 2.x exige). | H-20261127-italo-06 | H-20261127-italo-03 | — | — |
 
 ### Pendências
 

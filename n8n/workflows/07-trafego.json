@@ -2,7 +2,7 @@
   "name": "Direct Response · 07 Tráfego (gestor, sempre PAUSADO)",
   "nodes": [
     {
-      "id": "3e2e1b42-2043-44e3-97ff-1261c15028c8",
+      "id": "ee19b680-19ee-45d9-937d-b767c47d0da0",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "6ec11153-b643-4760-b103-c6169bf370a7",
+      "id": "c0ea044d-f026-4719-8c38-a498e5d6f6be",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -24,11 +24,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'trafego';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(estado.revisor && estado.revisor.aprovado === true)) faltando.push('aprovação do Revisor nesta rodada');\nif (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'trafego';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(estado.revisor && estado.revisor.aprovado === true && !estado.revisor.de_rodada_anterior)) faltando.push('aprovação do Revisor nesta rodada');\nif (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
       }
     },
     {
-      "id": "10c31de6-da08-4366-880b-3aaf95918472",
+      "id": "e8de213a-5f5f-4ef9-86fd-47ae1f7c0836",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "e87b481c-7f2c-43a7-8102-f2a93fdeaf1a",
+              "id": "629630ef-182f-4151-a09a-4578905e1a15",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "81c70f92-c046-4623-b18c-8b2ca0400552",
+      "id": "70c882a1-e458-48e8-bfc7-c53606e83f26",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'trafego';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'trafego';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "5a4f0b78-da5a-4975-8c2c-4d96483f62f8",
+      "id": "be010159-b5f5-4044-ad1d-c228557d667e",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "54fc2e80-06b7-43d1-b6aa-1fdcfa05767b",
+      "id": "9277aa95-2a3d-4382-b7ed-13371c1e2fed",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "id": "3797503d-a8c8-4f35-9579-5faa0cf50325",
+      "id": "a41103e8-4c96-4cfe-8bd7-a8366a032a9d",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "e4547c78-5a4a-4dcb-8f16-ddd3ec7dfcf6",
+      "id": "711aa11d-d503-4951-a9d5-27e88ccaf6b6",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -142,10 +142,14 @@
           "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (campanhas pausadas na Meta) você orienta o agente Tráfego (gestor) antes de ele trabalhar.\nPapel do agente: Sobe campanhas na conta de anúncios via API, sempre PAUSADAS. Nunca ativa nada.\n\nCom base na configuração, no estado do projeto e nos dados da integração, escreva um briefing curto e objetivo para o agente: o que fazer agora, o que observar nos dados, o que é proibido nesta etapa e o critério de pronto. Aponte dados que estão faltando ou não verificados.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em no máximo 12 linhas numeradas.",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "5744a0c2-62db-498e-9233-f0250cfe17e3",
+      "id": "1df21084-0bd0-42c0-9540-c913aaad9bb6",
       "name": "Agente · Tráfego",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -157,26 +161,177 @@
         "promptType": "define",
         "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
         "options": {
-          "systemMessage": "Você é o Tráfego, gestor de campanhas do time.\nMissão: propor a estrutura da campanha de vendas para o país de destino. O código sobe a campanha pela API da Meta sempre com status PAUSED.\n\nRegras do Tráfego:\n- Sempre PAUSADAS. Nunca ativa nada. Você não escolhe status: o código força PAUSED e confere pela API.\n- Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.\n- Público no país de destino; idade e gênero coerentes com a oferta.\n- Orçamento diário só o que estiver na configuração.\n- Nomes de campanha e conjunto padronizados: DR | <oferta> | <país> | <data>.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"campanha_nome\":\"\",\"conjuntos\":[{\"nome\":\"\",\"idade_min\":18,\"idade_max\":65,\"generos\":[1,2],\"observacao\":\"\"}],\"observacoes\":[]}",
+          "systemMessage": "Você é o Tráfego, gestor de campanhas do time.\nMissão: propor a estrutura da campanha de vendas para o país de destino. O código sobe a campanha pela API da Meta sempre com status PAUSED.\n\nRegras do Tráfego:\n- Sempre PAUSADAS. Nunca ativa nada. Você não escolhe status: o código força PAUSED e confere pela API.\n- Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.\n- Público no país de destino; idade e gênero coerentes com a oferta.\n- Orçamento diário só o que estiver na configuração.\n- O nome da campanha é fixo e vem da configuração (o código ignora campanha_nome). Dê nomes curtos aos conjuntos (ex.: \"50-65 mulheres\"); o código acrescenta campanha e data.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"campanha_nome\":\"\",\"conjuntos\":[{\"nome\":\"\",\"idade_min\":18,\"idade_max\":65,\"generos\":[1,2],\"observacao\":\"\"}],\"observacoes\":[]}",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "a7e069a7-639e-4dc4-84af-c88193fb2ec7",
+      "id": "4394ea77-807a-4545-b729-ffb4dab5b7d3",
       "name": "Payload PAUSADO",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1480,
-        300
+        100
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst plano = parseJSON($json.output);\nconst hoje = new Date().toISOString().slice(0, 10);\nconst nomeBase = 'DR | ' + ((cfg.oferta_escolhida && cfg.oferta_escolhida.nome) || 'oferta') + ' | ' + cfg.pais_destino + ' | ' + hoje;\nconst campanha = {\n  name: plano.campanha_nome || nomeBase,\n  objective: 'OUTCOME_SALES', buying_type: 'AUCTION', special_ad_categories: [],\n  is_adset_budget_sharing_enabled: false,\n  status: 'PAUSED'\n};\nconst conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? plano.conjuntos : [{ nome: nomeBase + ' | aberto' }]).slice(0, 3).map(c => ({\n  name: c.nome || nomeBase,\n  status: 'PAUSED',\n  daily_budget: Number(cfg.orcamento_diario_centavos),\n  billing_event: 'IMPRESSIONS', optimization_goal: 'OFFSITE_CONVERSIONS', bid_strategy: 'LOWEST_COST_WITHOUT_CAP',\n  promoted_object: { pixel_id: String(cfg.pixel_id), custom_event_type: 'PURCHASE' },\n  targeting: {\n    geo_locations: { countries: [cfg.pais_destino] },\n    age_min: Number(c.idade_min) || 18, age_max: Number(c.idade_max) || 65,\n    genders: Array.isArray(c.generos) && c.generos.length === 1 ? c.generos : undefined,\n    targeting_automation: { advantage_audience: 0 }\n  }\n}));\n// Trava: nada pode sair com status diferente de PAUSED\nconst tudo = JSON.stringify({ campanha, conjuntos });\nif (/\"status\"\\s*:\\s*\"(?!PAUSED)/.test(tudo) || /ACTIVE/.test(tudo)) throw new Error('Trava do Tráfego: payload com status diferente de PAUSED. Nada foi enviado.');\nreturn [{ json: { plano, campanha, conjuntos } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst plano = parseJSON($json.output);\nconst hoje = new Date().toISOString().slice(0, 10);\n// Nome fixo (não vem do modelo): é por ele que o fluxo acha a campanha numa segunda rodada e não duplica.\nconst nomeBase = String(cfg.campanha_nome || ('DR | ' + ((cfg.oferta_escolhida && cfg.oferta_escolhida.nome) || 'oferta') + ' | ' + cfg.pais_destino));\nconst campanha = {\n  name: nomeBase,\n  objective: 'OUTCOME_SALES', buying_type: 'AUCTION', special_ad_categories: [],\n  is_adset_budget_sharing_enabled: false,\n  status: 'PAUSED'\n};\nconst conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? plano.conjuntos : [{ nome: 'aberto' }]).slice(0, 3).map((c, i) => ({\n  name: nomeBase + ' | ' + (c.nome || ('conjunto ' + (i + 1))) + ' | ' + hoje,\n  status: 'PAUSED',\n  daily_budget: Number(cfg.orcamento_diario_centavos),\n  billing_event: 'IMPRESSIONS', optimization_goal: 'OFFSITE_CONVERSIONS', bid_strategy: 'LOWEST_COST_WITHOUT_CAP',\n  promoted_object: { pixel_id: String(cfg.pixel_id), custom_event_type: 'PURCHASE' },\n  targeting: {\n    geo_locations: { countries: [cfg.pais_destino] },\n    age_min: Number(c.idade_min) || 18, age_max: Number(c.idade_max) || 65,\n    genders: Array.isArray(c.generos) && c.generos.length === 1 ? c.generos : undefined,\n    targeting_automation: { advantage_audience: 0 }\n  }\n}));\n// Trava: nada pode sair com status diferente de PAUSED\nconst tudo = JSON.stringify({ campanha, conjuntos });\nif (/\"status\"\\s*:\\s*\"(?!PAUSED)/.test(tudo) || /ACTIVE/.test(tudo)) throw new Error('Trava do Tráfego: payload com status diferente de PAUSED. Nada foi enviado.');\nreturn [{ json: { plano, campanha, conjuntos } }];"
       }
     },
     {
-      "id": "ecd60edf-49c6-43c8-a2ad-778c9f735d67",
+      "id": "dd833e33-0a97-41ba-a8b8-cc0822af8c27",
+      "name": "Meta · buscar campanha",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1480,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.ad_account_id }}/campaigns",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify({ fields: 'id,name,status,effective_status', filtering: JSON.stringify([{ field: 'name', operator: 'EQUAL', value: $json.campanha.name }]), limit: 50 }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "1555a831-1e9f-420f-a8e3-70cdb10c6345",
+      "name": "Campanha já existe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1590,
+        450
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "197166f2-fe8f-4066-990c-b57a4c30e360",
+              "leftValue": "={{ Array.isArray($json.data) && $json.data.length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "75b43b67-adb1-469e-bbd3-1cefd8126a2b",
+      "name": "Meta · conjuntos existentes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1810,
+        700
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $json.data[0].id }}/adsets",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify({ fields: 'id,name,status,effective_status', limit: 100 }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "bbf61dce-d40e-4c9a-8edc-acab4abce06b",
+      "name": "Reusar campanha",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2030,
+        700
+      ],
+      "parameters": {
+        "jsCode": "// A campanha com este nome já existe: não cria nada de novo e NÃO mexe no status (o Arthur pode já ter ativado).\nconst camp = $('Meta · buscar campanha').first().json.data[0];\nconst r = $json || {};\nconst lista = Array.isArray(r.data) ? r.data : [];\nreturn [{ json: { id: camp.id, tipo: 'campanha', reutilizada: true } }].concat(lista.map(c => ({ json: { id: c.id, tipo: 'conjunto', reutilizada: true } })));"
+      }
+    },
+    {
+      "id": "dacdd703-19f9-42f4-b94f-00e74d45e99e",
+      "name": "Meta · conferir status (existente)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2250,
+        700
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $json.id }}",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "eea51f0d-bd1b-4e66-8b4f-0929b618b3a6",
       "name": "Meta · criar campanha (PAUSED)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -194,7 +349,7 @@
         "nodeCredentialType": "facebookGraphApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify(Object.assign({}, $json.campanha, { status: 'PAUSED' })) }}"
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('Payload PAUSADO').first().json.campanha, { status: 'PAUSED' })) }}"
       },
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
@@ -206,7 +361,7 @@
       }
     },
     {
-      "id": "abe3fad7-f460-4ae9-be2a-a6ed47ec8d14",
+      "id": "81af80f3-cf24-4125-9d4c-4c21b287bf58",
       "name": "Conjuntos → itens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -219,7 +374,7 @@
       }
     },
     {
-      "id": "9772e8eb-3382-42b3-85cd-d8be59673ae3",
+      "id": "a66d9080-88eb-419d-ac39-36c46df21373",
       "name": "Meta · criar conjunto (PAUSED)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -249,7 +404,7 @@
       }
     },
     {
-      "id": "ff1cc7d6-bfe0-41ec-b66d-d6c7364905fc",
+      "id": "39eb31fe-68b5-4a87-b7b7-080d249b9bd7",
       "name": "IDs criados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -262,7 +417,7 @@
       }
     },
     {
-      "id": "945fcbe1-63ca-409c-85d2-822bf06805d6",
+      "id": "352cf321-4dd5-464c-a6d3-12692deb5086",
       "name": "Meta · reforçar PAUSED",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -292,7 +447,7 @@
       }
     },
     {
-      "id": "db50dbdf-aade-48a7-a06b-793da4bfd39d",
+      "id": "ae84bd0f-8626-4c67-90a2-0b9b73fe021f",
       "name": "Meta · conferir status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -314,6 +469,9 @@
       },
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
       "credentials": {
         "facebookGraphApi": {
           "id": "qS4MswIcQLVPM874",
@@ -322,7 +480,7 @@
       }
     },
     {
-      "id": "4acd3eaa-f4b2-4c37-ab88-7cb1d1f2e8a0",
+      "id": "1b30d149-f043-4c57-b11c-77e783e95970",
       "name": "Conferência PAUSADO",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -331,11 +489,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const plano = $('Payload PAUSADO').first().json.plano;\nconst camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst conj = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json);\nconst st = $input.all().map(i => i.json).filter(s => s && s.id);\nconst naoPausados = st.filter(s => s.status !== 'PAUSED' || (s.effective_status && !['PAUSED', 'CAMPAIGN_PAUSED', 'ADSET_PAUSED'].includes(s.effective_status)));\nreturn [{ json: {\n  saida: { plano, campanha: camp && camp.id ? { id: camp.id } : { erro: camp && camp.error ? camp.error.message : 'não criada' },\n    conjuntos: conj.map(c => c.id ? { id: c.id } : { erro: c.error ? c.error.message : 'não criado' }), status_conferido: st },\n  verificacoes: {\n    campanha_criada: !!(camp && camp.id),\n    conjuntos_criados: conj.length > 0 && conj.every(c => !!c.id),\n    tudo_pausado_conferido_na_api: st.length > 0 && naoPausados.length === 0\n  },\n  avisos: { anuncios: 'Os anúncios (criativos) dentro dos conjuntos ainda não são criados por este fluxo; suba os criativos da Claquete e crie os anúncios também PAUSADOS.' }\n} }];"
+        "jsCode": "const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };\nconst plano = $('Payload PAUSADO').first().json.plano;\nif (ran('Reusar campanha')) {\n  const ids = $('Reusar campanha').all().map(i => i.json);\n  const st0 = $input.all().map(i => i.json).filter(s => s && s.id);\n  const ativos = st0.filter(s => s.status !== 'PAUSED');\n  return [{ json: {\n    saida: { plano, campanha: { id: ids[0].id, reutilizada: true }, conjuntos: ids.slice(1).map(c => ({ id: c.id, reutilizado: true })), status_conferido: st0 },\n    verificacoes: {\n      campanha_criada: true,\n      conjuntos_criados: ids.length > 1,\n      tudo_pausado_conferido_na_api: st0.length > 0 && ativos.length === 0\n    },\n    avisos: { reutilizada: 'A campanha já existia com este nome: nada foi criado nem alterado nesta rodada (sem duplicar).',\n      ativos: ativos.length ? 'Itens já ativos (ativados fora do fluxo): ' + ativos.map(a => a.id + ' ' + a.status).join(', ') : '' }\n  } }];\n}\nconst camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst conj = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json);\nconst st = $input.all().map(i => i.json).filter(s => s && s.id);\nconst naoPausados = st.filter(s => s.status !== 'PAUSED' || (s.effective_status && !['PAUSED', 'CAMPAIGN_PAUSED', 'ADSET_PAUSED'].includes(s.effective_status)));\nreturn [{ json: {\n  saida: { plano, campanha: camp && camp.id ? { id: camp.id } : { erro: camp && camp.error ? camp.error.message : 'não criada' },\n    conjuntos: conj.map(c => c.id ? { id: c.id } : { erro: c.error ? c.error.message : 'não criado' }), status_conferido: st },\n  verificacoes: {\n    campanha_criada: !!(camp && camp.id),\n    conjuntos_criados: conj.length > 0 && conj.every(c => !!c.id),\n    tudo_pausado_conferido_na_api: st.length > 0 && naoPausados.length === 0\n  },\n  avisos: { anuncios: 'Os anúncios (criativos) dentro dos conjuntos ainda não são criados por este fluxo; suba os criativos da Claquete e crie os anúncios também PAUSADOS.' }\n} }];"
       }
     },
     {
-      "id": "aa3c183e-21b8-42b8-9553-7c6b0c44e8ad",
+      "id": "554b276f-febe-4e91-add3-93ec4e42f8d4",
       "name": "Trava PAUSADO",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -344,14 +502,14 @@
         0
       ],
       "parameters": {
-        "content": "### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação forçam `status: PAUSED` no corpo.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.",
+        "content": "### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação forçam `status: PAUSED` no corpo.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\n5. **Buscar campanha** procura pelo nome antes de criar: se já existe, reutiliza e não mexe em nada (sem duplicar).\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.",
         "width": 520,
         "height": 240,
         "color": 3
       }
     },
     {
-      "id": "46470a76-d173-495a-b5c1-d6a714207131",
+      "id": "7980d0a2-e3cf-4055-88ca-698b0bbedf74",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -366,10 +524,14 @@
           "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (campanhas pausadas na Meta) você fiscaliza a entrega do agente Tráfego (gestor).\nPapel do agente: Sobe campanhas na conta de anúncios via API, sempre PAUSADAS. Nunca ativa nada.\n\nVocê recebe: os dados brutos da integração, as verificações automáticas feitas por código e a saída do agente.\nVerifique: (1) se a entrega cumpre o papel; (2) se algum número, data, preço, depoimento ou prova social NÃO aparece nos dados brutos (isso é dado inventado e reprova); (3) se alguma regra do time foi quebrada; (4) se as verificações automáticas falharam.\nSe qualquer verificação automática falhou, você não pode aprovar.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"nota\":0,\"problemas\":[],\"orientacao_para_o_agente\":\"\",\"proximo_passo\":\"\"}",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "29807d83-e3c7-4570-b245-42a503bb40ec",
+      "id": "a48c7c69-f864-4240-ad66-1bb5ea492e4e",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -391,7 +553,7 @@
       }
     },
     {
-      "id": "2c48d411-dcff-4b10-b8c6-b7ed0370a3c6",
+      "id": "ce8ffba4-e7ef-48a3-87f9-e80395589afb",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -400,7 +562,20 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'trafego';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência PAUSADO').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, supervisor: sup, em: new Date().toISOString()\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'trafego';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência PAUSADO').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+      }
+    },
+    {
+      "id": "f3bc5ce2-9138-492e-841c-9d2ab837f99e",
+      "name": "Falha do modelo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3540,
+        600
+      ],
+      "parameters": {
+        "jsCode": "const ETAPA = 'trafego';\nconst e = $json.error || {};\nconst msg = String((e && (e.message || e.description)) || (typeof e === 'string' ? e : '') || 'erro desconhecido').slice(0, 500);\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado: false, seguir: false, pulada: false, bloqueado: false,\n  motivo: 'falha do modelo (Grok/xAI) depois de 3 tentativas: ' + msg,\n  falhas_automaticas: ['modelo_respondeu'], verificacoes: { modelo_respondeu: false },\n  em: new Date().toISOString()\n} }];"
       }
     }
   ],
@@ -464,6 +639,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -487,7 +669,69 @@
       "main": [
         [
           {
+            "node": "Meta · buscar campanha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · buscar campanha": {
+      "main": [
+        [
+          {
+            "node": "Campanha já existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Campanha já existe?": {
+      "main": [
+        [
+          {
+            "node": "Meta · conjuntos existentes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Meta · criar campanha (PAUSED)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · conjuntos existentes": {
+      "main": [
+        [
+          {
+            "node": "Reusar campanha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reusar campanha": {
+      "main": [
+        [
+          {
+            "node": "Meta · conferir status (existente)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · conferir status (existente)": {
+      "main": [
+        [
+          {
+            "node": "Conferência PAUSADO",
             "type": "main",
             "index": 0
           }
@@ -568,6 +812,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -601,6 +852,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -608,6 +866,7 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "rUNQVY24WtvxDK5l"
   }
 }

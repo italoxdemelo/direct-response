@@ -62,7 +62,7 @@ IDs internos do n8n (não são segredo; servem para o `Execute Workflow` do coor
 | `Direct Response · 05 Claquete (criativos)` | `b0Mtxcsxf2hZPAQZ` | Execute Workflow Trigger | sim |
 | `Direct Response · 06 Revisor` | `cqkhx6Mc2PENjylp` | Execute Workflow Trigger | sim |
 | `Direct Response · 07 Tráfego (gestor, sempre PAUSADO)` | `8nsN0jKDEmNyID9M` | Execute Workflow Trigger | sim |
-| `Direct Response · 99 Erros` | criado no próximo `gerar.mjs` (`H-20261127-italo-04`) | Error Trigger | não precisa (é o *Error workflow* dos outros 8) |
+| `Direct Response · 99 Erros` | `rUNQVY24WtvxDK5l` | Error Trigger | sim (o n8n 2.x exige; é o *Error workflow* dos outros 8) |
 
 Os sub-workflows ficam publicados porque o n8n 2.x só deixa chamar sub-workflow publicado. Como o único gatilho deles é o `Execute Workflow Trigger`, eles **não disparam sozinhos**.
 
@@ -519,12 +519,12 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 | # | Tarefa | Workflow | Depende de | Status | Feito por | Data | Evidência |
 |---|---|---|---|---|---|---|---|
 | T-01 | Trazer o código gerador (`tools/`, `workflows/*.json` sem credenciais) para este repositório em `n8n/`, para a outra máquina e a outra IA terem a mesma fonte | todos | — | ✅ | Claude | 2026-11-27 | H-20261127-italo-03 |
-| T-02 | Workflow `99 Erros` + retries (seção 13) | todos | — | 🟡 código pronto e testado; falta publicar no n8n | Claude | 2026-11-27 | H-20261127-italo-04 |
-| T-03 | Persistir estado entre rodadas (n8n Data Table ou arquivo JSON por oferta) e **congelar a copy aprovada** (hash + versão); Construtor e Claquete leem a versão congelada, não a da rodada | 00, 02, 03, 05 | — | 🟡 código pronto e testado (arquivo `estado.json` por oferta + `copy_aprovada_hash`); falta publicar no n8n | Claude | 2026-11-27 | H-20261127-italo-05 |
+| T-02 | Workflow `99 Erros` + retries (seção 13) | todos | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-04 |
+| T-03 | Persistir estado entre rodadas (n8n Data Table ou arquivo JSON por oferta) e **congelar a copy aprovada** (hash + versão); Construtor e Claquete leem a versão congelada, não a da rodada | 00, 02, 03, 05 | — | 🟡 código pronto e testado (arquivo `estado.json` por oferta + `copy_aprovada_hash`); publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-05 |
 | T-04 | Levar as decisões do Arthur para a config (`decisoes: {formato, preco, garantia, instrutora, ...}`) e para o prompt do Headline Killer; criar `criativos_aprovados` | 00, 02, 05, 06 | D-05 | ⬜ | | | |
 | T-05 | Nó de deploy da página (API da hospedagem escolhida) que preenche `url_pagina_publicada` sozinho, depois do Construtor e de novo depois do Funil | 03, 04 | D-07 | ⬜ | | | |
 | T-06 | Baixar e guardar as imagens da Claquete; no Tráfego, criar `adimages` → `adcreative` → `ads` **PAUSED**, com UTMs no link, passando pela trava e pela conferência | 05, 07 | D-02, D-04 | ⬜ | | | |
-| T-07 | Idempotência: Tráfego procura campanha pelo nome antes de criar; Radar pagina a Ad Library até o fim | 01, 07 | — | 🟡 código pronto e testado; falta publicar e validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-06 |
+| T-07 | Idempotência: Tráfego procura campanha pelo nome antes de criar; Radar pagina a Ad Library até o fim | 01, 07 | — | 🟡 código pronto e testado; publicado em 27/11; falta validar com credencial real | Claude | 2026-11-27 | H-20261127-italo-06 |
 | T-08 | Conferência em navegador real (headless) para PageView e preço no checkout | 04, 06 | T-05 | ⬜ | | | |
 | T-09 | Agendamento (`scheduleTrigger`) e envio do relatório pelo Telegram | 00 | T-02 | ⬜ | | | |
 

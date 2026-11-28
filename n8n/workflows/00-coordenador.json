@@ -2,7 +2,7 @@
   "name": "Direct Response · 00 Coordenador (GROK BOT)",
   "nodes": [
     {
-      "id": "1753686c-997e-4d20-a7da-98eb7fa8b50b",
+      "id": "85eaf41d-f87f-4fd7-a747-772070a58565",
       "name": "Iniciar rodada",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -13,7 +13,7 @@
       "parameters": {}
     },
     {
-      "id": "c563c527-2b43-486b-8f2e-7bc47775aa59",
+      "id": "a04af31c-6aef-4a2b-b34b-c5e1053df472",
       "name": "⚙️ Configuração",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -22,16 +22,63 @@
         300
       ],
       "parameters": {
-        "jsCode": "// ⚙️ CONFIGURAÇÃO DA RODADA — edite aqui e clique em \"Execute workflow\".\n// Campos vazios bloqueiam as etapas que dependem deles (o relatório diz o que falta).\nreturn [{ json: {\n  // País de destino (ISO-2). O projeto começou por Portugal; troque se quiser outro país.\n  pais_origem: 'BR',\n  pais_destino: 'PT',\n  nome_pais: 'Portugal',\n  idioma: 'pt-PT',\n  moeda: 'EUR',\n\n  // Etapas que rodam nesta rodada (tire as que não quer repetir).\n  etapas_ativas: ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'],\n\n  // RADAR — termos para buscar concorrência no destino e ofertas candidatas do Brasil.\n  // A API da Meta não devolve anúncios comerciais do Brasil: os números BR vêm dos prints (senão ficam \"não verificado\").\n  termos_busca: ['desafio pilates', 'pilates em casa', 'pilates mulheres 50'],\n  ofertas_br: [\n    { nome: 'Desafio Pilates em Casa 50+', page_id_br: '2016271568674266', url_pagina: 'https://pilates.laystrancoso.com/', preco_br: 'R$ 29,90',\n      anuncios_ativos_br: null, anuncio_mais_antigo_br: null, print_br: null }\n  ],\n\n  // HEADLINE KILLER — oferta escolhida pelo dono.\n  oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },\n\n  // Aprovações do dono (só você muda isto).\n  copy_aprovada: false,      // libera Construtor e Claquete\n  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil\n  entregaveis_confirmados: [],\n\n  // CONSTRUTOR / PIXEL\n  pixel_id: '',\n  pasta_saida: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response',\n  url_pagina_publicada: '',\n  url_privacidade: '',\n  url_termos: '',\n\n  // FUNIL (Hotmart)\n  hotmart_product_id: '',\n  hotmart_checkout_url: '',\n\n  // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS\n  ad_account_id: '',         // formato act_1234567890\n  orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta\n  publico: 'mulheres 50+ em Portugal',\n\n  // CLAQUETE\n  modelo_imagem: 'grok-2-image',\n\n  // Prazos por agente (AAAA-MM-DD)\n  prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },\n\n  graph_version: 'v23.0'\n} }];"
+        "jsCode": "// ⚙️ CONFIGURAÇÃO DA RODADA — edite aqui e clique em \"Execute workflow\".\n// Campos vazios bloqueiam as etapas que dependem deles (o relatório diz o que falta).\nreturn [{ json: {\n  // País de destino (ISO-2). O projeto começou por Portugal; troque se quiser outro país.\n  pais_origem: 'BR',\n  pais_destino: 'PT',\n  nome_pais: 'Portugal',\n  idioma: 'pt-PT',\n  moeda: 'EUR',\n\n  // Etapas que rodam nesta rodada (tire as que não quer repetir).\n  etapas_ativas: ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'],\n\n  // RADAR — termos para buscar concorrência no destino e ofertas candidatas do Brasil.\n  // A API da Meta não devolve anúncios comerciais do Brasil: os números BR vêm dos prints (senão ficam \"não verificado\").\n  termos_busca: ['desafio pilates', 'pilates em casa', 'pilates mulheres 50'],\n  ofertas_br: [\n    { nome: 'Desafio Pilates em Casa 50+', page_id_br: '2016271568674266', url_pagina: 'https://pilates.laystrancoso.com/', preco_br: 'R$ 29,90',\n      anuncios_ativos_br: null, anuncio_mais_antigo_br: null, print_br: null }\n  ],\n\n  // HEADLINE KILLER — oferta escolhida pelo dono.\n  oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },\n\n  // Aprovações do dono (só você muda isto).\n  copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)\n  copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo\n  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil\n  entregaveis_confirmados: [],\n\n  // CONSTRUTOR / PIXEL\n  pixel_id: '',\n  pasta_saida: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response',\n  url_pagina_publicada: '',\n  url_privacidade: '',\n  url_termos: '',\n\n  // FUNIL (Hotmart)\n  hotmart_product_id: '',\n  hotmart_checkout_url: '',\n\n  // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS\n  ad_account_id: '',         // formato act_1234567890\n  campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha\n  orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta\n  publico: 'mulheres 50+ em Portugal',\n\n  // CLAQUETE\n  modelo_imagem: 'grok-2-image',\n\n  // Prazos por agente (AAAA-MM-DD)\n  prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },\n\n  graph_version: 'v23.0'\n} }];"
       }
     },
     {
-      "id": "ca767646-148a-4a68-b373-c97a894f21be",
+      "id": "136167c8-1430-4fae-9a20-b7defcef8b32",
+      "name": "Arquivo de estado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        520
+      ],
+      "parameters": {
+        "jsCode": "// Caminho do arquivo que guarda o estado entre rodadas: <pasta_saida>\\<slug>\\estado.json\nconst cfg = $json;\nconst slug = String(cfg.oferta_escolhida && cfg.oferta_escolhida.slug || 'oferta').replace(/[^a-z0-9-]/gi, '-');\nreturn [{ json: { arquivo_estado: String(cfg.pasta_saida || '').replace(/[\\\\/]+$/, '') + '\\\\' + slug + '\\\\estado.json' } }];"
+      }
+    },
+    {
+      "id": "8c9468c2-479b-428b-a44b-682416baed51",
+      "name": "Estado salvo · ler",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        520
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $json.arquivo_estado }}",
+        "options": {}
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "5bc74fd5-7e5c-425e-bc60-0eb5b43e4fec",
+      "name": "Estado salvo · extrair",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        660,
+        520
+      ],
+      "parameters": {
+        "operation": "fromJson",
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "2bda7919-ad12-457c-86a9-e83a091c619c",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        480,
+        920,
         560
       ],
       "parameters": {
@@ -48,38 +95,42 @@
       }
     },
     {
-      "id": "2233b2df-9ae2-4baf-aa60-f7a03e9ac7ac",
+      "id": "a16449bd-1db2-40a9-b636-a96ebab06870",
       "name": "Coordenador · plano",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        440,
+        880,
         300
       ],
       "parameters": {
         "promptType": "define",
-        "text": "={{ 'CONFIGURAÇÃO DA RODADA:\\n' + JSON.stringify($json) }}",
+        "text": "={{ 'CONFIGURAÇÃO DA RODADA:\\n' + JSON.stringify($('⚙️ Configuração').first().json) }}",
         "options": {
           "systemMessage": "Você é o Coordenador do time Direct Response, apoiado pelo GROK BOT.\nO time leva ofertas low ticket de infoproduto que escalaram no Brasil para outros países.\nAgentes: 1. Radar (minerador), 2. Headline Killer (copywriter), 3. Construtor (página), 4. Funil (Hotmart), 5. Claquete (criativos), 6. Revisor, 7. Tráfego (gestor, campanhas sempre pausadas).\n\nDivida as tarefas desta rodada entre os agentes, com o prazo de cada um (use os prazos da configuração; se faltar, proponha e marque \"prazo sugerido\"), as dependências entre eles e o que depende de decisão do dono (oferta escolhida, aprovação da copy, preço).\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em lista numerada, curta.",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "17fe9df3-bd3c-4bdb-a164-cfde11a2f60e",
+      "id": "0f15c9ab-498c-4a57-8903-ec8545a00145",
       "name": "Estado inicial",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        700,
+        1100,
         300
       ],
       "parameters": {
-        "jsCode": "const config = $('⚙️ Configuração').first().json;\nreturn [{ json: { config, estado: { plano_do_coordenador: $json.output, inicio_rodada: new Date().toISOString() } } }];"
+        "jsCode": "const config = $('⚙️ Configuração').first().json;\nconst ETAPAS = ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'];\nlet salvo = {};\ntry { const d = $('Estado salvo · extrair').first().json; salvo = d && d.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : {}; } catch (e) { salvo = {}; }\nconst estado = { plano_do_coordenador: $json.output || '(plano indisponível: o modelo não respondeu)', inicio_rodada: new Date().toISOString() };\n// Etapas de rodadas anteriores entram marcadas: valem como entrega (ex.: copy congelada), nunca como aprovação \"desta rodada\"\nfor (const k of ETAPAS) if (salvo[k] && typeof salvo[k] === 'object') estado[k] = Object.assign({}, salvo[k], { de_rodada_anterior: true });\nreturn [{ json: { config, estado, arquivo_estado: $('Arquivo de estado').first().json.arquivo_estado } }];"
       }
     },
     {
-      "id": "5c218125-3284-4a7a-9c61-4018989d9045",
+      "id": "4593208f-3d82-4b80-88bc-8703342c4509",
       "name": "Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -95,12 +146,12 @@
       }
     },
     {
-      "id": "071b59de-db09-4b10-b051-650faabccc6d",
+      "id": "483d7822-5fa3-4524-943e-ba59b85331ab",
       "name": "01 · Radar",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        940,
+        1340,
         300
       ],
       "parameters": {
@@ -116,25 +167,25 @@
       }
     },
     {
-      "id": "7cc9a658-ea22-4bc6-adea-06ee1d597031",
+      "id": "b52d560c-a06c-468f-8275-61b402f0e49d",
       "name": "Estado · Radar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1160,
+        1560,
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Estado inicial').first().json));\nbase.estado['radar'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Estado inicial').first().json));\nconst anterior = base.estado['radar'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['radar'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['radar'] = $json;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "1d52fab7-4354-47fc-8858-68d9c6232998",
+      "id": "f7b40e61-13b7-4fe2-a4c4-fb58d2ddb752",
       "name": "Radar liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1380,
+        1780,
         300
       ],
       "parameters": {
@@ -147,7 +198,7 @@
           },
           "conditions": [
             {
-              "id": "6ec06ed6-d5b3-47a0-b556-f086ee1832e4",
+              "id": "b48cc083-9eff-4cf5-a950-247dce23d250",
               "leftValue": "={{ $json.estado['radar'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -164,12 +215,12 @@
       }
     },
     {
-      "id": "9d7d09bc-eef0-4169-b19e-09af14d19d4d",
+      "id": "5c6503b4-5912-4537-8a56-99de115eb7f9",
       "name": "02 · Headline Killer",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        1640,
+        2040,
         300
       ],
       "parameters": {
@@ -185,25 +236,25 @@
       }
     },
     {
-      "id": "a2ca3939-c6ef-45b6-a444-e6cbc4c7c8fb",
+      "id": "33820e59-4c92-4dc2-8cd5-2a16328af90b",
       "name": "Estado · Headline Killer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1860,
+        2260,
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Radar liberou?').first().json));\nbase.estado['headline'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Radar liberou?').first().json));\nconst anterior = base.estado['headline'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['headline'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['headline'] = $json;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "5d483d3a-ae9a-42d8-9383-be2994d4d304",
+      "id": "becaadc7-9c75-4a62-9e21-8d6aa9c68b7e",
       "name": "Headline Killer liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2080,
+        2480,
         300
       ],
       "parameters": {
@@ -216,7 +267,7 @@
           },
           "conditions": [
             {
-              "id": "e05c0a29-7f61-4ab0-b380-4ea4057708b1",
+              "id": "ca05011a-9424-4409-98c0-9daddb69d0b0",
               "leftValue": "={{ $json.estado['headline'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -233,12 +284,12 @@
       }
     },
     {
-      "id": "cf751f32-a12e-4159-aee1-943a381ebf4f",
+      "id": "37e5fc39-0f67-4b3b-9fdf-99af0520ac5d",
       "name": "03 · Construtor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        2340,
+        2740,
         300
       ],
       "parameters": {
@@ -254,25 +305,25 @@
       }
     },
     {
-      "id": "ce552d67-3525-421f-909e-91d7c6a2c9d1",
+      "id": "fc30b7b9-d7cb-418f-8494-5aee3a363585",
       "name": "Estado · Construtor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2560,
+        2960,
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Headline Killer liberou?').first().json));\nbase.estado['construtor'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Headline Killer liberou?').first().json));\nconst anterior = base.estado['construtor'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['construtor'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['construtor'] = $json;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "321b1c5f-bfe4-4dc3-bd59-755d15a9c316",
+      "id": "27cb1986-b22e-4794-8432-e228eefc397a",
       "name": "Construtor liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2780,
+        3180,
         300
       ],
       "parameters": {
@@ -285,7 +336,7 @@
           },
           "conditions": [
             {
-              "id": "13d6314f-e7d9-4254-96a3-8c7dc47be869",
+              "id": "dc09bda8-17a3-4b5d-9ec0-7b656daa00f3",
               "leftValue": "={{ $json.estado['construtor'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -302,12 +353,12 @@
       }
     },
     {
-      "id": "8de17049-16b1-432b-ae4c-4e1a3f642cec",
+      "id": "aca25480-57fb-497d-94a0-58362e0b0fb1",
       "name": "04 · Funil",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        3040,
+        3440,
         300
       ],
       "parameters": {
@@ -323,25 +374,25 @@
       }
     },
     {
-      "id": "4775142b-b236-4a91-9783-87224540ce03",
+      "id": "83a49f79-cee2-426b-8de1-a75b203c8d3d",
       "name": "Estado · Funil",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3260,
+        3660,
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Construtor liberou?').first().json));\nbase.estado['funil'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Construtor liberou?').first().json));\nconst anterior = base.estado['funil'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['funil'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['funil'] = $json;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "5568c761-1654-491b-9ad4-5671c453d78d",
+      "id": "1cb295e2-72d5-4f45-909a-4de99493982e",
       "name": "Funil liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3480,
+        3880,
         300
       ],
       "parameters": {
@@ -354,7 +405,7 @@
           },
           "conditions": [
             {
-              "id": "c250c5d2-fe45-4a09-92b8-942240f24fd6",
+              "id": "595594d2-73b7-46ff-b920-3e0d9f6f685c",
               "leftValue": "={{ $json.estado['funil'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -371,12 +422,12 @@
       }
     },
     {
-      "id": "eaf244b8-5975-44fc-9f1f-699fe450e46e",
+      "id": "a342be82-3480-4951-bd67-a03b5b0840aa",
       "name": "05 · Claquete",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        3740,
+        4140,
         300
       ],
       "parameters": {
@@ -392,25 +443,25 @@
       }
     },
     {
-      "id": "6e064297-b320-4a65-89a5-bae15566fa55",
+      "id": "ae7ec5cd-755b-418b-9ac2-d91ecef8a439",
       "name": "Estado · Claquete",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3960,
+        4360,
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Funil liberou?').first().json));\nbase.estado['claquete'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Funil liberou?').first().json));\nconst anterior = base.estado['claquete'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['claquete'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['claquete'] = $json;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "03b4645a-44a0-42db-85ba-9b476e81f0a8",
+      "id": "13da3667-9113-4544-8387-38713c434720",
       "name": "Claquete liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        4180,
+        4580,
         300
       ],
       "parameters": {
@@ -423,7 +474,7 @@
           },
           "conditions": [
             {
-              "id": "ffae2ad7-fdfb-4720-be9f-97693ec7bb3f",
+              "id": "7d04ae42-416d-4859-b939-6b9228081dc7",
               "leftValue": "={{ $json.estado['claquete'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -440,12 +491,12 @@
       }
     },
     {
-      "id": "3706ee00-d919-4ab1-9a3e-bd80f57b4443",
+      "id": "a8c14d61-c052-43e3-9323-4a832257a05d",
       "name": "06 · Revisor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        4440,
+        4840,
         300
       ],
       "parameters": {
@@ -461,25 +512,25 @@
       }
     },
     {
-      "id": "99b3ebf7-acf5-41d9-9e62-5ff971331527",
+      "id": "649356f4-3830-4259-89e6-69c29f151078",
       "name": "Estado · Revisor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4660,
+        5060,
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Claquete liberou?').first().json));\nbase.estado['revisor'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Claquete liberou?').first().json));\nconst anterior = base.estado['revisor'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['revisor'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['revisor'] = $json;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "dd1dc3f2-a58f-4bd3-9c89-9abae0255738",
+      "id": "005d760a-8525-4212-b81c-9aec2ac8602b",
       "name": "Revisor liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        4880,
+        5280,
         300
       ],
       "parameters": {
@@ -492,7 +543,7 @@
           },
           "conditions": [
             {
-              "id": "d87a325e-af17-423f-be49-8d6aa3e7f416",
+              "id": "61e9764d-31c2-4b98-923e-3113526e8681",
               "leftValue": "={{ $json.estado['revisor'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -509,12 +560,12 @@
       }
     },
     {
-      "id": "663f471c-5340-4693-a059-c6b26b331fed",
+      "id": "ab2639f8-61ae-46f1-aed6-192d08a465ad",
       "name": "07 · Tráfego",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        5140,
+        5540,
         300
       ],
       "parameters": {
@@ -530,25 +581,25 @@
       }
     },
     {
-      "id": "cce488d0-e16b-4141-9da0-8a1e3c066f22",
+      "id": "46acfe19-b487-4ac6-ae20-d20edac5fdcb",
       "name": "Estado · Tráfego",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5360,
+        5760,
         300
       ],
       "parameters": {
-        "jsCode": "const base = JSON.parse(JSON.stringify($('Revisor liberou?').first().json));\nbase.estado['trafego'] = $json;\nreturn [{ json: base }];"
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Revisor liberou?').first().json));\nconst anterior = base.estado['trafego'];\n// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)\nif ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['trafego'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });\nelse base.estado['trafego'] = $json;\nreturn [{ json: base }];"
       }
     },
     {
-      "id": "10d67898-9db2-4f2c-a8f2-5c3da4c77738",
+      "id": "e7308ebc-458e-4195-a595-58f932b4d475",
       "name": "Tráfego liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        5580,
+        5980,
         300
       ],
       "parameters": {
@@ -561,7 +612,7 @@
           },
           "conditions": [
             {
-              "id": "f9caa125-3e12-4ec1-ac54-8ed41ce50904",
+              "id": "3f6a2644-9c55-446b-aaab-2aa0257962be",
               "leftValue": "={{ $json.estado['trafego'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -578,25 +629,25 @@
       }
     },
     {
-      "id": "d26d2a00-b3a5-4bbd-8f1d-a1bf216ce4d4",
+      "id": "110aa6a4-7d99-4c44-a292-7dbe58f4f902",
       "name": "Prazos e resumo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5840,
+        6240,
         600
       ],
       "parameters": {
-        "jsCode": "const { config, estado } = $json;\nconst nomes = { radar: 'Radar', headline: 'Headline Killer', construtor: 'Construtor', funil: 'Funil', claquete: 'Claquete', revisor: 'Revisor', trafego: 'Tráfego' };\nconst agora = new Date();\nconst linhas = Object.keys(nomes).map((k, i) => {\n  const s = estado[k];\n  const status = !s ? 'não começou nesta rodada' : s.pulada ? 'pulada (fora de etapas_ativas)' : s.aprovado ? 'aprovado' : s.bloqueado ? 'bloqueado' : 'reprovado pelo supervisor/verificações';\n  const prazo = (config.prazos || {})[k] || null;\n  const atrasado = prazo && !(s && s.aprovado) ? new Date(prazo + 'T23:59:59-03:00') < agora : false;\n  return { n: i + 1, agente: nomes[k], status, prazo, atrasado, motivo: s ? (s.motivo || (s.falhas_automaticas || []).join(', ') || null) : null };\n});\nconst resumo = {};\nfor (const k of Object.keys(nomes)) if (estado[k]) {\n  const s = estado[k];\n  resumo[k] = { aprovado: s.aprovado, bloqueado: s.bloqueado, motivo: s.motivo, falhas: s.falhas_automaticas, avisos: s.avisos, supervisor: s.supervisor };\n}\nreturn [{ json: { config, estado, prazos: linhas, resumo } }];"
+        "jsCode": "const { config, estado } = $json;\nconst nomes = { radar: 'Radar', headline: 'Headline Killer', construtor: 'Construtor', funil: 'Funil', claquete: 'Claquete', revisor: 'Revisor', trafego: 'Tráfego' };\nconst agora = new Date();\nconst linhas = Object.keys(nomes).map((k, i) => {\n  const s = estado[k];\n  const status = !s ? 'não começou nesta rodada' : s.pulada ? 'pulada (fora de etapas_ativas)' : s.aprovado ? 'aprovado' : s.bloqueado ? 'bloqueado' : 'reprovado pelo supervisor/verificações';\n  const prazo = (config.prazos || {})[k] || null;\n  const atrasado = prazo && !(s && s.aprovado) ? new Date(prazo + 'T23:59:59-03:00') < agora : false;\n  return { n: i + 1, agente: nomes[k], status, prazo, atrasado, motivo: s ? (s.motivo || (s.falhas_automaticas || []).join(', ') || null) : null };\n});\nconst resumo = {};\nfor (const k of Object.keys(nomes)) if (estado[k]) {\n  const s = estado[k];\n  resumo[k] = { aprovado: s.aprovado, bloqueado: s.bloqueado, motivo: s.motivo, falhas: s.falhas_automaticas, avisos: s.avisos, supervisor: s.supervisor, versao: s.saida_hash || null, de_rodada_anterior: !!s.de_rodada_anterior };\n}\nreturn [{ json: { config, estado, prazos: linhas, resumo } }];"
       }
     },
     {
-      "id": "91729e63-1cbe-462c-8602-21913798c932",
+      "id": "710b5de9-62ff-43b5-ac6c-19164328ae96",
       "name": "Grok (xAI) relatório",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
       "position": [
-        6100,
+        6500,
         860
       ],
       "parameters": {
@@ -613,12 +664,12 @@
       }
     },
     {
-      "id": "7e319e8d-d998-4dc7-bcd9-16e2408d208a",
+      "id": "1c558334-0ce6-429b-a516-63bdcdb272d8",
       "name": "Coordenador · relatório",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        6060,
+        6460,
         600
       ],
       "parameters": {
@@ -628,28 +679,79 @@
           "systemMessage": "Você é o Coordenador do time Direct Response, apoiado pelo GROK BOT.\nRecebe o estado de todas as etapas desta rodada e a lista de prazos (com os atrasados já calculados).\nEntregue ao dono o progresso em lista numerada, em português:\n1. Uma linha por agente: status (aprovado, bloqueado, não começou), o que entregou e a evidência.\n2. Prazos: quem está atrasado e o que você está cobrando.\n3. O que depende do dono agora (decisões e acessos), em ordem de prioridade.\n4. Próximo passo do time.\n\nLembre: campanhas só existem pausadas; nada foi ativado. Não invente nada que não esteja no estado.",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "20301ebb-3e7b-49b6-b3ad-5e47d6d0b284",
+      "id": "decb6db5-49d2-46d1-89d3-5008b30b4104",
       "name": "Progresso (lista numerada)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6360,
+        6760,
         600
       ],
       "parameters": {
-        "jsCode": "return [{ json: { progresso: $json.output, prazos: $('Prazos e resumo').first().json.prazos, estado: $('Prazos e resumo').first().json.estado } }];"
+        "jsCode": "const p = $('Prazos e resumo').first().json;\nconst h = p.estado.headline;\nlet texto = $json.output;\nif (!texto) texto = '(relatório do modelo indisponível)\\n' + p.prazos.map(l => l.n + '. ' + l.agente + ': ' + l.status + (l.motivo ? ' (' + l.motivo + ')' : '')).join('\\n');\nif (h && h.saida_hash) texto += '\\n\\nVersão da copy: ' + h.saida_hash + (p.config.copy_aprovada_hash === h.saida_hash ? ' (é a aprovada)' : ' (para aprovar esta versão, o Arthur confere a copy e o Italo põe este código em copy_aprovada_hash e copy_aprovada: true)');\nreturn [{ json: { progresso: texto, prazos: p.prazos, estado: p.estado } }];"
       }
     },
     {
-      "id": "14d53edc-12de-450c-9751-a51b0806d365",
+      "id": "b2beba26-90f2-435c-8e6f-d6e076c8aaa9",
+      "name": "Estado → salvar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7000,
+        820
+      ],
+      "parameters": {
+        "jsCode": "// Grava o estado da rodada para a próxima (sem o plano do coordenador, que é refeito a cada rodada)\nconst p = $('Prazos e resumo').first().json;\nconst ETAPAS = ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'];\nconst guardar = { salvo_em: new Date().toISOString() };\nfor (const k of ETAPAS) if (p.estado[k]) { guardar[k] = Object.assign({}, p.estado[k]); delete guardar[k].de_rodada_anterior; }\nreturn [{ json: { texto: JSON.stringify(guardar, null, 2), arquivo: $('Estado inicial').first().json.arquivo_estado } }];"
+      }
+    },
+    {
+      "id": "25f9b3b3-dfdf-491c-af88-436e056fcabf",
+      "name": "Estado → arquivo",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        7220,
+        820
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "texto",
+        "options": {
+          "fileName": "estado.json"
+        }
+      }
+    },
+    {
+      "id": "c50203dd-7279-4108-be48-03198fcec187",
+      "name": "Gravar estado.json",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        7440,
+        820
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Estado → salvar').first().json.arquivo }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "c2c91520-78b7-4ed3-94c4-63f65afb96a2",
       "name": "Enviar no Telegram (opcional)",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        6600,
+        7000,
         600
       ],
       "parameters": {
@@ -692,6 +794,39 @@
       ]
     },
     "⚙️ Configuração": {
+      "main": [
+        [
+          {
+            "node": "Arquivo de estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Arquivo de estado": {
+      "main": [
+        [
+          {
+            "node": "Estado salvo · ler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado salvo · ler": {
+      "main": [
+        [
+          {
+            "node": "Estado salvo · extrair",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado salvo · extrair": {
       "main": [
         [
           {
@@ -1041,7 +1176,34 @@
       "main": [
         [
           {
+            "node": "Estado → salvar",
+            "type": "main",
+            "index": 0
+          },
+          {
             "node": "Enviar no Telegram (opcional)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado → salvar": {
+      "main": [
+        [
+          {
+            "node": "Estado → arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado → arquivo": {
+      "main": [
+        [
+          {
+            "node": "Gravar estado.json",
             "type": "main",
             "index": 0
           }
@@ -1052,6 +1214,7 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "rUNQVY24WtvxDK5l"
   }
 }

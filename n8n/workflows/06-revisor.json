@@ -2,7 +2,7 @@
   "name": "Direct Response · 06 Revisor",
   "nodes": [
     {
-      "id": "d2fda687-2feb-49aa-aea1-eca1882f15b2",
+      "id": "4eeeb445-1184-4493-afb8-c8db69893a54",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "aefa9337-4a32-4505-a594-aec6206d0677",
+      "id": "34f1fa17-9829-4aa9-8d09-631b2c3d4187",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "1cba04a6-3003-4e7e-a97a-d37078f73ef3",
+      "id": "d87ca616-89a1-4f2b-9cfa-c7dbe12b5544",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "10841f5c-5358-4a87-921f-028a2f45faa6",
+              "id": "ab6b211b-ada7-4434-85b5-6da0b28f9e57",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "4a535548-0db7-42a1-bfed-bd14504af7e8",
+      "id": "180a33e7-e71f-4d39-9632-582ca5914d64",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -72,11 +72,11 @@
         520
       ],
       "parameters": {
-        "jsCode": "const p = $json;\nconst ETAPA = 'revisor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Revisor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+        "jsCode": "const p = $json;\nconst ETAPA = 'revisor';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Revisor',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "051f1ee9-a661-403a-9f8c-e134faae3d6a",
+      "id": "29805059-1c9e-4a2c-8f59-6da43177f6f9",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "1ffb3976-6564-4659-8765-c1a58167862f",
+      "id": "dcd167ba-aeb7-47ee-95d7-17538ff015b9",
       "name": "Revisor · página no ar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -115,10 +115,13 @@
         }
       },
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
-      "id": "6eee8faa-2846-437a-ab31-62da06d2e2fc",
+      "id": "98f98818-6171-49a5-bbe3-6ac6e0cc7317",
       "name": "Revisor · checkout",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -141,10 +144,13 @@
         }
       },
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
-      "id": "b7e61193-1b87-4ea9-84d1-408c8a17f981",
+      "id": "5a2bc3f2-2bf0-46a9-891c-6ff381fbfbf7",
       "name": "Revisor · pixel",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -166,6 +172,9 @@
       },
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
       "credentials": {
         "facebookGraphApi": {
           "id": "qS4MswIcQLVPM874",
@@ -174,7 +183,7 @@
       }
     },
     {
-      "id": "47a833ed-62b3-49a1-b34d-52e71bad796c",
+      "id": "f6aa49c8-1bbe-40ad-8435-3265915f3bcb",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -183,11 +192,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst e = $('Entrada').first().json;\nconst cfg = e.config, est = e.estado || {};\nconst pag = $('Revisor · página no ar').first().json;\nconst chk = $('Revisor · checkout').first().json;\nconst px = $('Revisor · pixel').first().json;\nconst html = typeof pag.body === 'string' ? pag.body : '';\nconst pixel = String(cfg.pixel_id || '');\nconst reInit = new RegExp(\"fbq\\\\(\\\\s*['\\\"]init['\\\"]\\\\s*,\\\\s*['\\\"]\" + pixel + \"['\\\"]\");\nconst links = [...html.matchAll(/<a[^>]+href=[\"']([^\"']+)[\"'][^>]*>/gi)].map(m => m[1]);\nconst linksCheckout = links.filter(h => /hotmart|pay\\.|checkout/i.test(h));\nconst urlChk = String(cfg.hotmart_checkout_url || '');\nconst precoNum = String(cfg.preco_aprovado || '').replace(/[^\\d,\\.]/g, '');\nconst lang = (html.match(/<html[^>]*\\blang=[\"']([^\"']+)[\"']/i) || [])[1] || '';\nconst texto = textoDoHtml(html);\nconst imgs = (est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || [];\nconst checklist = {\n  '1_pagina_no_ar': pag.statusCode === 200,\n  '2_pixel_certo_e_pageview': pixel.length > 5 && reInit.test(html) && /fbq\\(\\s*['\"]track['\"]\\s*,\\s*['\"]PageView['\"]/.test(html),\n  '3_pixel_ja_disparou': !!(px && px.last_fired_time),\n  '4_links_de_checkout_certos_e_no_ar': linksCheckout.length > 0 && linksCheckout.every(h => h.split('?')[0] === urlChk.split('?')[0]) && !html.includes('{{CHECKOUT_URL}}') && chk.statusCode === 200,\n  '5_preco_aprovado_e_sem_preco_riscado': !!precoNum && texto.includes(precoNum) && !PRECO_RISCADO.test(html),\n  '6_idioma_do_destino': lang.toLowerCase().startsWith(String(cfg.idioma || '').toLowerCase().slice(0, 2)) && (String(cfg.idioma).toLowerCase() !== 'pt-pt' || !/(^|[^\\p{L}])voc[eê]s?(?![\\p{L}])/iu.test(texto)),\n  '7_criativos_prontos': imgs.length > 0 && imgs.every(i => !!i.url)\n};\nreturn [{ json: {\n  dados: { checklist, url: cfg.url_pagina_publicada, lang_da_pagina: lang, links_de_checkout: linksCheckout, preco_aprovado: cfg.preco_aprovado, texto_da_pagina: texto.slice(0, 20000), criativos: imgs },\n  verificacoes: checklist, avisos: {}\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst e = $('Entrada').first().json;\nconst cfg = e.config, est = e.estado || {};\nconst pag = $('Revisor · página no ar').first().json;\nconst chk = $('Revisor · checkout').first().json;\nconst px = $('Revisor · pixel').first().json;\nconst html = typeof pag.body === 'string' ? pag.body : '';\nconst pixel = String(cfg.pixel_id || '');\nconst reInit = new RegExp(\"fbq\\\\(\\\\s*['\\\"]init['\\\"]\\\\s*,\\\\s*['\\\"]\" + pixel + \"['\\\"]\");\nconst links = [...html.matchAll(/<a[^>]+href=[\"']([^\"']+)[\"'][^>]*>/gi)].map(m => m[1]);\nconst linksCheckout = links.filter(h => /hotmart|pay\\.|checkout/i.test(h));\nconst urlChk = String(cfg.hotmart_checkout_url || '');\nconst precoNum = String(cfg.preco_aprovado || '').replace(/[^\\d,\\.]/g, '');\nconst lang = (html.match(/<html[^>]*\\blang=[\"']([^\"']+)[\"']/i) || [])[1] || '';\nconst texto = textoDoHtml(html);\nconst imgs = (est.claquete && est.claquete.saida && est.claquete.saida.imagens_geradas) || [];\nconst checklist = {\n  '1_pagina_no_ar': pag.statusCode === 200,\n  '2_pixel_certo_e_pageview': pixel.length > 5 && reInit.test(html) && /fbq\\(\\s*['\"]track['\"]\\s*,\\s*['\"]PageView['\"]/.test(html),\n  '3_pixel_ja_disparou': !!(px && px.last_fired_time),\n  '4_links_de_checkout_certos_e_no_ar': linksCheckout.length > 0 && linksCheckout.every(h => h.split('?')[0] === urlChk.split('?')[0]) && !html.includes('{{CHECKOUT_URL}}') && chk.statusCode === 200,\n  '5_preco_aprovado_e_sem_preco_riscado': !!precoNum && texto.includes(precoNum) && !PRECO_RISCADO.test(html),\n  '6_idioma_do_destino': lang.toLowerCase().startsWith(String(cfg.idioma || '').toLowerCase().slice(0, 2)) && (String(cfg.idioma).toLowerCase() !== 'pt-pt' || !/(^|[^\\p{L}])voc[eê]s?(?![\\p{L}])/iu.test(texto)),\n  '7_criativos_prontos': imgs.length > 0 && imgs.every(i => !!i.url)\n};\nreturn [{ json: {\n  dados: { checklist, url: cfg.url_pagina_publicada, lang_da_pagina: lang, links_de_checkout: linksCheckout, preco_aprovado: cfg.preco_aprovado, texto_da_pagina: texto.slice(0, 20000), criativos: imgs },\n  verificacoes: checklist, avisos: {}\n} }];"
       }
     },
     {
-      "id": "820e9b9f-e619-496f-938d-2c589e0e26e6",
+      "id": "6e850626-81b7-4dcf-b294-ee1fb06fe3c0",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -209,7 +218,7 @@
       }
     },
     {
-      "id": "84aa601b-b8b5-4091-9104-5887ea57fbf0",
+      "id": "11a88361-1268-495f-87d3-ced80d292e1b",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -224,10 +233,14 @@
           "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (revisão final) você orienta o agente Revisor (qualidade) antes de ele trabalhar.\nPapel do agente: Confere tudo antes de entregar (links, pixel, preço, idioma, erros) e só aprova quando estiver 100%.\n\nCom base na configuração, no estado do projeto e nos dados da integração, escreva um briefing curto e objetivo para o agente: o que fazer agora, o que observar nos dados, o que é proibido nesta etapa e o critério de pronto. Aponte dados que estão faltando ou não verificados.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em no máximo 12 linhas numeradas.",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "7370b511-2602-4e37-a1d6-bff58e11ca7e",
+      "id": "c7fa739b-716d-4160-a19c-013f68fcd3a2",
       "name": "Agente · Revisor",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -242,10 +255,14 @@
           "systemMessage": "Você é o Revisor do time Direct Response.\nMissão: conferir tudo antes de entregar e só aprovar com 100%.\n\nVocê recebe o checklist automático de 7 itens (página no ar, pixel com o ID certo e PageView, pixel já disparou, links de checkout certos e no ar, preço igual ao aprovado e sem preço riscado, idioma, criativos prontos) e o texto da página.\nSua parte: revisar idioma (variante do país de destino), erros de ortografia e gramática, coerência entre página, checkout e criativos, e claims proibidos.\n\nRegras do Revisor:\n- Só aprove se TODOS os 7 itens automáticos estiverem verdadeiros e você não achar nenhum erro.\n- Cada problema vem com evidência (trecho exato ou item do checklist) e a correção sugerida.\n- Nunca aprove \"quase pronto\".\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"erros\":[{\"onde\":\"\",\"trecho\":\"\",\"problema\":\"\",\"correcao\":\"\"}],\"comentario\":\"\"}",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "7f4cf302-16a7-4f5a-ba41-e404228e2c91",
+      "id": "c4b44edf-8d5e-4eb4-9202-8097720b0ec3",
       "name": "Conferência pós-agente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -254,11 +271,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst saida = parseJSON($json.output);\nreturn [{ json: { saida, verificacoes: { saida_do_agente_em_json: !saida.erro_parse, revisor_aprovou: saida.aprovado === true && (!saida.erros || saida.erros.length === 0) } } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst saida = parseJSON($json.output);\nreturn [{ json: { saida, verificacoes: { saida_do_agente_em_json: !saida.erro_parse, revisor_aprovou: saida.aprovado === true && (!saida.erros || saida.erros.length === 0) } } }];"
       }
     },
     {
-      "id": "a9eb05d6-fcb1-49bf-86be-24764a52b3b7",
+      "id": "373f1b8c-8290-445e-a2f5-5528ce6a1d9c",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -273,10 +290,14 @@
           "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (revisão final) você fiscaliza a entrega do agente Revisor (qualidade).\nPapel do agente: Confere tudo antes de entregar (links, pixel, preço, idioma, erros) e só aprova quando estiver 100%.\n\nVocê recebe: os dados brutos da integração, as verificações automáticas feitas por código e a saída do agente.\nVerifique: (1) se a entrega cumpre o papel; (2) se algum número, data, preço, depoimento ou prova social NÃO aparece nos dados brutos (isso é dado inventado e reprova); (3) se alguma regra do time foi quebrada; (4) se as verificações automáticas falharam.\nSe qualquer verificação automática falhou, você não pode aprovar.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"nota\":0,\"problemas\":[],\"orientacao_para_o_agente\":\"\",\"proximo_passo\":\"\"}",
           "maxIterations": 4
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "0e90ead1-eb17-4385-9415-0d44bc0153ca",
+      "id": "8cf2e614-25dc-4ec5-aff9-ff20df591211",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -298,7 +319,7 @@
       }
     },
     {
-      "id": "ebef6e7c-ed55-438a-ab08-e0bbf04ad777",
+      "id": "e2a05fcc-17d2-49cc-b93b-b414ee6b5877",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -307,7 +328,20 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'revisor';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Revisor',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, supervisor: sup, em: new Date().toISOString()\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'revisor';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Revisor',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+      }
+    },
+    {
+      "id": "4c6d66a3-9361-4e43-a1ae-a19e8fa8847b",
+      "name": "Falha do modelo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2700,
+        600
+      ],
+      "parameters": {
+        "jsCode": "const ETAPA = 'revisor';\nconst e = $json.error || {};\nconst msg = String((e && (e.message || e.description)) || (typeof e === 'string' ? e : '') || 'erro desconhecido').slice(0, 500);\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Revisor',\n  aprovado: false, seguir: false, pulada: false, bloqueado: false,\n  motivo: 'falha do modelo (Grok/xAI) depois de 3 tentativas: ' + msg,\n  falhas_automaticas: ['modelo_respondeu'], verificacoes: { modelo_respondeu: false },\n  em: new Date().toISOString()\n} }];"
       }
     }
   ],
@@ -404,6 +438,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -428,6 +469,13 @@
         [
           {
             "node": "Conferência pós-agente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
             "type": "main",
             "index": 0
           }
@@ -464,6 +512,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Falha do modelo",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -471,6 +526,7 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "rUNQVY24WtvxDK5l"
   }
 }

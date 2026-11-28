@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-07 — Publicar no n8n o gerador com 99 Erros, estado e Tráfego sem duplicar
+
+- **Data/hora:** 2026-11-27 22:16 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** ação externa
+- **O que mudou:** A 1.ª tentativa de publicar (`node tools/gerar.mjs`) criou o `99 Erros` e parou no Radar com `PUT /workflows/ZEwHqbQbTRpqwbZm -> 400: "The selected error workflow has no published version."`: o n8n 2.x exige que o *Error workflow* tenha versão publicada (ativa). O gerador foi corrigido para ativar o `99 Erros` logo depois de criá-lo ou atualizá-lo (o gatilho de erro não dispara sozinho). Com a correção, a 2.ª execução ainda recebeu o mesmo 400 logo após ativar; a 3.ª saiu inteira (o `99 Erros` já estava publicado). Publicados: 99 Erros `rUNQVY24WtvxDK5l`, 01 Radar `ZEwHqbQbTRpqwbZm`, 02 Headline `HcVTPRfIrVr5pEpS`, 03 Construtor `dIRHcPq6GOQjGjlf`, 04 Funil `4ZrBWdTNmlj5cnez`, 05 Claquete `b0Mtxcsxf2hZPAQZ`, 06 Revisor `cqkhx6Mc2PENjylp`, 07 Tráfego `8nsN0jKDEmNyID9M`, 00 Coordenador `WiHxKHcgbaLG7iFy` (inativo, gatilho manual); tag `Direct Response` `rD9Y1ZKqaz3Oh8nn`. Os JSON regravados em `n8n/workflows/` (inclusive `99-erros.json` e `ids.json`) entram no repositório; só têm IDs internos do n8n, nenhuma chave.
+- **Por quê:** fechar a publicação de C-02, C-03 e C-04 (T-02, T-03, T-07).
+- **Arquivos tocados:** `n8n/tools/gerar.mjs`, `n8n/workflows/*.json`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`, `plano/PLANO-DE-ACAO.md`
+- **Continua:** H-20261127-italo-06
+- **Depende de:** H-20261127-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs` passou; `checar.mjs` ok nos 9 JSON (00: 38 nós, 01: 16, 02: 15, 03: 19, 04: 20, 05: 17, 06: 17, 07: 27, 99: 6). Pela API (`GET /api/v1/workflows/<id>`): os 8 workflows têm `settings.errorWorkflow = rUNQVY24WtvxDK5l`; os 7 sub-workflows estão ativos com a versão atual publicada e só com o gatilho `executeWorkflowTrigger` (o Tráfego inclusive); o `99 Erros` está ativo com o `errorTrigger`; o Coordenador segue inativo. O Coordenador não foi rodado.
+- **Próximo passo:** forçar um erro (chave xAI errada) quando a chave existir, e conferir que o `99 Erros` grava o arquivo em `erros\`. Numa instalação nova, se o 1.º `gerar.mjs` der o mesmo 400, rodar de novo.
+
 ### H-20261127-italo-06 — Evitar campanha duplicada no Tráfego e paginar o Radar (código)
 
 - **Data/hora:** 2026-11-27 23:10 (America/Bahia UTC-3)

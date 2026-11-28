@@ -421,8 +421,9 @@ async function main() {
   // 99 Erros primeiro: os outros apontam para ele (settings.errorWorkflow)
   const erros = wfErros();
   writeFileSync(join(RAIZ, 'workflows', '99-erros.json'), JSON.stringify(erros.json(), null, 2));
-  // Error workflow não precisa estar ativo (o gatilho de erro não é ativável)
+  // No n8n 2.x o Error workflow precisa ter versão publicada (ativa); o gatilho de erro não dispara sozinho
   const idErros = SO_JSON ? 'ID_erros' : await publicar(erros, existentes);
+  if (!SO_JSON) await api('POST', `/workflows/${idErros}/activate`);
   for (const [k, n] of ORDEM) {
     const wf = construir[k]();
     wf.errorWorkflow = idErros;
