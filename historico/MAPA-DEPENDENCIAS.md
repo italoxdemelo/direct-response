@@ -56,6 +56,9 @@ flowchart TD
   HG01 --> P14
   H12 --> HG01
 
+  HG02["H-20261127-grok-02 G-01 API da Hotmart"]
+  HG01 --> HG02
+
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
   P02{{"P-02 Preço em euro"}}
@@ -136,6 +139,7 @@ flowchart TD
 | H-20261127-italo-06 | Tráfego procura campanha por nome antes de criar; Radar paginado (T-07, falta publicar). | H-20261127-italo-05 | H-20261127-italo-03 | — | — |
 | H-20261127-italo-07 | Gerador publicado no n8n do PC: 99 Erros `rUNQVY24WtvxDK5l` ativo e *Error workflow* dos outros 8; gerador passa a ativar o 99 Erros (o n8n 2.x exige). | H-20261127-italo-06 | H-20261127-italo-03 | — | — |
 | H-20261127-grok-01 | G-05: mensagem com as perguntas para o Arthur em `plano/rascunhos/perguntas-arthur.md`. | H-20261127-italo-07 | — | — | P-13, P-14 |
+| H-20261127-grok-02 | G-01: pesquisa da API da Hotmart em `plano/pesquisa/hotmart-api.md`. | H-20261127-grok-01 | — | — | — |
 
 ### Pendências
 

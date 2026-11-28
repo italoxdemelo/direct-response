@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-02 — Pesquisar a API da Hotmart na documentação oficial (G-01)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/pesquisa/hotmart-api.md`: OAuth `client_credentials` (URL, headers, resposta), `GET /products/api/v1/products` (confirmado, sem preço), `GET /products/{ucode}/offers` (preço, moeda, `payment_mode`), API de Payment Link (cria checkout em EUR e ofertas extras), histórico de vendas (traz `src`, `sck` e `xcod`), rate limit, paginação, sandbox, o que a API não faz e 7 propostas de ajuste no plano.
+- **Por quê:** Tarefa G-01 de `plano/DIVISAO-TAREFAS.md` (risco R-3: o endpoint de produtos estava "a confirmar"). Só documentação oficial, <https://developers.hotmart.com/docs/en/>.
+- **Arquivos tocados:** `plano/pesquisa/hotmart-api.md`, `plano/DIVISAO-TAREFAS.md` (status G-01), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-01
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Nenhuma chamada real (não há credencial, P-12): tudo vem da leitura da documentação. Exemplos de resposta com valores fictícios. Sem segredo, `pixel_id`, `ad_account_id` nem dado pessoal. Itens que a documentação não confirma ficaram como **não verificado**, com o link (seção 8 do arquivo). Achado importante: o plano diz que a API "não cria checkout"; a API de Payment Link cria, mas é para quem entrega o conteúdo fora da Hotmart. O `dr-utm` do plano não repassa `xcod`. O plano **não foi alterado**: as mudanças estão só como proposta (seção 7).
+- **Próximo passo:** Claude (C-02/C-05) decide quais propostas da seção 7 entram no plano e no workflow 04. Arthur decide se usa produto normal ou Payment Link (seção 5). Teste real no sandbox quando houver credencial (D-03).
+
 ### H-20261127-grok-01 — Preparar as perguntas para o Arthur (G-05)
 
 - **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
