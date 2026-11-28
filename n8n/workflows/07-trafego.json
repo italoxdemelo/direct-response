@@ -2,7 +2,7 @@
   "name": "Direct Response · 07 Tráfego (gestor, sempre PAUSADO)",
   "nodes": [
     {
-      "id": "ee19b680-19ee-45d9-937d-b767c47d0da0",
+      "id": "12bf14d3-58c9-4428-93b0-186486676e7b",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "c0ea044d-f026-4719-8c38-a498e5d6f6be",
+      "id": "476969f7-4a91-487f-95e1-8804e192bcd5",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -24,11 +24,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'trafego';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(estado.revisor && estado.revisor.aprovado === true && !estado.revisor.de_rodada_anterior)) faltando.push('aprovação do Revisor nesta rodada');\nif (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'trafego';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(estado.revisor && estado.revisor.aprovado === true && !estado.revisor.de_rodada_anterior)) faltando.push('aprovação do Revisor nesta rodada');\nif (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');\nconst UE = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];\nif (UE.includes(String(cfg.pais_destino || '').toUpperCase()) && !(cfg.dsa_pagador && cfg.dsa_beneficiario)) faltando.push('dsa_pagador e dsa_beneficiario (exigidos pela Meta para anunciar na UE)');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
       }
     },
     {
-      "id": "e8de213a-5f5f-4ef9-86fd-47ae1f7c0836",
+      "id": "576691dc-ea37-4126-b972-7d910472649d",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "629630ef-182f-4151-a09a-4578905e1a15",
+              "id": "d035e3d0-3563-48a4-b579-aa118b72d22d",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "70c882a1-e458-48e8-bfc7-c53606e83f26",
+      "id": "4399dea0-d3af-4ff8-be29-b0db6037e441",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": "be010159-b5f5-4044-ad1d-c228557d667e",
+      "id": "9e496c40-550a-4930-b029-c6c7418e8538",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "9277aa95-2a3d-4382-b7ed-13371c1e2fed",
+      "id": "db057156-ac95-4d64-845b-524499da34b6",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "id": "a41103e8-4c96-4cfe-8bd7-a8366a032a9d",
+      "id": "2afff24f-9912-4041-8402-f09da9772666",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "711aa11d-d503-4951-a9d5-27e88ccaf6b6",
+      "id": "89c2cadc-86df-442d-858a-9aa77cbbcc4a",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -149,7 +149,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "1df21084-0bd0-42c0-9540-c913aaad9bb6",
+      "id": "cb4feefa-9ce8-445b-8ef6-869eb68b8364",
       "name": "Agente · Tráfego",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -161,7 +161,7 @@
         "promptType": "define",
         "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
         "options": {
-          "systemMessage": "Você é o Tráfego, gestor de campanhas do time.\nMissão: propor a estrutura da campanha de vendas para o país de destino. O código sobe a campanha pela API da Meta sempre com status PAUSED.\n\nRegras do Tráfego:\n- Sempre PAUSADAS. Nunca ativa nada. Você não escolhe status: o código força PAUSED e confere pela API.\n- Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.\n- Público no país de destino; idade e gênero coerentes com a oferta.\n- Orçamento diário só o que estiver na configuração.\n- O nome da campanha é fixo e vem da configuração (o código ignora campanha_nome). Dê nomes curtos aos conjuntos (ex.: \"50-65 mulheres\"); o código acrescenta campanha e data.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"campanha_nome\":\"\",\"conjuntos\":[{\"nome\":\"\",\"idade_min\":18,\"idade_max\":65,\"generos\":[1,2],\"observacao\":\"\"}],\"observacoes\":[]}",
+          "systemMessage": "Você é o Tráfego, gestor de campanhas do time.\nMissão: propor a estrutura da campanha de vendas para o país de destino. O código sobe a campanha pela API da Meta sempre com status PAUSED.\n\nRegras do Tráfego:\n- Sempre PAUSADAS. Nunca ativa nada. Você não escolhe status: o código força PAUSED e confere pela API.\n- Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.\n- Público no país de destino; idade e gênero coerentes com a oferta.\n- Orçamento diário só o que estiver na configuração.\n- segmente só por país, idade e género. Não proponha interesses, públicos nem textos ligados a condições de saúde. A faixa etária mínima é 18.\n- O nome da campanha é fixo e vem da configuração (o código ignora campanha_nome). Dê nomes curtos aos conjuntos (ex.: \"50-65 mulheres\"); o código acrescenta campanha e data.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"campanha_nome\":\"\",\"conjuntos\":[{\"nome\":\"\",\"idade_min\":18,\"idade_max\":65,\"generos\":[1,2],\"observacao\":\"\"}],\"observacoes\":[]}",
           "maxIterations": 4
         }
       },
@@ -171,7 +171,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "4394ea77-807a-4545-b729-ffb4dab5b7d3",
+      "id": "b9a9d693-e96b-4535-98d1-50b8658de33e",
       "name": "Payload PAUSADO",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -180,11 +180,11 @@
         100
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst plano = parseJSON($json.output);\nconst hoje = new Date().toISOString().slice(0, 10);\n// Nome fixo (não vem do modelo): é por ele que o fluxo acha a campanha numa segunda rodada e não duplica.\nconst nomeBase = String(cfg.campanha_nome || ('DR | ' + ((cfg.oferta_escolhida && cfg.oferta_escolhida.nome) || 'oferta') + ' | ' + cfg.pais_destino));\nconst campanha = {\n  name: nomeBase,\n  objective: 'OUTCOME_SALES', buying_type: 'AUCTION', special_ad_categories: [],\n  is_adset_budget_sharing_enabled: false,\n  status: 'PAUSED'\n};\nconst conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? plano.conjuntos : [{ nome: 'aberto' }]).slice(0, 3).map((c, i) => ({\n  name: nomeBase + ' | ' + (c.nome || ('conjunto ' + (i + 1))) + ' | ' + hoje,\n  status: 'PAUSED',\n  daily_budget: Number(cfg.orcamento_diario_centavos),\n  billing_event: 'IMPRESSIONS', optimization_goal: 'OFFSITE_CONVERSIONS', bid_strategy: 'LOWEST_COST_WITHOUT_CAP',\n  promoted_object: { pixel_id: String(cfg.pixel_id), custom_event_type: 'PURCHASE' },\n  targeting: {\n    geo_locations: { countries: [cfg.pais_destino] },\n    age_min: Number(c.idade_min) || 18, age_max: Number(c.idade_max) || 65,\n    genders: Array.isArray(c.generos) && c.generos.length === 1 ? c.generos : undefined,\n    targeting_automation: { advantage_audience: 0 }\n  }\n}));\n// Trava: nada pode sair com status diferente de PAUSED\nconst tudo = JSON.stringify({ campanha, conjuntos });\nif (/\"status\"\\s*:\\s*\"(?!PAUSED)/.test(tudo) || /ACTIVE/.test(tudo)) throw new Error('Trava do Tráfego: payload com status diferente de PAUSED. Nada foi enviado.');\nreturn [{ json: { plano, campanha, conjuntos } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst cfg = $('Entrada').first().json.config;\nconst plano = parseJSON($json.output);\nconst hoje = new Date().toISOString().slice(0, 10);\n// Nome fixo (não vem do modelo): é por ele que o fluxo acha a campanha numa segunda rodada e não duplica.\nconst nomeBase = String(cfg.campanha_nome || ('DR | ' + ((cfg.oferta_escolhida && cfg.oferta_escolhida.nome) || 'oferta') + ' | ' + cfg.pais_destino));\nconst campanha = {\n  name: nomeBase,\n  objective: 'OUTCOME_SALES', buying_type: 'AUCTION', special_ad_categories: [],\n  is_adset_budget_sharing_enabled: false,\n  status: 'PAUSED'\n};\nconst conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? plano.conjuntos : [{ nome: 'aberto' }]).slice(0, 3).map((c, i) => ({\n  name: nomeBase + ' | ' + (c.nome || ('conjunto ' + (i + 1))) + ' | ' + hoje,\n  status: 'PAUSED',\n  daily_budget: Number(cfg.orcamento_diario_centavos),\n  billing_event: 'IMPRESSIONS', optimization_goal: 'OFFSITE_CONVERSIONS', bid_strategy: 'LOWEST_COST_WITHOUT_CAP',\n  promoted_object: { pixel_id: String(cfg.pixel_id), custom_event_type: 'PURCHASE' },\n  // DSA: conjuntos que miram a UE exigem pagador e beneficiário (G-02, P-14)\n  dsa_payor: cfg.dsa_pagador || undefined, dsa_beneficiary: cfg.dsa_beneficiario || undefined,\n  targeting: {\n    geo_locations: { countries: [cfg.pais_destino] },\n    age_min: Number(c.idade_min) || 18, age_max: Number(c.idade_max) || 65,\n    genders: Array.isArray(c.generos) && c.generos.length === 1 ? c.generos : undefined,\n    targeting_automation: { advantage_audience: 0 }\n  }\n}));\n// Trava: nada pode sair com status diferente de PAUSED\nconst tudo = JSON.stringify({ campanha, conjuntos });\nif (/\"status\"\\s*:\\s*\"(?!PAUSED)/.test(tudo) || /ACTIVE/.test(tudo)) throw new Error('Trava do Tráfego: payload com status diferente de PAUSED. Nada foi enviado.');\nreturn [{ json: { plano, campanha, conjuntos } }];"
       }
     },
     {
-      "id": "dd833e33-0a97-41ba-a8b8-cc0822af8c27",
+      "id": "2305f256-8194-4866-97ed-8c66d4132a49",
       "name": "Meta · buscar campanha",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -202,7 +202,7 @@
         "nodeCredentialType": "facebookGraphApi",
         "sendQuery": true,
         "specifyQuery": "json",
-        "jsonQuery": "={{ JSON.stringify({ fields: 'id,name,status,effective_status', filtering: JSON.stringify([{ field: 'name', operator: 'EQUAL', value: $json.campanha.name }]), limit: 50 }) }}"
+        "jsonQuery": "={{ JSON.stringify({ fields: 'id,name,status,effective_status', limit: 500 }) }}"
       },
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
@@ -217,13 +217,26 @@
       }
     },
     {
-      "id": "1555a831-1e9f-420f-a8e3-70cdb10c6345",
+      "id": "a4318014-7d9b-4622-95fd-a7fc3432b7ab",
+      "name": "Campanha existente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1590,
+        450
+      ],
+      "parameters": {
+        "jsCode": "// Compara o nome no código (o filtro por nome da Graph API não está documentado; G-02).\n// Se a busca falhar, PARA: sem saber se a campanha existe, criar poderia duplicar.\nconst nome = $('Payload PAUSADO').first().json.campanha.name;\nconst r = $json || {};\nif (r.error || !Array.isArray(r.data)) throw new Error('Tráfego: a busca de campanhas falhou (' + String((r.error && r.error.message) || 'resposta sem data').slice(0, 200) + '). Nada foi criado.');\nconst achada = r.data.find(c => c && c.name === nome) || null;\nif (!achada && r.paging && r.paging.next) throw new Error('Tráfego: a conta tem mais campanhas do que uma página da busca e a campanha \"' + nome + '\" não apareceu na primeira. Nada foi criado; confira no Gerenciador.');\nreturn [{ json: { existe: !!achada, campanha: achada } }];"
+      }
+    },
+    {
+      "id": "c2155ab0-fa74-4d9e-9902-d2725837732c",
       "name": "Campanha já existe?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
         1590,
-        450
+        600
       ],
       "parameters": {
         "conditions": {
@@ -235,8 +248,8 @@
           },
           "conditions": [
             {
-              "id": "197166f2-fe8f-4066-990c-b57a4c30e360",
-              "leftValue": "={{ Array.isArray($json.data) && $json.data.length > 0 }}",
+              "id": "c67f7ef3-e0c5-468e-9a8b-40ecc6dfeeaf",
+              "leftValue": "={{ $json.existe === true }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -252,7 +265,7 @@
       }
     },
     {
-      "id": "75b43b67-adb1-469e-bbd3-1cefd8126a2b",
+      "id": "36694def-eddc-4a42-ade5-51845bb97d8b",
       "name": "Meta · conjuntos existentes",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -262,7 +275,7 @@
       ],
       "parameters": {
         "method": "GET",
-        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $json.data[0].id }}/adsets",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $json.campanha.id }}/adsets",
         "options": {
           "timeout": 60000
         },
@@ -285,7 +298,7 @@
       }
     },
     {
-      "id": "bbf61dce-d40e-4c9a-8edc-acab4abce06b",
+      "id": "ba4a3efb-1d2e-4e6f-ad06-0ed2fbfb067d",
       "name": "Reusar campanha",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -294,11 +307,11 @@
         700
       ],
       "parameters": {
-        "jsCode": "// A campanha com este nome já existe: não cria nada de novo e NÃO mexe no status (o Arthur pode já ter ativado).\nconst camp = $('Meta · buscar campanha').first().json.data[0];\nconst r = $json || {};\nconst lista = Array.isArray(r.data) ? r.data : [];\nreturn [{ json: { id: camp.id, tipo: 'campanha', reutilizada: true } }].concat(lista.map(c => ({ json: { id: c.id, tipo: 'conjunto', reutilizada: true } })));"
+        "jsCode": "// A campanha com este nome já existe: não cria nada de novo e NÃO mexe no status (o Arthur pode já ter ativado).\nconst camp = $('Campanha existente').first().json.campanha;\nconst r = $json || {};\nconst lista = Array.isArray(r.data) ? r.data : [];\nreturn [{ json: { id: camp.id, tipo: 'campanha', reutilizada: true } }].concat(lista.map(c => ({ json: { id: c.id, tipo: 'conjunto', reutilizada: true } })));"
       }
     },
     {
-      "id": "dacdd703-19f9-42f4-b94f-00e74d45e99e",
+      "id": "6cd24986-a9c2-4a67-b07b-58f142960192",
       "name": "Meta · conferir status (existente)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -331,7 +344,7 @@
       }
     },
     {
-      "id": "eea51f0d-bd1b-4e66-8b4f-0929b618b3a6",
+      "id": "0e736c0e-7a3d-4502-9478-22a0cbe215aa",
       "name": "Meta · criar campanha (PAUSED)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -361,7 +374,7 @@
       }
     },
     {
-      "id": "81af80f3-cf24-4125-9d4c-4c21b287bf58",
+      "id": "fc890cc8-4202-4318-9b79-7a751b3a334d",
       "name": "Conjuntos → itens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -374,7 +387,7 @@
       }
     },
     {
-      "id": "a66d9080-88eb-419d-ac39-36c46df21373",
+      "id": "17e6d6fc-8061-42af-b082-743a75292ebd",
       "name": "Meta · criar conjunto (PAUSED)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -404,7 +417,7 @@
       }
     },
     {
-      "id": "39eb31fe-68b5-4a87-b7b7-080d249b9bd7",
+      "id": "cc24dd9c-3edc-4930-9681-2eb509996117",
       "name": "IDs criados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -417,7 +430,7 @@
       }
     },
     {
-      "id": "352cf321-4dd5-464c-a6d3-12692deb5086",
+      "id": "b6011564-dd0d-48b9-8e99-40e83ae82a9e",
       "name": "Meta · reforçar PAUSED",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -447,7 +460,7 @@
       }
     },
     {
-      "id": "ae84bd0f-8626-4c67-90a2-0b9b73fe021f",
+      "id": "6672287f-136c-4923-bb04-81cef5dd9326",
       "name": "Meta · conferir status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -480,7 +493,7 @@
       }
     },
     {
-      "id": "1b30d149-f043-4c57-b11c-77e783e95970",
+      "id": "59de912b-7130-4131-900d-520bf567626b",
       "name": "Conferência PAUSADO",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -493,7 +506,7 @@
       }
     },
     {
-      "id": "554b276f-febe-4e91-add3-93ec4e42f8d4",
+      "id": "c07ead4c-e2e0-45ff-b717-4d21cec366fc",
       "name": "Trava PAUSADO",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -509,7 +522,7 @@
       }
     },
     {
-      "id": "7980d0a2-e3cf-4055-88ca-698b0bbedf74",
+      "id": "1bbbfb11-076c-4429-a1c4-90d68af6fad6",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -531,7 +544,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "a48c7c69-f864-4240-ad66-1bb5ea492e4e",
+      "id": "51e2c155-d924-4481-9fde-33a95ecaa699",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -553,7 +566,7 @@
       }
     },
     {
-      "id": "ce8ffba4-e7ef-48a3-87f9-e80395589afb",
+      "id": "97165511-15fa-499b-9d87-40a00c817990",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -562,11 +575,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'trafego';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência PAUSADO').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst ETAPA = 'trafego';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência PAUSADO').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "f3bc5ce2-9138-492e-841c-9d2ab837f99e",
+      "id": "6e38b20b-764b-4751-837b-1f0c60c4f56f",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -677,6 +690,17 @@
       ]
     },
     "Meta · buscar campanha": {
+      "main": [
+        [
+          {
+            "node": "Campanha existente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Campanha existente": {
       "main": [
         [
           {

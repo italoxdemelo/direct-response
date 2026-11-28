@@ -2,7 +2,7 @@
   "name": "Direct Response · 00 Coordenador (GROK BOT)",
   "nodes": [
     {
-      "id": "85eaf41d-f87f-4fd7-a747-772070a58565",
+      "id": "f425c891-d86c-4b3f-b887-5e0e2771a41f",
       "name": "Iniciar rodada",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -13,7 +13,7 @@
       "parameters": {}
     },
     {
-      "id": "a04af31c-6aef-4a2b-b34b-c5e1053df472",
+      "id": "9d8ef4ed-75c2-4659-acba-3f0602d0d24c",
       "name": "⚙️ Configuração",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -22,11 +22,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "// ⚙️ CONFIGURAÇÃO DA RODADA — edite aqui e clique em \"Execute workflow\".\n// Campos vazios bloqueiam as etapas que dependem deles (o relatório diz o que falta).\nreturn [{ json: {\n  // País de destino (ISO-2). O projeto começou por Portugal; troque se quiser outro país.\n  pais_origem: 'BR',\n  pais_destino: 'PT',\n  nome_pais: 'Portugal',\n  idioma: 'pt-PT',\n  moeda: 'EUR',\n\n  // Etapas que rodam nesta rodada (tire as que não quer repetir).\n  etapas_ativas: ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'],\n\n  // RADAR — termos para buscar concorrência no destino e ofertas candidatas do Brasil.\n  // A API da Meta não devolve anúncios comerciais do Brasil: os números BR vêm dos prints (senão ficam \"não verificado\").\n  termos_busca: ['desafio pilates', 'pilates em casa', 'pilates mulheres 50'],\n  ofertas_br: [\n    { nome: 'Desafio Pilates em Casa 50+', page_id_br: '2016271568674266', url_pagina: 'https://pilates.laystrancoso.com/', preco_br: 'R$ 29,90',\n      anuncios_ativos_br: null, anuncio_mais_antigo_br: null, print_br: null }\n  ],\n\n  // HEADLINE KILLER — oferta escolhida pelo dono.\n  oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },\n\n  // Aprovações do dono (só você muda isto).\n  copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)\n  copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo\n  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil\n  entregaveis_confirmados: [],\n\n  // CONSTRUTOR / PIXEL\n  pixel_id: '',\n  pasta_saida: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response',\n  url_pagina_publicada: '',\n  url_privacidade: '',\n  url_termos: '',\n\n  // FUNIL (Hotmart)\n  hotmart_product_id: '',\n  hotmart_checkout_url: '',\n\n  // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS\n  ad_account_id: '',         // formato act_1234567890\n  campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha\n  orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta\n  publico: 'mulheres 50+ em Portugal',\n\n  // CLAQUETE\n  modelo_imagem: 'grok-2-image',\n\n  // Prazos por agente (AAAA-MM-DD)\n  prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },\n\n  graph_version: 'v23.0'\n} }];"
+        "jsCode": "// ⚙️ CONFIGURAÇÃO DA RODADA — edite aqui e clique em \"Execute workflow\".\n// Campos vazios bloqueiam as etapas que dependem deles (o relatório diz o que falta).\nreturn [{ json: {\n  // País de destino (ISO-2). O projeto começou por Portugal; troque se quiser outro país.\n  pais_origem: 'BR',\n  pais_destino: 'PT',\n  nome_pais: 'Portugal',\n  idioma: 'pt-PT',\n  moeda: 'EUR',\n\n  // Etapas que rodam nesta rodada (tire as que não quer repetir).\n  etapas_ativas: ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'],\n\n  // RADAR — termos para buscar concorrência no destino e ofertas candidatas do Brasil.\n  // A API da Meta não devolve anúncios comerciais do Brasil: os números BR vêm dos prints (senão ficam \"não verificado\").\n  termos_busca: ['desafio pilates', 'pilates em casa', 'pilates mulheres 50'],\n  ofertas_br: [\n    { nome: 'Desafio Pilates em Casa 50+', page_id_br: '2016271568674266', url_pagina: 'https://pilates.laystrancoso.com/', preco_br: 'R$ 29,90',\n      anuncios_ativos_br: null, anuncio_mais_antigo_br: null, print_br: null }\n  ],\n\n  // HEADLINE KILLER — oferta escolhida pelo dono.\n  oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },\n\n  // Decisões do dono (P-01 a P-07, P-13; perguntas em plano/rascunhos/perguntas-arthur.md). Vazio = não decidido (o agente usa marcador).\n  decisoes: {\n    formato: '',\n    garantia: { dias: null, texto_aprovado: '', renuncia_14_dias: null },\n    instrutora: { assina: '', nome_autorizado: '', autorizacao_por_escrito: false },\n    depoimentos_verificados: [],   // { texto, nome, autorizacao }\n    numeros_confirmados: [],       // { frase, prova }\n    bumps: [],                     // { nome, preco, entregavel }\n    upsell: null,                  // { nome, preco, entregavel }\n    aviso_saude: '',\n    ortografia: ''\n  },\n\n  // Aprovações do dono (só você muda isto).\n  copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)\n  copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo\n  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil\n  entregaveis_confirmados: [],\n\n  // CONSTRUTOR / PIXEL\n  pixel_id: '',\n  pasta_saida: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response',\n  url_pagina_publicada: '',\n  url_privacidade: '',\n  url_termos: '',\n\n  // FUNIL (Hotmart)\n  hotmart_product_id: '',\n  hotmart_checkout_url: '',\n\n  // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS\n  ad_account_id: '',         // formato act_1234567890\n  campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha\n  dsa_pagador: '',           // UE: quem paga os anúncios (P-14). Obrigatório para anunciar em Portugal\n  dsa_beneficiario: '',      // UE: quem se beneficia dos anúncios (P-14)\n  orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta\n  publico: 'mulheres 50+ em Portugal',\n\n  // CLAQUETE\n  modelo_imagem: 'grok-2-image',\n\n  // Prazos por agente (AAAA-MM-DD)\n  prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },\n\n  graph_version: 'v26.0'      // v23.0 expirou em 2026-06-09 (G-02)\n} }];"
       }
     },
     {
-      "id": "136167c8-1430-4fae-9a20-b7defcef8b32",
+      "id": "bd0fe05b-48cf-40f4-a514-367f5da239ad",
       "name": "Arquivo de estado",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "8c9468c2-479b-428b-a44b-682416baed51",
+      "id": "a66805c7-e784-429b-8d77-724ff65af99d",
       "name": "Estado salvo · ler",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -56,7 +56,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "5bc74fd5-7e5c-425e-bc60-0eb5b43e4fec",
+      "id": "f104e70d-a2c7-4ba4-a4ea-4ac73c79a1a7",
       "name": "Estado salvo · extrair",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
@@ -73,7 +73,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "2bda7919-ad12-457c-86a9-e83a091c619c",
+      "id": "a92d67b1-9b96-4f07-8de5-510e7602d2b0",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -95,7 +95,7 @@
       }
     },
     {
-      "id": "a16449bd-1db2-40a9-b636-a96ebab06870",
+      "id": "30301086-aafd-46b8-9597-094cfdf1f432",
       "name": "Coordenador · plano",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -117,7 +117,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "0f15c9ab-498c-4a57-8903-ec8545a00145",
+      "id": "04dd85a7-3279-4b8f-887d-9759fa3230ff",
       "name": "Estado inicial",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -130,7 +130,7 @@
       }
     },
     {
-      "id": "4593208f-3d82-4b80-88bc-8703342c4509",
+      "id": "6d75d22c-2e2d-4e3e-be28-ef4147862174",
       "name": "Como usar",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -146,7 +146,7 @@
       }
     },
     {
-      "id": "483d7822-5fa3-4524-943e-ba59b85331ab",
+      "id": "ecd37413-3df7-47da-a70c-4ce8e8dd68f8",
       "name": "01 · Radar",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -167,7 +167,7 @@
       }
     },
     {
-      "id": "b52d560c-a06c-468f-8275-61b402f0e49d",
+      "id": "ffba2f17-04a4-4a20-b3d2-cf3708bde018",
       "name": "Estado · Radar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -180,7 +180,7 @@
       }
     },
     {
-      "id": "f7b40e61-13b7-4fe2-a4c4-fb58d2ddb752",
+      "id": "902b8b02-f0b7-4d6e-8bb3-d2217d7a342d",
       "name": "Radar liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -198,7 +198,7 @@
           },
           "conditions": [
             {
-              "id": "b48cc083-9eff-4cf5-a950-247dce23d250",
+              "id": "4fcfbbae-f9d7-4d43-96c4-c0cb40ad9b8a",
               "leftValue": "={{ $json.estado['radar'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -215,7 +215,7 @@
       }
     },
     {
-      "id": "5c6503b4-5912-4537-8a56-99de115eb7f9",
+      "id": "1f3a0a02-97e5-4d42-b7f5-9bc2aad0a308",
       "name": "02 · Headline Killer",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -236,7 +236,7 @@
       }
     },
     {
-      "id": "33820e59-4c92-4dc2-8cd5-2a16328af90b",
+      "id": "b0db79da-22c8-4050-921a-8b6f9e12df03",
       "name": "Estado · Headline Killer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -249,7 +249,7 @@
       }
     },
     {
-      "id": "becaadc7-9c75-4a62-9e21-8d6aa9c68b7e",
+      "id": "a3e47c09-5f85-4229-a854-95699cb70297",
       "name": "Headline Killer liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -267,7 +267,7 @@
           },
           "conditions": [
             {
-              "id": "ca05011a-9424-4409-98c0-9daddb69d0b0",
+              "id": "1ab10424-8b6d-4e9a-8ed2-95a405f55001",
               "leftValue": "={{ $json.estado['headline'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -284,7 +284,7 @@
       }
     },
     {
-      "id": "37e5fc39-0f67-4b3b-9fdf-99af0520ac5d",
+      "id": "da11d9ab-f12c-4d22-8a0f-faf8c7401e45",
       "name": "03 · Construtor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -305,7 +305,7 @@
       }
     },
     {
-      "id": "fc30b7b9-d7cb-418f-8494-5aee3a363585",
+      "id": "e78b5e7c-0a1d-4a56-86b1-72c6ce9fb653",
       "name": "Estado · Construtor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -318,7 +318,7 @@
       }
     },
     {
-      "id": "27cb1986-b22e-4794-8432-e228eefc397a",
+      "id": "74694507-e58a-48f3-99a6-5f4e0224c320",
       "name": "Construtor liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -336,7 +336,7 @@
           },
           "conditions": [
             {
-              "id": "dc09bda8-17a3-4b5d-9ec0-7b656daa00f3",
+              "id": "5226c158-e8c4-4239-b4b3-d724b7834a2d",
               "leftValue": "={{ $json.estado['construtor'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -353,7 +353,7 @@
       }
     },
     {
-      "id": "aca25480-57fb-497d-94a0-58362e0b0fb1",
+      "id": "73992ebc-ecb6-4a00-a55a-8f9aff9640f8",
       "name": "04 · Funil",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -374,7 +374,7 @@
       }
     },
     {
-      "id": "83a49f79-cee2-426b-8de1-a75b203c8d3d",
+      "id": "56bdabc0-ceb8-4e00-94f1-6068e2d9f3d8",
       "name": "Estado · Funil",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -387,7 +387,7 @@
       }
     },
     {
-      "id": "1cb295e2-72d5-4f45-909a-4de99493982e",
+      "id": "99428a7d-4670-4056-a572-990445f4469c",
       "name": "Funil liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -405,7 +405,7 @@
           },
           "conditions": [
             {
-              "id": "595594d2-73b7-46ff-b920-3e0d9f6f685c",
+              "id": "37643226-5b8c-4315-b531-bc3eb06761b1",
               "leftValue": "={{ $json.estado['funil'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -422,7 +422,7 @@
       }
     },
     {
-      "id": "a342be82-3480-4951-bd67-a03b5b0840aa",
+      "id": "9e9c44e5-2f0a-4dbe-b0c0-5ccbfe00ac2a",
       "name": "05 · Claquete",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -443,7 +443,7 @@
       }
     },
     {
-      "id": "ae7ec5cd-755b-418b-9ac2-d91ecef8a439",
+      "id": "02a0c13d-5444-4ec5-956b-ac42228cebdc",
       "name": "Estado · Claquete",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -456,7 +456,7 @@
       }
     },
     {
-      "id": "13da3667-9113-4544-8387-38713c434720",
+      "id": "91076ec5-103d-4a8e-8973-ac9ea444c242",
       "name": "Claquete liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -474,7 +474,7 @@
           },
           "conditions": [
             {
-              "id": "7d04ae42-416d-4859-b939-6b9228081dc7",
+              "id": "02478a72-bfd8-427c-86d9-f7e238fc2252",
               "leftValue": "={{ $json.estado['claquete'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -491,7 +491,7 @@
       }
     },
     {
-      "id": "a8c14d61-c052-43e3-9323-4a832257a05d",
+      "id": "e648c140-a641-4b9a-8965-b075da26782a",
       "name": "06 · Revisor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -512,7 +512,7 @@
       }
     },
     {
-      "id": "649356f4-3830-4259-89e6-69c29f151078",
+      "id": "c2492793-3f4b-426b-8c78-d25a31696925",
       "name": "Estado · Revisor",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -525,7 +525,7 @@
       }
     },
     {
-      "id": "005d760a-8525-4212-b81c-9aec2ac8602b",
+      "id": "c72468ae-e331-4399-b54b-ad1c5542f6c1",
       "name": "Revisor liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -543,7 +543,7 @@
           },
           "conditions": [
             {
-              "id": "61e9764d-31c2-4b98-923e-3113526e8681",
+              "id": "f275cb7f-ead3-425c-98fc-c426b61a8f65",
               "leftValue": "={{ $json.estado['revisor'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -560,7 +560,7 @@
       }
     },
     {
-      "id": "ab2639f8-61ae-46f1-aed6-192d08a465ad",
+      "id": "2daa20c4-81c2-4da5-b3c5-3d43fbe9ac7a",
       "name": "07 · Tráfego",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -581,7 +581,7 @@
       }
     },
     {
-      "id": "46acfe19-b487-4ac6-ae20-d20edac5fdcb",
+      "id": "fac9d5db-a264-497e-98cb-d84ebf83b621",
       "name": "Estado · Tráfego",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -594,7 +594,7 @@
       }
     },
     {
-      "id": "e7308ebc-458e-4195-a595-58f932b4d475",
+      "id": "45bca213-31f8-4d0b-940c-adcc54661c36",
       "name": "Tráfego liberou?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -612,7 +612,7 @@
           },
           "conditions": [
             {
-              "id": "3f6a2644-9c55-446b-aaab-2aa0257962be",
+              "id": "c128d936-c4f0-46dc-b7e8-1653e96f11c9",
               "leftValue": "={{ $json.estado['trafego'].seguir }}",
               "rightValue": "",
               "operator": {
@@ -629,7 +629,7 @@
       }
     },
     {
-      "id": "110aa6a4-7d99-4c44-a292-7dbe58f4f902",
+      "id": "a7cb8e76-c9fd-4e29-ba6d-69c85086ae17",
       "name": "Prazos e resumo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -642,7 +642,7 @@
       }
     },
     {
-      "id": "710b5de9-62ff-43b5-ac6c-19164328ae96",
+      "id": "b892cc45-0abb-4e96-bb3b-cbd6730578cb",
       "name": "Grok (xAI) relatório",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -664,7 +664,7 @@
       }
     },
     {
-      "id": "1c558334-0ce6-429b-a516-63bdcdb272d8",
+      "id": "95d67acc-fcf4-45a3-a4f7-83ea831bea70",
       "name": "Coordenador · relatório",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -686,7 +686,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "decb6db5-49d2-46d1-89d3-5008b30b4104",
+      "id": "717a0e46-5c76-44ff-872d-c0934f527de2",
       "name": "Progresso (lista numerada)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -699,7 +699,7 @@
       }
     },
     {
-      "id": "b2beba26-90f2-435c-8e6f-d6e076c8aaa9",
+      "id": "4cad9655-1fcf-49fe-98bb-0a523854ce10",
       "name": "Estado → salvar",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -712,7 +712,7 @@
       }
     },
     {
-      "id": "25f9b3b3-dfdf-491c-af88-436e056fcabf",
+      "id": "ed4b4dc4-b9d9-4a55-ae07-747ed85685a1",
       "name": "Estado → arquivo",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
@@ -729,7 +729,7 @@
       }
     },
     {
-      "id": "c50203dd-7279-4108-be48-03198fcec187",
+      "id": "48f58338-5689-4a01-9260-c7b47a545cfb",
       "name": "Gravar estado.json",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -746,7 +746,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "c2c91520-78b7-4ed3-94c4-63f65afb96a2",
+      "id": "1b78cd61-65d0-4b36-a6e9-586abf6c38e8",
       "name": "Enviar no Telegram (opcional)",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,

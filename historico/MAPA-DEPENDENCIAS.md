@@ -72,7 +72,9 @@ flowchart TD
   HG06["H-20261127-grok-06 G-04 prompts revisados"]
   H13["H-20261127-italo-08 Revisão das entregas do Grok"]
   H14["H-20261127-italo-09 Correções do Grok aplicadas no gerador"]
+  H15["H-20261127-italo-10 Correções publicadas no n8n"]
   HG06 --> H13 --> H14
+  H14 --> H15
   HG06 --> P15
   HG05 --> HG06
 
@@ -165,6 +167,7 @@ flowchart TD
 | H-20261127-grok-06 | G-04: revisão dos prompts em `plano/rascunhos/prompts-revisados.md`, com prompt do Headline Killer que recebe `config.decisoes`. | H-20261127-grok-05 | H-20261127-italo-03 | — | P-15 |
 | H-20261127-italo-08 | Revisão das entregas G-01 a G-06 do Grok (PR #6): ok, sem segredo; achados de código confirmados. | H-20261127-grok-06 | H-20261127-grok-01..06 | — | — |
 | H-20261127-italo-09 | Correções do Grok no gerador: prompts G-04, `config.decisoes`, regex, Revisor item 8, Tráfego compara nome, DSA, `v26.0`. | H-20261127-italo-08 | H-20261127-grok-03, -05, -06 | — | — |
+| H-20261127-italo-10 | Gerador com as correções do Grok republicado no n8n do PC: 9 workflows atualizados, `checar.mjs` ok, `errorWorkflow` do 99 Erros nos 8, Coordenador inativo. | H-20261127-italo-09 | — | — | — |
 
 ### Pendências
 

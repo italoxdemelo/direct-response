@@ -2,7 +2,7 @@
   "name": "Direct Response · 01 Radar (minerador)",
   "nodes": [
     {
-      "id": "5f2606d7-57ca-4e59-80d9-efcc4fafad8a",
+      "id": "e41ae92a-507a-4f78-92cc-5f55f0ebcb60",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "673934c2-4d5e-4bdb-8f93-c6e10474bd61",
+      "id": "b0f9c6df-f102-4604-8ef0-5e8ed190dd39",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "ba86d83c-8680-4b01-91c6-8834eb544f9d",
+      "id": "67b89e63-a7ff-4e10-a77d-fd0ffdd18e5b",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "c0e070c3-779a-49a0-a109-d430143dfe18",
+              "id": "364af00e-676b-4dd8-be50-0f5cdc3b132f",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "5a01e0b0-4b64-4988-b670-5038417f2233",
+      "id": "2b712a59-4b56-4707-8e4b-de92a49b7f31",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": "a2de64a4-a65e-4a87-a7fb-f4277dd42090",
+      "id": "f8f6fbf3-43f3-4a24-a774-9956fa6cd612",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "8d077595-6ab5-4942-b62e-49e4660ec72c",
+      "id": "07f93324-753e-4493-afe8-25416b1f9f7a",
       "name": "Consultas → itens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -101,11 +101,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "const cfg = $('Entrada').first().json.config;\nconst v = cfg.graph_version || 'v23.0';\nconst campos = 'id,page_id,page_name,ad_delivery_start_time,ad_snapshot_url,ad_creative_link_titles';\nconst pais = JSON.stringify([cfg.pais_destino]);\nconst itens = [];\nfor (const termo of (cfg.termos_busca || [])) {\n  itens.push({ json: { tipo: 'termo', chave: termo, url: 'https://graph.facebook.com/' + v + '/ads_archive',\n    qs: { search_terms: termo, search_type: 'KEYWORD_UNORDERED', ad_reached_countries: pais, ad_active_status: 'ACTIVE', ad_type: 'ALL', fields: campos, limit: 200 } } });\n}\nfor (const o of (cfg.ofertas_br || [])) {\n  if (!o.page_id_br) continue;\n  itens.push({ json: { tipo: 'pagina_br_no_destino', chave: o.page_id_br, nome: o.nome, url: 'https://graph.facebook.com/' + v + '/ads_archive',\n    qs: { search_page_ids: JSON.stringify([String(o.page_id_br)]), ad_reached_countries: pais, ad_active_status: 'ACTIVE', ad_type: 'ALL', fields: campos, limit: 200 } } });\n}\nif (!itens.length) itens.push({ json: { tipo: 'nenhuma_consulta', chave: '-', url: 'https://graph.facebook.com/' + v + '/ads_archive', qs: {} } });\nreturn itens;"
+        "jsCode": "const cfg = $('Entrada').first().json.config;\nconst v = cfg.graph_version || 'v26.0';\nconst campos = 'id,page_id,page_name,ad_delivery_start_time,ad_snapshot_url,ad_creative_link_titles';\nconst pais = JSON.stringify([cfg.pais_destino]);\nconst itens = [];\nfor (const termo of (cfg.termos_busca || [])) {\n  itens.push({ json: { tipo: 'termo', chave: termo, url: 'https://graph.facebook.com/' + v + '/ads_archive',\n    qs: { search_terms: termo, search_type: 'KEYWORD_UNORDERED', ad_reached_countries: pais, ad_active_status: 'ACTIVE', ad_type: 'ALL', fields: campos, limit: 200 } } });\n}\nfor (const o of (cfg.ofertas_br || [])) {\n  if (!o.page_id_br) continue;\n  itens.push({ json: { tipo: 'pagina_br_no_destino', chave: o.page_id_br, nome: o.nome, url: 'https://graph.facebook.com/' + v + '/ads_archive',\n    qs: { search_page_ids: JSON.stringify([String(o.page_id_br)]), ad_reached_countries: pais, ad_active_status: 'ACTIVE', ad_type: 'ALL', fields: campos, limit: 200 } } });\n}\nif (!itens.length) itens.push({ json: { tipo: 'nenhuma_consulta', chave: '-', url: 'https://graph.facebook.com/' + v + '/ads_archive', qs: {} } });\nreturn itens;"
       }
     },
     {
-      "id": "7458853b-17ab-40e4-96b6-de210680c0f5",
+      "id": "810b342a-72eb-4208-a541-75a6a17e1dce",
       "name": "Meta Ad Library · país de destino",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -156,7 +156,7 @@
       }
     },
     {
-      "id": "41625856-24eb-40c3-9233-db7c62232817",
+      "id": "80473fda-f616-41d5-a69f-8d19faccbc94",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -169,7 +169,7 @@
       }
     },
     {
-      "id": "4e20e58a-a518-4b5f-ad1a-6ec1418b42e7",
+      "id": "89127c74-1100-4c95-8e6e-af4200ffaa01",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -191,7 +191,7 @@
       }
     },
     {
-      "id": "ca2d0c61-27b4-41c3-be27-f66f3fbb3812",
+      "id": "4918c0c9-df76-41ac-9b5b-de60de0bf1fd",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -213,7 +213,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "7bdf4914-0ce7-4703-87ff-20a92a0e62d6",
+      "id": "ddb23b54-df94-4be1-9601-77295964d04c",
       "name": "Agente · Radar",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -225,7 +225,7 @@
         "promptType": "define",
         "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
         "options": {
-          "systemMessage": "Você é o Radar, minerador do time Direct Response.\nMissão: avaliar ofertas low ticket de infoproduto que escalaram no Brasil e dizer, para cada uma, se há oportunidade no país de destino.\n\nCritérios de \"oferta escalada\" no Brasil: muitos anúncios ativos e anúncios ativos rodando há 2 meses ou mais.\nCritério de oportunidade no destino: ninguém roda o equivalente no país de destino (mesmo ângulo, mesmo público, mesmo formato).\n\nRegras do Radar:\n- Use só os números que vieram nos dados (contagens, datas, page_ids, links). Não arredonde para cima, não estime, não complete lacunas.\n- Se um número do Brasil não veio verificado (a API da Meta só devolve anúncios comerciais de países da UE), escreva \"não verificado\" e indique o link da Biblioteca de Anúncios onde o print deve ser tirado.\n- Cada oferta recebe uma classificação: \"oportunidade clara\", \"concorrência existente\" ou \"inconclusiva\", com o motivo em uma frase.\n- Liste os links da Biblioteca de Anúncios (BR e destino) que servem de print/evidência.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown, no formato:\n{\"ofertas\":[{\"nome\":\"\",\"page_id_br\":\"\",\"anuncios_ativos_br\":\"número ou não verificado\",\"anuncio_mais_antigo_br\":\"data ou não verificado\",\"concorrencia_destino\":{\"termos\":[],\"anuncios_ativos\":0,\"anunciantes\":[],\"mais_antigo\":\"\"},\"classificacao\":\"\",\"motivo\":\"\",\"evidencias\":[]}],\"recomendacao\":\"\",\"nao_verificado\":[]}",
+          "systemMessage": "Você é o Radar, minerador do time Direct Response.\nMissão: avaliar ofertas low ticket de infoproduto que escalaram no Brasil e dizer, para cada uma, se há oportunidade no país de destino.\n\nCritérios de \"oferta escalada\" no Brasil: muitos anúncios ativos e anúncios ativos rodando há 2 meses ou mais.\nCritério de oportunidade no destino: ninguém roda o equivalente no país de destino (mesmo ângulo, mesmo público, mesmo formato).\n\nRegras do Radar:\n- Use só os números que vieram nos dados (contagens, datas, page_ids, links). Não arredonde para cima, não estime, não complete lacunas.\n- Se um número do Brasil não veio verificado (a API da Meta só devolve anúncios comerciais de países da UE), escreva \"não verificado\" e indique o link da Biblioteca de Anúncios onde o print deve ser tirado.\n- Cada oferta recebe uma classificação: \"oportunidade clara\", \"concorrência existente\" ou \"inconclusiva\", com o motivo em uma frase.\n- Liste os links da Biblioteca de Anúncios (BR e destino) que servem de print/evidência.\n- A Biblioteca de Anúncios não devolve gasto nem impressões para anúncios comerciais. Nunca informe gasto, impressões nem faturamento; use só contagem de anúncios, datas e, para a UE, o alcance, quando vierem nos dados.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown, no formato:\n{\"ofertas\":[{\"nome\":\"\",\"page_id_br\":\"\",\"anuncios_ativos_br\":\"número ou não verificado\",\"anuncio_mais_antigo_br\":\"data ou não verificado\",\"concorrencia_destino\":{\"termos\":[],\"anuncios_ativos\":0,\"anunciantes\":[],\"mais_antigo\":\"\"},\"classificacao\":\"\",\"motivo\":\"\",\"evidencias\":[]}],\"recomendacao\":\"\",\"nao_verificado\":[]}",
           "maxIterations": 4
         }
       },
@@ -235,7 +235,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "3f90b549-b642-45d5-8d3d-cab86e527bff",
+      "id": "7a56e1a9-9c57-4a43-b017-63719186e313",
       "name": "Conferência pós-agente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -244,11 +244,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst saida = parseJSON($json.output);\nreturn [{ json: { saida, verificacoes: { saida_do_agente_em_json: !saida.erro_parse } } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst saida = parseJSON($json.output);\nreturn [{ json: { saida, verificacoes: { saida_do_agente_em_json: !saida.erro_parse } } }];"
       }
     },
     {
-      "id": "43f1c40d-0a91-4156-af0c-4d8c0342ff49",
+      "id": "6339d9aa-520e-42f0-a595-1d4ac16a6aff",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -270,7 +270,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "ef325afa-c701-4ee8-80b8-ac3557a9b170",
+      "id": "4fd9cbcf-8886-4596-9f3b-4366b1964f74",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -292,7 +292,7 @@
       }
     },
     {
-      "id": "eb66bc97-7d63-47ff-a114-7f8f1b059f77",
+      "id": "aefc2091-80fb-41aa-b81d-b6ea3b7742ca",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -301,11 +301,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'radar';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Radar',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst ETAPA = 'radar';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Radar',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "00ef96db-78b8-4931-9366-77b0ae68a418",
+      "id": "e715e019-9f4d-45d7-ba15-83747c64f4df",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

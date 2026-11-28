@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-10 — Republicar no n8n o gerador com as correções do Grok
+
+- **Data/hora:** 2026-11-27 22:55 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** ação externa
+- **O que mudou:** `node tools/gerar.mjs` rodou no n8n do PC (`localhost:5678`) e atualizou os 9 workflows (99 Erros, 01 Radar, 02 Headline Killer, 03 Construtor, 04 Funil, 05 Claquete, 06 Revisor, 07 Tráfego, 00 Coordenador) e a tag "Direct Response". As 3 credenciais já existiam e não foram alteradas. Os JSON em `n8n/workflows/` foram regravados (só mudam os ids dos nós).
+- **Por quê:** levar ao n8n as correções da `H-20261127-italo-09`.
+- **Arquivos tocados:** `n8n/workflows/*.json`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-italo-09
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `testar-codigos.mjs`: TODOS OS TESTES PASSARAM. `gerar.mjs` publicou na primeira tentativa (sem o 400 "no published version"). `checar.mjs`: ok nos 9 (00: 38 nós, 01: 16, 02: 15, 03: 19, 04: 20, 05: 17, 06: 17, 07: 28, 99: 6). Pela API: o 07 Tráfego tem o nó "Campanha existente"; os 8 workflows têm `settings.errorWorkflow` = 99 Erros (o próprio 99 não aponta para si); ativos do DR são só os sub-workflows 01 a 07 e o 99 Erros; o Coordenador está inativo e não foi rodado. Grep nos JSON: sem chave nem token. **Não verificado:** execução real dos agentes (sem rodar o Coordenador).
+- **Próximo passo:** merge do PR #6 e do PR destas correções; Arthur responde `plano/rascunhos/perguntas-arthur.md`.
+
 ### H-20261127-italo-09 — Aplicar no gerador as correções apontadas pelo Grok (prompts, verificações, Tráfego, versão da API)
 
 - **Data/hora:** 2026-11-27 23:15 (America/Bahia UTC-3)

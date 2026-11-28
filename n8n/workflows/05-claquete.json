@@ -2,7 +2,7 @@
   "name": "Direct Response · 05 Claquete (criativos)",
   "nodes": [
     {
-      "id": "e94a3bf7-ee43-4ba3-be32-22ea044e8daa",
+      "id": "0c94bb6c-619b-40ae-82fa-de84386e7e20",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "3c383ce4-24ba-47ec-bffe-7e6fe14d7481",
+      "id": "6564dd8b-1385-4f4c-bb7b-89c82338aee0",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "46832ed0-0970-48a4-9f55-c73d21825d19",
+      "id": "cffef199-f779-49dc-8cfe-8f021ea7e5fd",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "32030b81-9812-4dde-ad55-acd412020c88",
+              "id": "127bf21a-bd3c-4ae4-87c6-4b56ffc09be0",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "84569424-98c6-4e49-868f-f135f746d470",
+      "id": "3b584407-de6f-4c0c-8247-33163c328239",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": "dbab2d35-e31f-4bbf-89d3-49a4cc82c100",
+      "id": "9b129d36-8193-45e4-a382-f8b6f4870d40",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "e6b0f2e1-2c86-4f64-b50d-864b73095cdb",
+      "id": "401e08e8-aa30-4e9a-96ee-a3fcadd47837",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "id": "49e50fbd-0d66-44a0-bb02-782140e38ac9",
+      "id": "78df037a-5d36-4329-92cd-bddeb3809e43",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "3839b38c-7db8-4703-a9d7-e8ce5d7c8e64",
+      "id": "3eac2785-46af-4156-9052-e4f65fe9a810",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -149,7 +149,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "6ca7c507-6f95-4c95-b2ea-d8cdf06342e1",
+      "id": "68cd2bb9-d18c-47d6-8085-7bb8b22cbf32",
       "name": "Agente · Claquete",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -161,7 +161,7 @@
         "promptType": "define",
         "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
         "options": {
-          "systemMessage": "Você é a Claquete, produtora de criativos.\nMissão: transformar os roteiros e briefings aprovados em prompts de geração de imagem e em planos de filmagem/edição de vídeo.\n\nRegras da Claquete:\n- Só trabalhe com roteiros aprovados.\n- Não invente prova social nem claims proibidos; sem antes/depois; sem corpo \"transformado\"; sem texto de resultado de saúde.\n- Prompts de imagem em inglês (melhor para o gerador), texto na imagem no idioma do destino, formato 1:1 ou 4:5 e 9:16.\n- Para cada vídeo: cenas com duração, enquadramento, texto na tela, locução no idioma do destino e trilha sugerida.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"imagens\":[{\"id\":\"img1\",\"prompt\":\"\",\"texto_na_imagem\":\"\",\"formato\":\"4:5\"}],\"videos\":[{\"id\":\"vid1\",\"duracao_s\":0,\"cenas\":[{\"t\":\"0-3s\",\"visual\":\"\",\"texto_tela\":\"\",\"locucao\":\"\"}],\"trilha\":\"\"}]}",
+          "systemMessage": "Você é a Claquete, produtora de criativos.\nMissão: transformar os roteiros e briefings aprovados em prompts de geração de imagem e em planos de filmagem/edição de vídeo.\n\nRegras da Claquete:\n- Só trabalhe com roteiros aprovados.\n- Não invente prova social nem claims proibidos; sem antes/depois; sem corpo \"transformado\"; sem texto de resultado de saúde.\n- Prompts de imagem em inglês (melhor para o gerador), texto na imagem no idioma do destino, formato 1:1 ou 4:5 e 9:16.\n- Para cada vídeo: cenas com duração, enquadramento, texto na tela, locução no idioma do destino e trilha sugerida.\n- Não gere imagens de pessoas que possam passar por alunas, clientes ou pela instrutora reais. Se usar pessoas, sejam claramente ilustrativas e nunca em legenda de resultado (\"a Maria perdeu…\").\n- Texto na imagem e locução seguem REGRAS_PT_PT e REGRAS_SAUDE_META. Sem comparação de corpos, sem close em partes do corpo, sem pinçar gordura.\n- Só gere o que estiver em criativos aprovados (roteiros e briefings aprovados pelo dono).\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nRegras de pt-PT (copy e textos para o público de Portugal; valem quando o idioma é pt-PT):\n- A variante é português de Portugal (pt-PT), não do Brasil. Escreva como um texto de anúncio feito em Portugal.\n- Trate o leitor por \"si\" e na terceira pessoa (\"Descubra\", \"para si\", \"consigo\"). Nunca use \"você\", \"vocês\", \"seu/sua\" sem artigo (\"o seu\", \"a sua\") nem \"a gente\".\n- Use \"a + infinitivo\" em vez de gerúndio: \"a fazer\", \"a treinar\", nunca \"fazendo\", \"treinando\".\n- Vocabulário: telemóvel (não celular), ecrã (não tela), equipa (não time), pequeno-almoço (não café da manhã), ficheiro (não arquivo), descarregar (não baixar), partilhar (não compartilhar), aceder (não acessar), utilizador (não usuário), registo ou inscrição (não cadastro), ginásio (não academia), tapete (não colchonete), autocarro (não ônibus).\n- Ortografia: siga o que o dono decidir (config.decisoes.ortografia). Se estiver vazio, use o Acordo Ortográfico de 1990 e deixe a pendência \"ortografia a confirmar\" em pendencias_do_dono.\n- Na dúvida entre uma palavra do Brasil e uma de Portugal, use a de Portugal e anote em pendencias_do_dono para um falante nativo de Portugal conferir.\n\nRegras de saúde e de atributos pessoais da Meta (anúncios e páginas):\n- Nada de frases ou perguntas que afirmem ou sugiram que o leitor tem uma condição de saúde, física ou mental. Proibido: \"Tem dores nas costas?\", \"Sofre de artrose?\", \"Já tentou de tudo para a sua barriga?\". Permitido: descrever o programa e o benefício (\"Aulas de pilates suaves, em casa\").\n- Pode citar género e faixa etária de passagem (\"para mulheres com mais de 50 anos\"). Não pode dizer o que o leitor é ou sente por causa da idade (\"Aos 50 anos o seu corpo já não…\").\n- Sem promessa de cura, de tratamento ou de eliminar doença. Sem \"resultado garantido\". Sem resultado numérico num prazo fixo (\"perca 5 kg em 7 dias\"), com ou sem ressalva.\n- Sem antes e depois, sem comparar corpos, sem frases que ataquem a aparência ou partes do corpo, sem imagem de pinçar gordura.\n- Sem urgência ou escassez falsa: \"só hoje\", \"últimas vagas\", \"últimas 10 vagas\", \"acaba à meia-noite\", contagem decrescente que reinicia. Só use prazo real que o dono confirmou.\n- Sem prova social que não esteja em config.decisoes (depoimentos_verificados, numeros_confirmados). Sem nome, foto ou voz de pessoa real sem autorização registada em config.decisoes.instrutora.\n- Se tiver dúvida de que uma frase é permitida, não a escreva: coloque-a em pendencias_do_dono.\n\nResponda somente em JSON válido, sem markdown:\n{\"imagens\":[{\"id\":\"img1\",\"prompt\":\"\",\"texto_na_imagem\":\"\",\"formato\":\"4:5\"}],\"videos\":[{\"id\":\"vid1\",\"duracao_s\":0,\"cenas\":[{\"t\":\"0-3s\",\"visual\":\"\",\"texto_tela\":\"\",\"locucao\":\"\"}],\"trilha\":\"\"}]}",
           "maxIterations": 4
         }
       },
@@ -171,7 +171,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "e8b8bf1d-7626-4036-8cab-edcb993d6a76",
+      "id": "d7a91f56-ced0-4074-a0ec-b28dccec62ea",
       "name": "Imagens → itens",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -180,11 +180,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst plano = parseJSON($json.output);\nconst imgs = Array.isArray(plano.imagens) ? plano.imagens : [];\nif (!imgs.length) return [{ json: { id: null, prompt: '', sem_imagens: true } }];\nreturn imgs.slice(0, 6).map(i => ({ json: { id: i.id, prompt: [i.prompt, i.texto_na_imagem ? 'Text on image: \"' + i.texto_na_imagem + '\"' : ''].filter(Boolean).join('. '), formato: i.formato } }));"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst plano = parseJSON($json.output);\nconst imgs = Array.isArray(plano.imagens) ? plano.imagens : [];\nif (!imgs.length) return [{ json: { id: null, prompt: '', sem_imagens: true } }];\nreturn imgs.slice(0, 6).map(i => ({ json: { id: i.id, prompt: [i.prompt, i.texto_na_imagem ? 'Text on image: \"' + i.texto_na_imagem + '\"' : ''].filter(Boolean).join('. '), formato: i.formato } }));"
       }
     },
     {
-      "id": "8ab8a432-0953-4d59-97c5-c40d47b3db79",
+      "id": "41bd2e76-6b58-4f44-a7c2-841ed4945e0b",
       "name": "xAI · gerar imagem",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -214,7 +214,7 @@
       }
     },
     {
-      "id": "aa91e2b3-e9c5-4859-abbd-c4aac4ba535f",
+      "id": "0dca0a14-414c-46d9-8328-d336bc109b07",
       "name": "Conferência pós-agente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -223,11 +223,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst plano = parseJSON($('Agente · Claquete').first().json.output);\nconst pedidos = $('Imagens → itens').all().map(i => i.json);\nconst resp = $input.all().map(i => i.json);\nconst geradas = pedidos.map((p, i) => {\n  const r = resp[i] || {};\n  const d = Array.isArray(r.data) ? r.data[0] : null;\n  return { id: p.id, url: d && d.url ? d.url : null, erro: r.error ? String(r.error.message || JSON.stringify(r.error)).slice(0, 200) : null };\n});\nreturn [{ json: { saida: { plano, imagens_geradas: geradas }, verificacoes: {\n  saida_do_agente_em_json: !plano.erro_parse,\n  imagens_geradas: geradas.length > 0 && geradas.every(g => !!g.url),\n  videos_roteirizados: Array.isArray(plano.videos) && plano.videos.length > 0\n} } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst plano = parseJSON($('Agente · Claquete').first().json.output);\nconst pedidos = $('Imagens → itens').all().map(i => i.json);\nconst resp = $input.all().map(i => i.json);\nconst geradas = pedidos.map((p, i) => {\n  const r = resp[i] || {};\n  const d = Array.isArray(r.data) ? r.data[0] : null;\n  return { id: p.id, url: d && d.url ? d.url : null, erro: r.error ? String(r.error.message || JSON.stringify(r.error)).slice(0, 200) : null };\n});\nreturn [{ json: { saida: { plano, imagens_geradas: geradas }, verificacoes: {\n  saida_do_agente_em_json: !plano.erro_parse,\n  imagens_geradas: geradas.length > 0 && geradas.every(g => !!g.url),\n  videos_roteirizados: Array.isArray(plano.videos) && plano.videos.length > 0\n} } }];"
       }
     },
     {
-      "id": "b76151c6-59f3-445f-8cc8-80fbd55db6ec",
+      "id": "d807d08a-e680-43f6-9ed9-37e987ec5d83",
       "name": "Vídeos",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -243,7 +243,7 @@
       }
     },
     {
-      "id": "3dd51c3a-e5da-4901-9263-be0e57ccbcaf",
+      "id": "f4deb5d9-5437-45bd-ad25-bc19cb1a904d",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -265,7 +265,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "d8b48bc6-8fd5-4add-b62b-34229ff7856a",
+      "id": "24f73835-0730-4661-a900-8bab7b5995b4",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -287,7 +287,7 @@
       }
     },
     {
-      "id": "982c1c99-7ac9-49e6-b872-209e4699907d",
+      "id": "6abe4c41-e4b4-49fd-9035-88dd4ecef0e5",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -296,11 +296,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'claquete';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Claquete',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst ETAPA = 'claquete';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Claquete',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "09b7d367-97fc-4b20-8963-d7fb34cebbb4",
+      "id": "9b7be56b-bb30-4866-8461-ae383a906d45",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

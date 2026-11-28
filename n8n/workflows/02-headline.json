@@ -2,7 +2,7 @@
   "name": "Direct Response · 02 Headline Killer (copywriter)",
   "nodes": [
     {
-      "id": "15c54fbc-4c48-45b3-bc66-3075f5e9bc63",
+      "id": "36b52072-c986-4aa3-9341-0688b362fb9a",
       "name": "Entrada",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "2da0b5d6-5a78-41c7-ae14-eb62090b2d7c",
+      "id": "6e47c543-1a08-42fc-94c0-a7240164092d",
       "name": "Pré-requisitos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -28,7 +28,7 @@
       }
     },
     {
-      "id": "00a9197e-8aea-41d0-86d8-2930f3d4f35f",
+      "id": "8f556845-b1a2-4d0b-8296-b902b9385b67",
       "name": "Pode rodar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -46,7 +46,7 @@
           },
           "conditions": [
             {
-              "id": "7f05dd79-6af9-4133-80d8-28e483144ddd",
+              "id": "980cab6b-bc6d-4b94-9b88-15d4d873bcf9",
               "leftValue": "={{ $json.ok }}",
               "rightValue": "",
               "operator": {
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "3fdba1e7-1aa1-49c2-9772-0322a847c5cd",
+      "id": "c653e58a-02df-486e-bfb9-bde884a15c45",
       "name": "Bloqueado / pulada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": "07a9ed2a-bfe7-4b33-b97b-d236f93c2e55",
+      "id": "8fff7596-e661-4070-a834-0b92f156c26c",
       "name": "Sobre este agente",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -92,7 +92,7 @@
       }
     },
     {
-      "id": "8ceba9c0-ef48-495f-b8f9-b985fd320818",
+      "id": "078ff35a-eeba-4c51-a2b8-d2ebd344f606",
       "name": "Página original · baixar",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -121,7 +121,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "cf4532f0-445d-4df9-88f3-4f1f950eb777",
+      "id": "fa4f8f01-fd39-441f-8d51-90025d4e3569",
       "name": "Dados da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -130,11 +130,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst html = typeof $json.data === 'string' ? $json.data : '';\nconst texto = textoDoHtml(html).slice(0, 25000);\nconst riscos = [];\nif (PRECO_RISCADO.test(html)) riscos.push('a original usa preço riscado / de-por');\nif (CLAIMS_SAUDE.test(texto)) riscos.push('a original tem claim de saúde ou escassez (antes/depois, kg, cura, últimas vagas)');\nreturn [{ json: {\n  dados: { oferta: cfg.oferta_escolhida, idioma_destino: cfg.idioma, pais_destino: cfg.nome_pais, texto_da_pagina_original: texto, riscos_detectados_na_original: riscos },\n  verificacoes: { pagina_original_baixada: texto.length > 500 },\n  avisos: {}\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst cfg = $('Entrada').first().json.config;\nconst html = typeof $json.data === 'string' ? $json.data : '';\nconst texto = textoDoHtml(html).slice(0, 25000);\nconst riscos = [];\nif (PRECO_RISCADO.test(html)) riscos.push('a original usa preço riscado / de-por');\nif (CLAIMS_SAUDE.test(texto)) riscos.push('a original tem claim de saúde ou escassez (antes/depois, kg, cura, últimas vagas)');\nreturn [{ json: {\n  dados: { oferta: cfg.oferta_escolhida, idioma_destino: cfg.idioma, pais_destino: cfg.nome_pais, texto_da_pagina_original: texto, riscos_detectados_na_original: riscos,\n    // decisões do dono (vazio = não decidido: o agente usa marcador, nunca inventa)\n    decisoes: Object.assign({}, cfg.decisoes || {}, { preco_aprovado: cfg.preco_aprovado || '', entregaveis_confirmados: cfg.entregaveis_confirmados || [] }) },\n  verificacoes: { pagina_original_baixada: texto.length > 500 },\n  avisos: {}\n} }];"
       }
     },
     {
-      "id": "81ec4df1-3024-4dbf-9fc9-2bb65a712657",
+      "id": "7270c7c3-8766-4f14-bbbb-2cc654c66854",
       "name": "Grok (xAI)",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -156,7 +156,7 @@
       }
     },
     {
-      "id": "c4db2f62-e648-4d3e-b40e-21d94f8a0d05",
+      "id": "2ccd8dac-63fa-40e4-820f-7a654057502b",
       "name": "Grok · briefing",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -178,7 +178,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "6da2624c-bf06-4602-b579-e383c0bef7e1",
+      "id": "0d145f89-5040-49b1-9898-b7f2950e679d",
       "name": "Agente · Headline Killer",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -190,7 +190,7 @@
         "promptType": "define",
         "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
         "options": {
-          "systemMessage": "Você é o Headline Killer, copywriter de resposta direta do time.\nMissão: adaptar (não só traduzir) a página de vendas da oferta escolhida para o idioma e a cultura do país de destino, e escrever headlines e roteiros de criativo.\n\nEntregáveis:\n1. Página adaptada, secção a secção (headline, sub, problema, mecanismo, oferta, entregáveis, garantia, FAQ, CTA).\n2. 10 headlines.\n3. 5 roteiros de vídeo curto (gancho nos 3 primeiros segundos, desenvolvimento, CTA).\n4. 3 briefings de imagem estática.\n5. Lista do que você removeu da original por risco (promessas, antes/depois, prova social não verificada, preço riscado, escassez falsa).\n\nRegras do Headline Killer:\n- Copy agressiva de resposta direta, no idioma nativo do destino (ex.: em pt-PT use \"para si/consigo\", nunca \"você\").\n- Sem prova social falsa: depoimentos só entram se vierem verificados; caso contrário deixe [ESPAÇO PARA PROVA REAL].\n- Sem preço riscado que nunca foi praticado. Use [PREÇO] enquanto o preço não estiver aprovado.\n- Sem promessa de resultado de saúde, cura ou perda de peso numérica; sem antes/depois; sem \"últimas vagas\" falso.\n- Botões de compra usam o marcador {{CHECKOUT_URL}}.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown, no formato:\n{\"idioma\":\"\",\"pagina\":[{\"secao\":\"\",\"texto\":\"\"}],\"headlines\":[],\"roteiros_video\":[{\"id\":1,\"gancho\":\"\",\"corpo\":\"\",\"cta\":\"\"}],\"briefings_imagem\":[{\"id\":1,\"titulo\":\"\",\"texto_na_imagem\":\"\",\"visual\":\"\"}],\"removido_por_risco\":[],\"pendencias_do_dono\":[]}",
+          "systemMessage": "Você é o Headline Killer, copywriter de resposta direta do time Direct Response.\nMissão: adaptar (não só traduzir) a página de vendas da oferta escolhida para o idioma e a cultura do país de destino, e escrever headlines e roteiros de criativo. Você fala com o dono em português do Brasil, mas TODO o texto para o público final sai no idioma do destino (campo idioma_destino).\n\nO que você recebe em \"dados\":\n- oferta, idioma_destino, pais_destino, texto_da_pagina_original, riscos_detectados_na_original;\n- decisoes: as decisões do dono (formato, preco_aprovado, garantia, instrutora, depoimentos_verificados, numeros_confirmados, entregaveis_confirmados, bumps, upsell, ortografia). Campo vazio, ausente ou null significa NÃO DECIDIDO.\n\nComo usar as decisões:\n- Use o formato, a garantia, o preço e os entregáveis EXATAMENTE como estão em decisoes. Não melhore, não arredonde, não acrescente entregável.\n- Campo não decidido vira marcador na página e entra em pendencias_do_dono: [FORMATO A DEFINIR], [PREÇO], [GARANTIA A DEFINIR PELO PRODUTOR], [QUEM ASSINA A OFERTA], [ESPAÇO PARA PROVA REAL].\n- Não escreva depoimento, nome de aluna, foto, contagem de alunas, anos de experiência, nota ou \"mais de N\" se não estiver em depoimentos_verificados ou numeros_confirmados. O texto da página original NÃO conta como prova: ele é o que você está adaptando, não uma fonte verificada.\n- Se decisoes.instrutora.autorizacao_por_escrito não for true, não use o nome, a imagem nem a voz da instrutora da página original. Escreva a oferta sem rosto.\n- Se decisoes.garantia.renuncia_14_dias não estiver decidida, não escreva frase sobre renúncia ao direito de livre resolução; deixe em pendencias_do_dono.\n- Se decisoes.bumps ou decisoes.upsell estiverem vazios, não os mencione na página.\n\nEntregáveis:\n1. Página adaptada, secção a secção (headline, sub, problema, mecanismo, oferta, entregáveis, garantia, FAQ, CTA).\n2. 10 headlines.\n3. 5 roteiros de vídeo curto (gancho nos 3 primeiros segundos, desenvolvimento, CTA).\n4. 3 briefings de imagem estática.\n5. Lista do que você removeu da original por risco, descrito SEM repetir as expressões proibidas (por exemplo, escreva \"comparação visual de corpos\" em vez de repetir a expressão exata da original), e a lista do que está pendente com o dono.\n\nRegras do Headline Killer:\n- Copy de resposta direta, clara e forte, no idioma nativo do destino.\n- Siga REGRAS_PT_PT quando o idioma for pt-PT e REGRAS_SAUDE_META sempre.\n- Botões de compra usam o marcador {{CHECKOUT_URL}}.\n- Sem preço riscado que nunca foi praticado. Enquanto o preço não estiver aprovado, use [PREÇO].\n- Nunca prometa o que o formato decidido não entrega (por exemplo, não prometa acompanhamento ao vivo se o formato for só gravado).\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nRegras de pt-PT (copy e textos para o público de Portugal; valem quando o idioma é pt-PT):\n- A variante é português de Portugal (pt-PT), não do Brasil. Escreva como um texto de anúncio feito em Portugal.\n- Trate o leitor por \"si\" e na terceira pessoa (\"Descubra\", \"para si\", \"consigo\"). Nunca use \"você\", \"vocês\", \"seu/sua\" sem artigo (\"o seu\", \"a sua\") nem \"a gente\".\n- Use \"a + infinitivo\" em vez de gerúndio: \"a fazer\", \"a treinar\", nunca \"fazendo\", \"treinando\".\n- Vocabulário: telemóvel (não celular), ecrã (não tela), equipa (não time), pequeno-almoço (não café da manhã), ficheiro (não arquivo), descarregar (não baixar), partilhar (não compartilhar), aceder (não acessar), utilizador (não usuário), registo ou inscrição (não cadastro), ginásio (não academia), tapete (não colchonete), autocarro (não ônibus).\n- Ortografia: siga o que o dono decidir (config.decisoes.ortografia). Se estiver vazio, use o Acordo Ortográfico de 1990 e deixe a pendência \"ortografia a confirmar\" em pendencias_do_dono.\n- Na dúvida entre uma palavra do Brasil e uma de Portugal, use a de Portugal e anote em pendencias_do_dono para um falante nativo de Portugal conferir.\n\nRegras de saúde e de atributos pessoais da Meta (anúncios e páginas):\n- Nada de frases ou perguntas que afirmem ou sugiram que o leitor tem uma condição de saúde, física ou mental. Proibido: \"Tem dores nas costas?\", \"Sofre de artrose?\", \"Já tentou de tudo para a sua barriga?\". Permitido: descrever o programa e o benefício (\"Aulas de pilates suaves, em casa\").\n- Pode citar género e faixa etária de passagem (\"para mulheres com mais de 50 anos\"). Não pode dizer o que o leitor é ou sente por causa da idade (\"Aos 50 anos o seu corpo já não…\").\n- Sem promessa de cura, de tratamento ou de eliminar doença. Sem \"resultado garantido\". Sem resultado numérico num prazo fixo (\"perca 5 kg em 7 dias\"), com ou sem ressalva.\n- Sem antes e depois, sem comparar corpos, sem frases que ataquem a aparência ou partes do corpo, sem imagem de pinçar gordura.\n- Sem urgência ou escassez falsa: \"só hoje\", \"últimas vagas\", \"últimas 10 vagas\", \"acaba à meia-noite\", contagem decrescente que reinicia. Só use prazo real que o dono confirmou.\n- Sem prova social que não esteja em config.decisoes (depoimentos_verificados, numeros_confirmados). Sem nome, foto ou voz de pessoa real sem autorização registada em config.decisoes.instrutora.\n- Se tiver dúvida de que uma frase é permitida, não a escreva: coloque-a em pendencias_do_dono.\n\nResponda somente em JSON válido, sem markdown, no formato:\n{\"idioma\":\"\",\"pagina\":[{\"secao\":\"\",\"texto\":\"\"}],\"headlines\":[],\"roteiros_video\":[{\"id\":1,\"gancho\":\"\",\"corpo\":\"\",\"cta\":\"\"}],\"briefings_imagem\":[{\"id\":1,\"titulo\":\"\",\"texto_na_imagem\":\"\",\"visual\":\"\"}],\"removido_por_risco\":[],\"pendencias_do_dono\":[],\"decisoes_usadas\":{\"formato\":\"\",\"garantia\":\"\",\"preco\":\"\",\"instrutora\":\"\"}}",
           "maxIterations": 4
         }
       },
@@ -200,7 +200,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "31770d5a-b3ea-4340-bf04-2ca7d8def1d1",
+      "id": "ca511fe3-4390-434d-b952-626d9d816cd8",
       "name": "Conferência pós-agente",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -209,11 +209,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst saida = parseJSON($json.output);\nconst txt = JSON.stringify(saida);\nconst v = {\n  saida_do_agente_em_json: !saida.erro_parse,\n  sem_preco_riscado: !PRECO_RISCADO.test(txt),\n  sem_claims_de_saude_ou_escassez: !CLAIMS_SAUDE.test(txt),\n  dez_headlines: Array.isArray(saida.headlines) && saida.headlines.length >= 10,\n  cinco_roteiros_video: Array.isArray(saida.roteiros_video) && saida.roteiros_video.length >= 5,\n  tres_briefings_imagem: Array.isArray(saida.briefings_imagem) && saida.briefings_imagem.length >= 3\n};\nif (String(cfg.idioma).toLowerCase() === 'pt-pt') v.sem_voce_em_pt_pt = !/(^|[^\\p{L}])voc[eê]s?(?![\\p{L}])/iu.test(txt);\nreturn [{ json: { saida, verificacoes: v } }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst cfg = $('Entrada').first().json.config;\nconst saida = parseJSON($json.output);\n// Só o texto que vai para o público: removido_por_risco e pendencias_do_dono ficam de fora (citam o que foi tirado)\nconst txt = JSON.stringify({ pagina: saida.pagina, headlines: saida.headlines, roteiros_video: saida.roteiros_video, briefings_imagem: saida.briefings_imagem });\nconst v = {\n  saida_do_agente_em_json: !saida.erro_parse,\n  sem_preco_riscado: !PRECO_RISCADO.test(txt),\n  sem_claims_de_saude_ou_escassez: !CLAIMS_SAUDE.test(txt),\n  dez_headlines: Array.isArray(saida.headlines) && saida.headlines.length >= 10,\n  cinco_roteiros_video: Array.isArray(saida.roteiros_video) && saida.roteiros_video.length >= 5,\n  tres_briefings_imagem: Array.isArray(saida.briefings_imagem) && saida.briefings_imagem.length >= 3\n};\nif (String(cfg.idioma).toLowerCase() === 'pt-pt') v.sem_voce_em_pt_pt = !/(^|[^\\p{L}])voc[eê]s?(?![\\p{L}])/iu.test(txt);\nreturn [{ json: { saida, verificacoes: v } }];"
       }
     },
     {
-      "id": "536caea8-07ed-4034-bb62-310975d2e397",
+      "id": "d0881c41-c711-4544-ac25-aea37a3a3af9",
       "name": "Grok · supervisão",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
@@ -235,7 +235,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "c24eb3f5-59d2-44ad-8f3b-faa21ab35ad5",
+      "id": "3d92e434-c057-4970-a8e2-fc09b8762ecc",
       "name": "Grok (xAI) supervisor",
       "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
       "typeVersion": 1,
@@ -257,7 +257,7 @@
       }
     },
     {
-      "id": "ca95ce41-40b5-4d66-80f1-ac54459bc1b7",
+      "id": "742d171c-f054-43e5-a0d2-f5d7dc4b4472",
       "name": "Saída da etapa",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -266,11 +266,11 @@
         300
       ],
       "parameters": {
-        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'headline';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Headline Killer',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\n// \"de € 29,90 por\", \"de 29,90 € por\" (formato de Portugal) e \"de 29,90 por\"\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b|\\bde\\s*:?\\s*\\d+[.,]\\d{2}\\s*(€|EUR|euros?|R\\$|reais)?\\s*(por|para|apenas|só)\\b)/i;\nfunction hashTexto(t) {\n  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)\n  let h = 0x811c9dc5; const s = String(t);\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  return 'v' + h.toString(16).padStart(8, '0');\n}\n// Ampliada com os casos do G-06 (H-20261127-grok-05): \"Perca 10 kg\", \"perda de 10 kg\", \"Elimine 5 quilos\", \"Cure\", \"Só hoje\", \"Últimas 10 vagas\", \"antes/depois\"\nconst CLAIMS_SAUDE = /(antes\\s*(e|\\/)\\s*depois|\\b(perd(a|e|er)|perca|elimin(e|a|ar)|emagre[cç](a|e|er))\\s+(de\\s+)?(até\\s+)?\\d+([.,]\\d+)?\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcur(a|ar|ado|ada|e|em)\\b|resultado\\s+garantido|últimas\\s+(\\d+\\s+)?vagas|\\bsó\\s+hoje\\b)/i;\n// Marcadores que não podem sobrar na página publicada\nconst MARCADOR_PENDENTE = /\\[[A-ZÇÃÕÁÉÍÓÚÊÂÔ][A-ZÇÃÕÁÉÍÓÚÊÂÔ \\-]{2,}\\]|\\{\\{[^}]+\\}\\}/;\n\nconst ETAPA = 'headline';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Headline Killer',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()\n} }];"
       }
     },
     {
-      "id": "34946918-0945-4be1-bce8-cfd668b0d90c",
+      "id": "f29a9afc-405e-4410-8cbc-ad18096b4fe8",
       "name": "Falha do modelo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
