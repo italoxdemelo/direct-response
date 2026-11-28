@@ -10,7 +10,8 @@ function rodar(js, nodes, $json, inputAll, inputItens) {
 const cfg = { pais_origem: 'BR', pais_destino: 'PT', nome_pais: 'Portugal', idioma: 'pt-PT', pixel_id: '123456789', pasta_saida: 'C:\\x\\data\\dr',
   oferta_escolhida: { nome: 'Pilates', slug: 'pilates50-pt' }, hotmart_checkout_url: 'https://pay.hotmart.com/ABC123', preco_aprovado: '14,90 €',
   url_pagina_publicada: 'https://exemplo.pt', ad_account_id: 'act_1', orcamento_diario_centavos: 1000, graph_version: 'v26.0', dsa_pagador: 'Empresa X', dsa_beneficiario: 'Empresa X',
-  termos_busca: ['desafio pilates'], ofertas_br: [{ nome: 'P', page_id_br: '201' }] };
+  termos_busca: ['desafio pilates'], ofertas_br: [{ nome: 'P', page_id_br: '201' }], moeda: 'EUR', hotmart_product_id: '555',
+  criativos_aprovados: true, criativos_aprovados_hash: 'vIMG', facebook_page_id: '1000', dominio_conversao: 'exemplo.pt' };
 
 // 1. Construtor injeta pixel e UTM
 const html0 = '<!doctype html><html lang="pt-PT"><head><title>x</title></head><body><a class="cta" href="{{CHECKOUT_URL}}">Quero</a> Preço 14,90 €</body></html>';
@@ -25,7 +26,7 @@ assert.ok(f.json.verificacoes.botoes_com_link_do_checkout);
 console.log('funil ok');
 
 // 3. Revisor: checklist completo deve passar
-const nodes = { Entrada: { config: cfg, estado: { claquete: { saida: { imagens_geradas: [{ url: 'https://img' }] } } } },
+const nodes = { Entrada: { config: cfg, estado: { claquete: { saida_hash: 'vIMG', saida: { imagens_geradas: [{ arquivo: 'C:\\x\\img1.jpg' }] } } } },
   'Revisor · página no ar': { statusCode: 200, body: f.json.html }, 'Revisor · checkout': { statusCode: 200, body: '' },
   'Revisor · pixel': { last_fired_time: new Date().toISOString() } };
 const [r] = rodar(C.UTIL + C.REVISOR_DADOS.replace(C.UTIL, ''), nodes, {});
@@ -44,6 +45,9 @@ assert.equal(revisa(f.json.html.replace('Preço 14,90 €', 'Preço 114,90 €')
 assert.equal(revisa(f.json.html.replace('Preço 14,90 €', 'Preço 14,90 € [ESPAÇO PARA PROVA REAL]'))['8_sem_marcadores_pendentes'], false);
 assert.equal(revisa(f.json.html.replace('</body>', '<a class="cta" href="https://outro.invalid/x">Comprar</a></body>'))['4_links_de_checkout_certos_e_no_ar'], false);
 assert.ok(Object.values(revisa(f.json.html)).every(Boolean), 'página certa continua passando');
+// criativos sem aprovação, ou aprovação de outra versão, reprovam o item 7
+assert.equal(revisa(f.json.html, { criativos_aprovados: false })['7_criativos_prontos_e_aprovados'], false);
+assert.equal(revisa(f.json.html, { criativos_aprovados_hash: 'vOUTRA' })['7_criativos_prontos_e_aprovados'], false);
 console.log('revisor lacunas do G-06 ok');
 
 // 4. Tráfego: payload pausado e trava
@@ -143,4 +147,80 @@ assert.equal(fm.json.aprovado, false); assert.equal(fm.json.seguir, false); asse
 const [al] = rodar(C.ERROS_ALERTA.split('__PASTA__').join('C:\\\\erros'), {}, { execution: { id: '9', url: 'http://localhost:5678/execution/9', lastNodeExecuted: 'Payload PAUSADO', error: { message: 'Trava do Tráfego' } }, workflow: { id: 'w', name: 'Direct Response · 07 Tráfego' } });
 assert.match(al.json.texto, /Trava do Tráfego/); assert.ok(al.json.arquivo.startsWith('C:\\erros\\erro-'));
 console.log('erros ok');
+
+// 9. Claquete: base64 da xAI vira arquivo com versão no nome
+const b64 = Buffer.from('imagem-falsa').toString('base64');
+const nosCq = { Entrada: { config: cfg }, 'Imagens → itens': [{ id: 'img1', formato: '4:5', texto_na_imagem: 'Para si' }, { id: 'img2' }] };
+const arqs = rodar(C.CLAQUETE_ARQUIVOS, nosCq, {}, [{ data: [{ b64_json: b64 }] }, { error: { message: 'limite' } }]);
+assert.match(arqs[0].json.arquivo, /^C:\\x\\data\\dr\\pilates50-pt\\criativos\\img1-v[0-9a-f]{8}\.jpg$/);
+assert.equal(arqs[0].binary.data.data, b64); assert.equal(arqs[1].json.arquivo, null); assert.match(arqs[1].json.erro, /limite/);
+const [cp] = rodar(C.CLAQUETE_POS, { 'Agente · Claquete': { output: '{"imagens":[{"id":"img1"}],"videos":[{"id":"v"}]}' }, 'Imagens → arquivos': arqs.map(a => a.json) }, {}, [{ fileName: 'x' }, { error: { message: 'sem arquivo' } }]);
+assert.equal(cp.json.verificacoes.imagens_geradas_e_gravadas, false);
+const [cp2] = rodar(C.CLAQUETE_POS, { 'Agente · Claquete': { output: '{"imagens":[{"id":"img1"}],"videos":[{"id":"v"}]}' }, 'Imagens → arquivos': [arqs[0].json] }, {}, [{ fileName: 'x' }]);
+assert.ok(cp2.json.verificacoes.imagens_geradas_e_gravadas); assert.equal(cp2.json.saida.pasta, 'C:\\x\\data\\dr\\pilates50-pt\\criativos');
+console.log('claquete arquivos ok');
+
+// 10. Netlify: URL vem da config ou do deploy
+const semNetlify = rodar(C.URL_DA_PAGINA, { Entrada: { config: cfg } }, {})[0].json;
+assert.equal(semNetlify.url, 'https://exemplo.pt'); assert.equal(semNetlify.netlify, null);
+const cfgN = Object.assign({}, cfg, { url_pagina_publicada: '', netlify_site_id: 'site1' });
+const comNetlify = rodar(C.URL_DA_PAGINA, { Entrada: { config: cfgN }, 'Netlify · publicar': { id: 'd1', state: 'uploaded', ssl_url: 'https://dr.netlify.app' }, 'Netlify · conferir deploy': { id: 'd1', state: 'ready', ssl_url: 'https://dr.netlify.app' } }, {})[0].json;
+assert.equal(comNetlify.url, 'https://dr.netlify.app'); assert.ok(comNetlify.netlify.publicou); assert.equal(comNetlify.netlify.estado, 'ready');
+const falhou = rodar(C.URL_DA_PAGINA, { Entrada: { config: cfgN }, 'Netlify · publicar': { error: { message: '401' } }, 'Netlify · conferir deploy': { error: {} } }, {})[0].json;
+assert.equal(falhou.netlify.publicou, false); assert.equal(falhou.url, '');
+const [pv] = rodar(C.CONSTRUTOR_PAGEVIEW, { Entrada: { config: cfgN }, 'Montar HTML final': m.json, 'URL da página': comNetlify, 'Página publicada · baixar': { statusCode: 200, body: m.json.html }, 'Pixel · último disparo': { last_fired_time: new Date().toISOString() } }, {});
+assert.equal(pv.json.saida.url_publicada, 'https://dr.netlify.app'); assert.ok(pv.json.verificacoes.pagina_publicada_no_ar && pv.json.verificacoes.netlify_publicou);
+assert.ok(Object.values(pv.json.verificacoes).filter(v => v === false).length <= 1, 'só botoes_marcados pode faltar');
+// o Coordenador passa o endereço do Netlify para as etapas seguintes
+const cEst = C.COORD_ESTADO.split('__PREV__').join('Estado inicial').split('__ETAPA__').join('construtor');
+const [ce3] = rodar(cEst, { 'Estado inicial': { config: cfgN, estado: {} } }, { aprovado: true, saida: { url_publicada: 'https://dr.netlify.app' } });
+assert.equal(ce3.json.config.url_pagina_publicada, 'https://dr.netlify.app');
+const [ce4] = rodar(cEst, { 'Estado inicial': { config: cfg, estado: {} } }, { aprovado: true, saida: { url_publicada: 'https://dr.netlify.app' } });
+assert.equal(ce4.json.config.url_pagina_publicada, 'https://exemplo.pt');
+const [ei3] = rodar(C.COORD_ESTADO_INICIAL, { '⚙️ Configuração': cfgN, 'Estado salvo · extrair': { data: { construtor: { saida: { url_publicada: 'https://dr.netlify.app' } } } }, 'Arquivo de estado': { arquivo_estado: 'x' } }, {});
+assert.equal(ei3.json.config.url_pagina_publicada, 'https://dr.netlify.app');
+const [ff] = rodar(C.FUNIL_FIM, { 'Link do checkout nos botões': f.json, 'Regravar index.html': {}, 'Netlify · publicar': { id: 'd2' }, 'Netlify · conferir deploy': { id: 'd2', state: 'ready' } }, {});
+assert.ok(ff.json.verificacoes.pagina_regravada_no_disco && ff.json.verificacoes.netlify_republicou_com_checkout);
+const [ff2] = rodar(C.FUNIL_FIM, { 'Link do checkout nos botões': f.json, 'Regravar index.html': { error: { message: 'x' } } }, {});
+assert.equal(ff2.json.verificacoes.pagina_regravada_no_disco, false); assert.equal('netlify_republicou_com_checkout' in ff2.json.verificacoes, false);
+console.log('netlify ok');
+
+// 11. Funil: preço e moeda pela oferta principal da Hotmart
+const nosF = ofertas => ({ Entrada: { config: cfg }, 'Hotmart · token': { access_token: 't' }, 'Hotmart · produtos': { items: [{ id: 555, ucode: 'u-1', name: 'P' }] }, 'Hotmart · ofertas': { items: ofertas }, 'Checkout · conferir': { statusCode: 200, body: '' } });
+const fd = o => rodar(C.FUNIL_DADOS, nosF(o), {})[0].json;
+const okF = fd([{ code: 'a', is_main_offer: false, price: { value: 29.9, currency_code: 'EUR' } }, { code: 'b', is_main_offer: true, price: { value: 14.9, currency_code: 'EUR' }, payment_mode: 'UNIQUE_PAYMENT' }]);
+assert.ok(Object.values(okF.verificacoes).every(Boolean), JSON.stringify(okF.verificacoes)); assert.equal(okF.dados.oferta_principal.codigo, 'b');
+assert.equal(fd([{ is_main_offer: true, price: { value: 19.9, currency_code: 'EUR' } }]).verificacoes.preco_da_oferta_igual_ao_aprovado, false);
+assert.equal(fd([{ is_main_offer: true, price: { value: 14.9, currency_code: 'BRL' } }]).verificacoes.moeda_da_oferta_igual_a_config, false);
+assert.equal(fd([]).verificacoes.oferta_principal_encontrada, false);
+assert.match(fd([{ is_main_offer: true, price: { value: 14.9, currency_code: 'EUR' }, payment_mode: 'SUBSCRIPTION' }]).avisos.pagamento_da_oferta, /não é pagamento único/);
+console.log('funil ofertas ok');
+
+// 12. Tráfego: anúncios PAUSADOS com headline aprovada
+const estT = { headline: { saida: { headlines: ['Pilates suave para si', 'Em casa, ao seu ritmo'] } }, claquete: { saida_hash: 'vIMG', saida: { imagens_geradas: [{ id: 'img1', arquivo: 'C:\\a.jpg', versao: 'v1' }, { id: 'img2', arquivo: null }] } } };
+const entT = { config: cfg, estado: estT };
+const ca = rodar(C.TRAFEGO_CRIATIVOS_ARQUIVOS, { Entrada: entT }, {});
+assert.equal(ca.length, 1); assert.equal(ca[0].json.arquivo, 'C:\\a.jpg');
+const tP = Object.assign({}, t.json, { plano: { anuncios: [{ imagem_id: 'img1', headline_indice: 1 }] } });
+const cr = rodar(C.TRAFEGO_CRIATIVOS, { Entrada: entT, 'Payload PAUSADO': tP, 'Criativos → arquivos': ca.map(i => i.json) }, {}, [{ images: { 'a.jpg': { hash: 'H1' } } }]);
+assert.equal(cr.length, 1); const ls = cr[0].json.criativo.object_story_spec.link_data;
+assert.equal(ls.image_hash, 'H1'); assert.equal(ls.message, 'Em casa, ao seu ritmo'); assert.equal(ls.link, 'https://exemplo.pt');
+assert.equal(cr[0].json.criativo.object_story_spec.page_id, '1000');
+const crFalha = rodar(C.TRAFEGO_CRIATIVOS, { Entrada: entT, 'Payload PAUSADO': tP, 'Criativos → arquivos': ca.map(i => i.json) }, {}, [{ error: { message: 'token' } }]);
+assert.ok(crFalha[0].json.sem_criativos);
+const estRuim = JSON.parse(JSON.stringify(estT)); estRuim.headline.saida.headlines = ['Perca 10 kg já'];
+assert.throws(() => rodar(C.TRAFEGO_CRIATIVOS, { Entrada: { config: cfg, estado: estRuim }, 'Payload PAUSADO': tP, 'Criativos → arquivos': ca.map(i => i.json) }, {}, [{ images: { a: { hash: 'H1' } } }]));
+const an = rodar(C.TRAFEGO_ANUNCIOS, { Entrada: entT, 'Payload PAUSADO': tP, 'Meta · criar conjunto (PAUSED)': [{ id: 's1' }, { id: 's2' }], 'Anúncios → criativos': cr.map(i => i.json) }, {}, [{ id: 'c1' }]);
+assert.equal(an.length, 2); assert.ok(an.every(a => a.json.body.status === 'PAUSED' && a.json.body.creative.creative_id === 'c1'));
+assert.equal(an[1].json.body.adset_id, 's2'); assert.equal(an[0].json.body.conversion_domain, 'exemplo.pt');
+const idsT = rodar(C.TRAFEGO_IDS, { 'Meta · criar campanha (PAUSED)': { id: '1' }, 'Meta · criar conjunto (PAUSED)': [{ id: 's1' }, { id: 's2' }], 'Meta · criar anúncio (PAUSED)': [{ id: 'a1' }, { id: 'a2' }] }, {});
+assert.deepEqual(idsT.map(i => i.json.tipo), ['campanha', 'conjunto', 'conjunto', 'anuncio', 'anuncio']);
+const nosPos = { 'Payload PAUSADO': t.json, 'Meta · criar campanha (PAUSED)': { id: '1' }, 'Meta · criar conjunto (PAUSED)': [{ id: 's1' }], 'Meta · criar anúncio (PAUSED)': [{ id: 'a1' }] };
+const stA = rodar(C.TRAFEGO_POS, nosPos, {}, [{ id: '1', status: 'PAUSED', effective_status: 'PAUSED' }, { id: 's1', status: 'PAUSED', effective_status: 'CAMPAIGN_PAUSED' }, { id: 'a1', status: 'PAUSED', effective_status: 'PENDING_REVIEW' }]);
+assert.ok(stA[0].json.verificacoes.tudo_pausado_conferido_na_api && stA[0].json.verificacoes.anuncios_criados);
+const stB = rodar(C.TRAFEGO_POS, nosPos, {}, [{ id: 'a1', status: 'PAUSED', effective_status: 'ACTIVE' }]);
+assert.equal(stB[0].json.verificacoes.tudo_pausado_conferido_na_api, false);
+const stC = rodar(C.TRAFEGO_POS, Object.assign({}, nosPos, { 'Meta · criar anúncio (PAUSED)': [{ error: { message: 'x' } }] }), {}, [{ id: '1', status: 'PAUSED' }]);
+assert.equal(stC[0].json.verificacoes.anuncios_criados, false);
+console.log('tráfego anúncios ok');
 console.log('TODOS OS TESTES PASSARAM');
