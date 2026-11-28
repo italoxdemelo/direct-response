@@ -287,7 +287,9 @@ function wfTrafego() {
   const ok = abertura(wf, 'trafego', `if (!(estado.revisor && estado.revisor.aprovado === true && !estado.revisor.de_rodada_anterior)) faltando.push('aprovação do Revisor nesta rodada');
 if (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');
 if (!cfg.pixel_id) faltando.push('pixel_id');
-if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');`);
+if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');
+const UE = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'];
+if (UE.includes(String(cfg.pais_destino || '').toUpperCase()) && !(cfg.dsa_pagador && cfg.dsa_beneficiario)) faltando.push('dsa_pagador e dsa_beneficiario (exigidos pela Meta para anunciar na UE)');`);
   code(wf, 'Dados da etapa', C.TRAFEGO_DADOS, [660, 300]);
   wf.link(ok, 'Dados da etapa', 0);
   const g = "https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}";
@@ -295,9 +297,10 @@ if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diari
     code(wf, 'Payload PAUSADO', C.TRAFEGO_PAYLOAD, [x, y - 200]);
     // Idempotência: procura a campanha pelo nome antes de criar
     http(wf, 'Meta · buscar campanha', [x, y], { url: g + "/{{ $('Entrada').first().json.config.ad_account_id }}/campaigns", cred: 'meta',
-      qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status', filtering: JSON.stringify([{ field: 'name', operator: 'EQUAL', value: $json.campanha.name }]), limit: 50 }) }}" });
-    ifTrue(wf, 'Campanha já existe?', '{{ Array.isArray($json.data) && $json.data.length > 0 }}', [x + 110, y + 150]);
-    http(wf, 'Meta · conjuntos existentes', [x + 330, y + 400], { url: g + "/{{ $json.data[0].id }}/adsets", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status', limit: 100 }) }}" });
+      qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status', limit: 500 }) }}" });
+    code(wf, 'Campanha existente', C.TRAFEGO_EXISTENTE, [x + 110, y + 150]);
+    ifTrue(wf, 'Campanha já existe?', '{{ $json.existe === true }}', [x + 110, y + 300]);
+    http(wf, 'Meta · conjuntos existentes', [x + 330, y + 400], { url: g + "/{{ $json.campanha.id }}/adsets", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status', limit: 100 }) }}" });
     code(wf, 'Reusar campanha', C.TRAFEGO_REUSAR, [x + 550, y + 400]);
     http(wf, 'Meta · conferir status (existente)', [x + 770, y + 400], { url: g + '/{{ $json.id }}', cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}" });
     http(wf, 'Meta · criar campanha (PAUSED)', [x + 220, y], { method: 'POST', url: g + "/{{ $('Entrada').first().json.config.ad_account_id }}/campaigns", cred: 'meta',
@@ -309,7 +312,7 @@ if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diari
     http(wf, 'Meta · reforçar PAUSED', [x + 1100, y], { method: 'POST', url: g + '/{{ $json.id }}', cred: 'meta', bodyJson: "{{ JSON.stringify({ status: 'PAUSED' }) }}" });
     http(wf, 'Meta · conferir status', [x + 1320, y], { url: g + "/{{ $('IDs criados').all()[$itemIndex].json.id }}", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}" });
     code(wf, 'Conferência PAUSADO', C.TRAFEGO_POS, [x + 1540, y]);
-    wf.link('Payload PAUSADO', 'Meta · buscar campanha'); wf.link('Meta · buscar campanha', 'Campanha já existe?');
+    wf.link('Payload PAUSADO', 'Meta · buscar campanha'); wf.link('Meta · buscar campanha', 'Campanha existente'); wf.link('Campanha existente', 'Campanha já existe?');
     wf.link('Campanha já existe?', 'Meta · conjuntos existentes', 0); wf.link('Meta · conjuntos existentes', 'Reusar campanha');
     wf.link('Reusar campanha', 'Meta · conferir status (existente)'); wf.link('Meta · conferir status (existente)', 'Conferência PAUSADO');
     wf.link('Campanha já existe?', 'Meta · criar campanha (PAUSED)', 1); wf.link('Meta · criar campanha (PAUSED)', 'Conjuntos → itens');
