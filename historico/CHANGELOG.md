@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-05 — Roteiro de testes do Revisor (G-06)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/rascunhos/testes-revisor.md`: para cada um dos 7 itens do checklist do Revisor (§11 do plano), as quebras de propósito, o que o Revisor deve responder e onde o código atual provavelmente deixa passar (lacunas). Inclui três itens que o plano ainda não cobre (UTM e `xcod`, copy, campanhas e anúncios PAUSADOS), testes da saída do agente e da aprovação a 100%, e tabela de execução.
+- **Por quê:** Tarefa G-06 de `plano/DIVISAO-TAREFAS.md` (V-02). A seção 11 do plano manda "quebrar de propósito cada item" e não dizia como.
+- **Arquivos tocados:** `plano/rascunhos/testes-revisor.md`, `plano/rascunhos/simular-revisor.mjs`, `plano/DIVISAO-TAREFAS.md` (status G-06), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-04
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Como `n8n/tools/codigos.mjs` já está no `main` (3354704), rodei os nós Code do Revisor, da regex de claims e do Tráfego com dados simulados (sem rede, sem n8n, sem credencial) com o script novo `plano/rascunhos/simular-revisor.mjs` (`node plano/rascunhos/simular-revisor.mjs`); o resultado está na seção 1A do arquivo. Lacunas **confirmadas em código**: PageView dentro de comentário passa; `lang="pt-BR"` passa no item 6; "de 29,90 € por" (símbolo depois do número) passa como preço normal; "114,90" casa com o preço "14,90"; link sem `utm`/`xcod` passa; botão para domínio fora do filtro `hotmart|pay.|checkout` não é conferido; pixel que disparou há anos passa; URL de criativo não é checada; "Perca 10 kg", "Só hoje" e "Últimas 10 vagas" passam na regex de claims; e a lista `removido_por_risco` do Headline Killer **dispara** a regex (falso positivo). A trava de PAUSED funciona (payload com "ACTIVE" lança erro e nada é enviado). **Não verificado:** comportamento no n8n real (HTTP, `neverError`) e o item 8.3 (cruzamento do checklist com o agente, que fica em outro nó); nada foi chamado na Meta nem na Hotmart. Os itens do checklist do plano diferem da lista citada na conversa: UTM, copy e PAUSADAS ficaram como propostas B1 a B3. Sem segredo, `pixel_id` real nem dado pessoal (só `PIXEL_DE_TESTE` e domínios `.invalid`).
+- **Próximo passo:** Claude abre T-xx para cada lacuna da seção 1A (resumo na seção 5 de `plano/rascunhos/prompts-revisados.md`); Italo roda a tabela da seção 6 na V-02 com credencial real. Decidir se B1 a B3 entram no checklist (§11).
+
 ### H-20261127-grok-04 — Comparar hospedagens para a página (G-03)
 
 - **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)

@@ -66,6 +66,9 @@ flowchart TD
   HG04["H-20261127-grok-04 G-03 hospedagem"]
   HG03 --> HG04
 
+  HG05["H-20261127-grok-05 G-06 testes do Revisor"]
+  HG04 --> HG05
+
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
   P02{{"P-02 Preço em euro"}}
@@ -149,6 +152,7 @@ flowchart TD
 | H-20261127-grok-02 | G-01: pesquisa da API da Hotmart em `plano/pesquisa/hotmart-api.md`. | H-20261127-grok-01 | — | — | — |
 | H-20261127-grok-03 | G-02: pesquisa da Meta Marketing API e da Ad Library em `plano/pesquisa/meta-ads-api.md`; ajusta P-14 (inclui DSA). | H-20261127-grok-02 | — | — | — |
 | H-20261127-grok-04 | G-03: comparação de hospedagens em `plano/pesquisa/hospedagem.md` (recomendação: Netlify; plano B Cloudflare). | H-20261127-grok-03 | — | — | — |
+| H-20261127-grok-05 | G-06: roteiro de testes do Revisor em `plano/rascunhos/testes-revisor.md` e simulação local em `plano/rascunhos/simular-revisor.mjs`. | H-20261127-grok-04 | — | — | — |
 
 ### Pendências
 
