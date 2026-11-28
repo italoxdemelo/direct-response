@@ -45,7 +45,7 @@
 | Tag dos workflows | `Direct Response` (a API do n8n não cria pastas; a tag faz esse papel) |
 | Prefixo dos nomes | `Direct Response · ` |
 | Modelo do GROK BOT | `grok-4` (xAI), temperatura 0.2, nó `@n8n/n8n-nodes-langchain.lmChatXAiGrok` |
-| Código-fonte gerador | `Downloads\claude\automacoes\direct-response-n8n\` no PC do Italo (ainda **fora** deste repositório, ver tarefa T-01) |
+| Código-fonte gerador | `n8n/` neste repositório (desde `H-20261127-italo-03`); cópia de trabalho em `Downloads\claude\automacoes\direct-response-n8n\` no PC do Italo |
 | Saída de páginas | `Downloads\claude\canal-dark-n8n\data\direct-response\<slug>\index.html` (pasta que o n8n consegue escrever) |
 
 ### 1.1 Workflows e IDs no n8n
@@ -466,7 +466,7 @@ Regras: prompt em inglês, texto da imagem no idioma do destino; formatos 1:1, 4
 
 ## 14. Testes e critério de "funcionando perfeitamente"
 
-**Ferramentas que já existem** (em `automacoes/direct-response-n8n/tools/`, no PC do Italo):
+**Ferramentas que já existem** (em `n8n/tools/` neste repositório; rode de dentro de `n8n/`):
 
 ```powershell
 node tools/testar-codigos.mjs   # roda a lógica dos nós Code com dados simulados
@@ -511,7 +511,7 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 
 | # | Tarefa | Workflow | Depende de | Status | Feito por | Data | Evidência |
 |---|---|---|---|---|---|---|---|
-| T-01 | Trazer o código gerador (`tools/`, `workflows/*.json` sem credenciais) para este repositório em `n8n/`, para a outra máquina e a outra IA terem a mesma fonte | todos | — | ⬜ | | | |
+| T-01 | Trazer o código gerador (`tools/`, `workflows/*.json` sem credenciais) para este repositório em `n8n/`, para a outra máquina e a outra IA terem a mesma fonte | todos | — | ✅ | Claude | 2026-11-27 | H-20261127-italo-03 |
 | T-02 | Workflow `99 Erros` + retries (seção 13) | todos | — | ⬜ | | | |
 | T-03 | Persistir estado entre rodadas (n8n Data Table ou arquivo JSON por oferta) e **congelar a copy aprovada** (hash + versão); Construtor e Claquete leem a versão congelada, não a da rodada | 00, 02, 03, 05 | — | ⬜ | | | |
 | T-04 | Levar as decisões do Arthur para a config (`decisoes: {formato, preco, garantia, instrutora, ...}`) e para o prompt do Headline Killer; criar `criativos_aprovados` | 00, 02, 05, 06 | D-05 | ⬜ | | | |
@@ -525,7 +525,7 @@ Marque o status ao concluir e registre a entrada `H-...` no `historico/CHANGELOG
 
 | # | Teste | Depende de | Status | Feito por | Data | Evidência |
 |---|---|---|---|---|---|---|
-| V-01 | `testar-codigos.mjs` e `checar.mjs` sem erro | T-01 | ⬜ | | | |
+| V-01 | `testar-codigos.mjs` e `checar.mjs` sem erro | T-01 | ✅ | Claude | 2026-11-27 | H-20261127-italo-03 |
 | V-02 | Rodada etapa por etapa (seção 14) com credenciais reais | D-01 a D-04 | ⬜ | | | |
 | V-03 | Rodada completa cumprindo os 7 critérios da seção 14 | todas as T e D | ⬜ | | | |
 | V-04 | Arthur ativa as campanhas no Gerenciador (fora do fluxo) | V-03 | ⬜ | | | |

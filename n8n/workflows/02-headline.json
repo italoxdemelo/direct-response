@@ -1,0 +1,398 @@
+{
+  "name": "Direct Response · 02 Headline Killer (copywriter)",
+  "nodes": [
+    {
+      "id": "45b80f88-85e7-4f7f-bc92-d40ac4564ef7",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "d1373731-66e9-40f8-9ab5-ac8663090a51",
+      "name": "Pré-requisitos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'headline';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(cfg.oferta_escolhida && cfg.oferta_escolhida.url_pagina_original)) faltando.push('oferta_escolhida.url_pagina_original (o dono escolhe a oferta)');\nif (!cfg.idioma) faltando.push('idioma');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+      }
+    },
+    {
+      "id": "edcdf7c9-07a4-4fb1-94fd-69b846f776d3",
+      "name": "Pode rodar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "99dd091b-dbc0-49de-ba33-d55aeab9c779",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "bbd0d6e2-43b2-46d7-9bd8-e50dec30c125",
+      "name": "Bloqueado / pulada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        520
+      ],
+      "parameters": {
+        "jsCode": "const p = $json;\nconst ETAPA = 'headline';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Headline Killer',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+      }
+    },
+    {
+      "id": "e555d8f5-87f4-4b11-b865-f9d1267d3c3b",
+      "name": "Sobre este agente",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ],
+      "parameters": {
+        "content": "## Headline Killer (copywriter)\nTraduz e adapta a página de vendas e escreve as headlines e os roteiros de criativo no idioma nativo, com copy agressiva de resposta direta, sem prova social falsa nem preço riscado que nunca foi praticado.\n\n**Fluxo:** integração → GROK BOT orienta → Headline Killer trabalha → verificações por código → GROK BOT supervisiona → saída para o Coordenador.\n\nO prompt completo com as regras está no nó **Agente · Headline Killer** (System Message).",
+        "width": 520,
+        "height": 300,
+        "color": 4
+      }
+    },
+    {
+      "id": "09325c0a-ef39-409b-a645-c82b9c01ef57",
+      "name": "Página original · baixar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Entrada').first().json.config.oferta_escolhida.url_pagina_original }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "76e4f65a-cf27-4524-90b9-e3317515c7b5",
+      "name": "Dados da etapa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst html = typeof $json.data === 'string' ? $json.data : '';\nconst texto = textoDoHtml(html).slice(0, 25000);\nconst riscos = [];\nif (PRECO_RISCADO.test(html)) riscos.push('a original usa preço riscado / de-por');\nif (CLAIMS_SAUDE.test(texto)) riscos.push('a original tem claim de saúde ou escassez (antes/depois, kg, cura, últimas vagas)');\nreturn [{ json: {\n  dados: { oferta: cfg.oferta_escolhida, idioma_destino: cfg.idioma, pais_destino: cfg.nome_pais, texto_da_pagina_original: texto, riscos_detectados_na_original: riscos },\n  verificacoes: { pagina_original_baixada: texto.length > 500 },\n  avisos: {}\n} }];"
+      }
+    },
+    {
+      "id": "881b97a8-7418-4b1c-bcde-350e5922259f",
+      "name": "Grok (xAI)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        560
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "205f5eb2-e973-4ce3-a377-2e91c058f1b2",
+      "name": "Grok · briefing",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'CONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nESTADO DO PROJETO (resumo):\\n' + JSON.stringify($('Entrada').first().json.estado || {}).slice(0, 6000) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json).slice(0, 15000) }}",
+        "options": {
+          "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (copy e adaptação da página) você orienta o agente Headline Killer (copywriter) antes de ele trabalhar.\nPapel do agente: Traduz e adapta a página de vendas e escreve as headlines e os roteiros de criativo no idioma nativo, com copy agressiva de resposta direta, sem prova social falsa nem preço riscado que nunca foi praticado.\n\nCom base na configuração, no estado do projeto e nos dados da integração, escreva um briefing curto e objetivo para o agente: o que fazer agora, o que observar nos dados, o que é proibido nesta etapa e o critério de pronto. Aponte dados que estão faltando ou não verificados.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em no máximo 12 linhas numeradas.",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "6a1eca10-e9fc-4956-880a-ae27a07494ea",
+      "name": "Agente · Headline Killer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1400,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
+        "options": {
+          "systemMessage": "Você é o Headline Killer, copywriter de resposta direta do time.\nMissão: adaptar (não só traduzir) a página de vendas da oferta escolhida para o idioma e a cultura do país de destino, e escrever headlines e roteiros de criativo.\n\nEntregáveis:\n1. Página adaptada, secção a secção (headline, sub, problema, mecanismo, oferta, entregáveis, garantia, FAQ, CTA).\n2. 10 headlines.\n3. 5 roteiros de vídeo curto (gancho nos 3 primeiros segundos, desenvolvimento, CTA).\n4. 3 briefings de imagem estática.\n5. Lista do que você removeu da original por risco (promessas, antes/depois, prova social não verificada, preço riscado, escassez falsa).\n\nRegras do Headline Killer:\n- Copy agressiva de resposta direta, no idioma nativo do destino (ex.: em pt-PT use \"para si/consigo\", nunca \"você\").\n- Sem prova social falsa: depoimentos só entram se vierem verificados; caso contrário deixe [ESPAÇO PARA PROVA REAL].\n- Sem preço riscado que nunca foi praticado. Use [PREÇO] enquanto o preço não estiver aprovado.\n- Sem promessa de resultado de saúde, cura ou perda de peso numérica; sem antes/depois; sem \"últimas vagas\" falso.\n- Botões de compra usam o marcador {{CHECKOUT_URL}}.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown, no formato:\n{\"idioma\":\"\",\"pagina\":[{\"secao\":\"\",\"texto\":\"\"}],\"headlines\":[],\"roteiros_video\":[{\"id\":1,\"gancho\":\"\",\"corpo\":\"\",\"cta\":\"\"}],\"briefings_imagem\":[{\"id\":1,\"titulo\":\"\",\"texto_na_imagem\":\"\",\"visual\":\"\"}],\"removido_por_risco\":[],\"pendencias_do_dono\":[]}",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "688e7cc7-bd37-42e3-ba62-feb31c1e3ec9",
+      "name": "Conferência pós-agente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst saida = parseJSON($json.output);\nconst txt = JSON.stringify(saida);\nconst v = {\n  saida_do_agente_em_json: !saida.erro_parse,\n  sem_preco_riscado: !PRECO_RISCADO.test(txt),\n  sem_claims_de_saude_ou_escassez: !CLAIMS_SAUDE.test(txt),\n  dez_headlines: Array.isArray(saida.headlines) && saida.headlines.length >= 10,\n  cinco_roteiros_video: Array.isArray(saida.roteiros_video) && saida.roteiros_video.length >= 5,\n  tres_briefings_imagem: Array.isArray(saida.briefings_imagem) && saida.briefings_imagem.length >= 3\n};\nif (String(cfg.idioma).toLowerCase() === 'pt-pt') v.sem_voce_em_pt_pt = !/(^|[^\\p{L}])voc[eê]s?(?![\\p{L}])/iu.test(txt);\nreturn [{ json: { saida, verificacoes: v } }];"
+      }
+    },
+    {
+      "id": "9721dbde-6abb-4b55-a046-606a7a677a28",
+      "name": "Grok · supervisão",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1960,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'DADOS BRUTOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 20000) + '\\n\\nVERIFICAÇÕES AUTOMÁTICAS (código):\\n' + JSON.stringify(Object.assign({}, $('Dados da etapa').first().json.verificacoes, $('Conferência pós-agente').first().json.verificacoes)) + '\\n\\nSAÍDA DO AGENTE:\\n' + JSON.stringify($('Conferência pós-agente').first().json.saida).slice(0, 25000) }}",
+        "options": {
+          "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (copy e adaptação da página) você fiscaliza a entrega do agente Headline Killer (copywriter).\nPapel do agente: Traduz e adapta a página de vendas e escreve as headlines e os roteiros de criativo no idioma nativo, com copy agressiva de resposta direta, sem prova social falsa nem preço riscado que nunca foi praticado.\n\nVocê recebe: os dados brutos da integração, as verificações automáticas feitas por código e a saída do agente.\nVerifique: (1) se a entrega cumpre o papel; (2) se algum número, data, preço, depoimento ou prova social NÃO aparece nos dados brutos (isso é dado inventado e reprova); (3) se alguma regra do time foi quebrada; (4) se as verificações automáticas falharam.\nSe qualquer verificação automática falhou, você não pode aprovar.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"nota\":0,\"problemas\":[],\"orientacao_para_o_agente\":\"\",\"proximo_passo\":\"\"}",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "8490da0a-4827-4628-81d0-d96aeb040625",
+      "name": "Grok (xAI) supervisor",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        560
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "c35363da-0dfc-4d3f-97de-eebee2ac218d",
+      "name": "Saída da etapa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2260,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'headline';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência pós-agente').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Headline Killer',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, supervisor: sup, em: new Date().toISOString()\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Pré-requisitos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pré-requisitos": {
+      "main": [
+        [
+          {
+            "node": "Pode rodar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pode rodar?": {
+      "main": [
+        [
+          {
+            "node": "Página original · baixar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bloqueado / pulada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Página original · baixar": {
+      "main": [
+        [
+          {
+            "node": "Dados da etapa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados da etapa": {
+      "main": [
+        [
+          {
+            "node": "Grok · briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok · briefing": {
+      "main": [
+        [
+          {
+            "node": "Agente · Headline Killer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok (xAI)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Grok · briefing",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Agente · Headline Killer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente · Headline Killer": {
+      "main": [
+        [
+          {
+            "node": "Conferência pós-agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok (xAI) supervisor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Grok · supervisão",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conferência pós-agente": {
+      "main": [
+        [
+          {
+            "node": "Grok · supervisão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok · supervisão": {
+      "main": [
+        [
+          {
+            "node": "Saída da etapa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

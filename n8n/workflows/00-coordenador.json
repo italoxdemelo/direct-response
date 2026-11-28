@@ -1,0 +1,1057 @@
+{
+  "name": "Direct Response · 00 Coordenador (GROK BOT)",
+  "nodes": [
+    {
+      "id": "1753686c-997e-4d20-a7da-98eb7fa8b50b",
+      "name": "Iniciar rodada",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "c563c527-2b43-486b-8f2e-7bc47775aa59",
+      "name": "⚙️ Configuração",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// ⚙️ CONFIGURAÇÃO DA RODADA — edite aqui e clique em \"Execute workflow\".\n// Campos vazios bloqueiam as etapas que dependem deles (o relatório diz o que falta).\nreturn [{ json: {\n  // País de destino (ISO-2). O projeto começou por Portugal; troque se quiser outro país.\n  pais_origem: 'BR',\n  pais_destino: 'PT',\n  nome_pais: 'Portugal',\n  idioma: 'pt-PT',\n  moeda: 'EUR',\n\n  // Etapas que rodam nesta rodada (tire as que não quer repetir).\n  etapas_ativas: ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'],\n\n  // RADAR — termos para buscar concorrência no destino e ofertas candidatas do Brasil.\n  // A API da Meta não devolve anúncios comerciais do Brasil: os números BR vêm dos prints (senão ficam \"não verificado\").\n  termos_busca: ['desafio pilates', 'pilates em casa', 'pilates mulheres 50'],\n  ofertas_br: [\n    { nome: 'Desafio Pilates em Casa 50+', page_id_br: '2016271568674266', url_pagina: 'https://pilates.laystrancoso.com/', preco_br: 'R$ 29,90',\n      anuncios_ativos_br: null, anuncio_mais_antigo_br: null, print_br: null }\n  ],\n\n  // HEADLINE KILLER — oferta escolhida pelo dono.\n  oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },\n\n  // Aprovações do dono (só você muda isto).\n  copy_aprovada: false,      // libera Construtor e Claquete\n  preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil\n  entregaveis_confirmados: [],\n\n  // CONSTRUTOR / PIXEL\n  pixel_id: '',\n  pasta_saida: 'C:\\\\Users\\\\italo\\\\Downloads\\\\claude\\\\canal-dark-n8n\\\\data\\\\direct-response',\n  url_pagina_publicada: '',\n  url_privacidade: '',\n  url_termos: '',\n\n  // FUNIL (Hotmart)\n  hotmart_product_id: '',\n  hotmart_checkout_url: '',\n\n  // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS\n  ad_account_id: '',         // formato act_1234567890\n  orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta\n  publico: 'mulheres 50+ em Portugal',\n\n  // CLAQUETE\n  modelo_imagem: 'grok-2-image',\n\n  // Prazos por agente (AAAA-MM-DD)\n  prazos: { radar: '', headline: '', construtor: '', funil: '', claquete: '', revisor: '', trafego: '' },\n\n  graph_version: 'v23.0'\n} }];"
+      }
+    },
+    {
+      "id": "ca767646-148a-4a68-b373-c97a894f21be",
+      "name": "Grok (xAI)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        480,
+        560
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "2233b2df-9ae2-4baf-aa60-f7a03e9ac7ac",
+      "name": "Coordenador · plano",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'CONFIGURAÇÃO DA RODADA:\\n' + JSON.stringify($json) }}",
+        "options": {
+          "systemMessage": "Você é o Coordenador do time Direct Response, apoiado pelo GROK BOT.\nO time leva ofertas low ticket de infoproduto que escalaram no Brasil para outros países.\nAgentes: 1. Radar (minerador), 2. Headline Killer (copywriter), 3. Construtor (página), 4. Funil (Hotmart), 5. Claquete (criativos), 6. Revisor, 7. Tráfego (gestor, campanhas sempre pausadas).\n\nDivida as tarefas desta rodada entre os agentes, com o prazo de cada um (use os prazos da configuração; se faltar, proponha e marque \"prazo sugerido\"), as dependências entre eles e o que depende de decisão do dono (oferta escolhida, aprovação da copy, preço).\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em lista numerada, curta.",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "17fe9df3-bd3c-4bdb-a164-cfde11a2f60e",
+      "name": "Estado inicial",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const config = $('⚙️ Configuração').first().json;\nreturn [{ json: { config, estado: { plano_do_coordenador: $json.output, inicio_rodada: new Date().toISOString() } } }];"
+      }
+    },
+    {
+      "id": "5c218125-3284-4a7a-9c61-4018989d9045",
+      "name": "Como usar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -60
+      ],
+      "parameters": {
+        "content": "## Time Direct Response — Coordenador (GROK BOT)\n1. Cole as chaves nas credenciais **DR · xAI Grok**, **DR · Meta (token de sistema)** e **DR · Hotmart**.\n2. Edite **⚙️ Configuração** (país, oferta, aprovações, pixel, conta de anúncios).\n3. Clique em **Execute workflow**.\n\nCada etapa chama um sub-workflow: integração → GROK BOT orienta → agente → verificações → GROK BOT supervisiona. Se uma etapa não for aprovada, o fluxo para e o relatório numerado diz o que falta.\n\n**Campanhas: sempre PAUSADAS.** Nada é ativado por este fluxo.",
+        "width": 640,
+        "height": 320,
+        "color": 4
+      }
+    },
+    {
+      "id": "071b59de-db09-4b10-b051-650faabccc6d",
+      "name": "01 · Radar",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        940,
+        300
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "ZEwHqbQbTRpqwbZm",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "7cc9a658-ea22-4bc6-adea-06ee1d597031",
+      "name": "Estado · Radar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Estado inicial').first().json));\nbase.estado['radar'] = $json;\nreturn [{ json: base }];"
+      }
+    },
+    {
+      "id": "1d52fab7-4354-47fc-8858-68d9c6232998",
+      "name": "Radar liberou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1380,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6ec06ed6-d5b3-47a0-b556-f086ee1832e4",
+              "leftValue": "={{ $json.estado['radar'].seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "9d7d09bc-eef0-4169-b19e-09af14d19d4d",
+      "name": "02 · Headline Killer",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1640,
+        300
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "HcVTPRfIrVr5pEpS",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "a2ca3939-c6ef-45b6-a444-e6cbc4c7c8fb",
+      "name": "Estado · Headline Killer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1860,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Radar liberou?').first().json));\nbase.estado['headline'] = $json;\nreturn [{ json: base }];"
+      }
+    },
+    {
+      "id": "5d483d3a-ae9a-42d8-9383-be2994d4d304",
+      "name": "Headline Killer liberou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e05c0a29-7f61-4ab0-b380-4ea4057708b1",
+              "leftValue": "={{ $json.estado['headline'].seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "cf751f32-a12e-4159-aee1-943a381ebf4f",
+      "name": "03 · Construtor",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2340,
+        300
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "dIRHcPq6GOQjGjlf",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "ce552d67-3525-421f-909e-91d7c6a2c9d1",
+      "name": "Estado · Construtor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Headline Killer liberou?').first().json));\nbase.estado['construtor'] = $json;\nreturn [{ json: base }];"
+      }
+    },
+    {
+      "id": "321b1c5f-bfe4-4dc3-bd59-755d15a9c316",
+      "name": "Construtor liberou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2780,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "13d6314f-e7d9-4254-96a3-8c7dc47be869",
+              "leftValue": "={{ $json.estado['construtor'].seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "8de17049-16b1-432b-ae4c-4e1a3f642cec",
+      "name": "04 · Funil",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3040,
+        300
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "4ZrBWdTNmlj5cnez",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "4775142b-b236-4a91-9783-87224540ce03",
+      "name": "Estado · Funil",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3260,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Construtor liberou?').first().json));\nbase.estado['funil'] = $json;\nreturn [{ json: base }];"
+      }
+    },
+    {
+      "id": "5568c761-1654-491b-9ad4-5671c453d78d",
+      "name": "Funil liberou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3480,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c250c5d2-fe45-4a09-92b8-942240f24fd6",
+              "leftValue": "={{ $json.estado['funil'].seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "eaf244b8-5975-44fc-9f1f-699fe450e46e",
+      "name": "05 · Claquete",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3740,
+        300
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "b0Mtxcsxf2hZPAQZ",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "6e064297-b320-4a65-89a5-bae15566fa55",
+      "name": "Estado · Claquete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3960,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Funil liberou?').first().json));\nbase.estado['claquete'] = $json;\nreturn [{ json: base }];"
+      }
+    },
+    {
+      "id": "03b4645a-44a0-42db-85ba-9b476e81f0a8",
+      "name": "Claquete liberou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4180,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ffae2ad7-fdfb-4720-be9f-97693ec7bb3f",
+              "leftValue": "={{ $json.estado['claquete'].seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "3706ee00-d919-4ab1-9a3e-bd80f57b4443",
+      "name": "06 · Revisor",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        4440,
+        300
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "cqkhx6Mc2PENjylp",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "99b3ebf7-acf5-41d9-9e62-5ff971331527",
+      "name": "Estado · Revisor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4660,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Claquete liberou?').first().json));\nbase.estado['revisor'] = $json;\nreturn [{ json: base }];"
+      }
+    },
+    {
+      "id": "dd1dc3f2-a58f-4bd3-9c89-9abae0255738",
+      "name": "Revisor liberou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4880,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d87a325e-af17-423f-be49-8d6aa3e7f416",
+              "leftValue": "={{ $json.estado['revisor'].seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "663f471c-5340-4693-a059-c6b26b331fed",
+      "name": "07 · Tráfego",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        5140,
+        300
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "8nsN0jKDEmNyID9M",
+          "mode": "id"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "cce488d0-e16b-4141-9da0-8a1e3c066f22",
+      "name": "Estado · Tráfego",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5360,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const base = JSON.parse(JSON.stringify($('Revisor liberou?').first().json));\nbase.estado['trafego'] = $json;\nreturn [{ json: base }];"
+      }
+    },
+    {
+      "id": "10d67898-9db2-4f2c-a8f2-5c3da4c77738",
+      "name": "Tráfego liberou?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5580,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f9caa125-3e12-4ec1-ac54-8ed41ce50904",
+              "leftValue": "={{ $json.estado['trafego'].seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "d26d2a00-b3a5-4bbd-8f1d-a1bf216ce4d4",
+      "name": "Prazos e resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5840,
+        600
+      ],
+      "parameters": {
+        "jsCode": "const { config, estado } = $json;\nconst nomes = { radar: 'Radar', headline: 'Headline Killer', construtor: 'Construtor', funil: 'Funil', claquete: 'Claquete', revisor: 'Revisor', trafego: 'Tráfego' };\nconst agora = new Date();\nconst linhas = Object.keys(nomes).map((k, i) => {\n  const s = estado[k];\n  const status = !s ? 'não começou nesta rodada' : s.pulada ? 'pulada (fora de etapas_ativas)' : s.aprovado ? 'aprovado' : s.bloqueado ? 'bloqueado' : 'reprovado pelo supervisor/verificações';\n  const prazo = (config.prazos || {})[k] || null;\n  const atrasado = prazo && !(s && s.aprovado) ? new Date(prazo + 'T23:59:59-03:00') < agora : false;\n  return { n: i + 1, agente: nomes[k], status, prazo, atrasado, motivo: s ? (s.motivo || (s.falhas_automaticas || []).join(', ') || null) : null };\n});\nconst resumo = {};\nfor (const k of Object.keys(nomes)) if (estado[k]) {\n  const s = estado[k];\n  resumo[k] = { aprovado: s.aprovado, bloqueado: s.bloqueado, motivo: s.motivo, falhas: s.falhas_automaticas, avisos: s.avisos, supervisor: s.supervisor };\n}\nreturn [{ json: { config, estado, prazos: linhas, resumo } }];"
+      }
+    },
+    {
+      "id": "91729e63-1cbe-462c-8602-21913798c932",
+      "name": "Grok (xAI) relatório",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        6100,
+        860
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "7e319e8d-d998-4dc7-bcd9-16e2408d208a",
+      "name": "Coordenador · relatório",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        6060,
+        600
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'PRAZOS E STATUS:\\n' + JSON.stringify($json.prazos) + '\\n\\nRESUMO POR ETAPA:\\n' + JSON.stringify($json.resumo).slice(0, 30000) + '\\n\\nPLANO DO INÍCIO DA RODADA:\\n' + ($json.estado.plano_do_coordenador || '') }}",
+        "options": {
+          "systemMessage": "Você é o Coordenador do time Direct Response, apoiado pelo GROK BOT.\nRecebe o estado de todas as etapas desta rodada e a lista de prazos (com os atrasados já calculados).\nEntregue ao dono o progresso em lista numerada, em português:\n1. Uma linha por agente: status (aprovado, bloqueado, não começou), o que entregou e a evidência.\n2. Prazos: quem está atrasado e o que você está cobrando.\n3. O que depende do dono agora (decisões e acessos), em ordem de prioridade.\n4. Próximo passo do time.\n\nLembre: campanhas só existem pausadas; nada foi ativado. Não invente nada que não esteja no estado.",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "20301ebb-3e7b-49b6-b3ad-5e47d6d0b284",
+      "name": "Progresso (lista numerada)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6360,
+        600
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { progresso: $json.output, prazos: $('Prazos e resumo').first().json.prazos, estado: $('Prazos e resumo').first().json.estado } }];"
+      }
+    },
+    {
+      "id": "14d53edc-12de-450c-9751-a51b0806d365",
+      "name": "Enviar no Telegram (opcional)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6600,
+        600
+      ],
+      "parameters": {
+        "chatId": "COLE_AQUI_O_CHAT_ID",
+        "text": "={{ $json.progresso }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "disabled": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "HhIgeNHoT7zTSUiM",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Grok (xAI)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coordenador · plano",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Iniciar rodada": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Configuração": {
+      "main": [
+        [
+          {
+            "node": "Coordenador · plano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordenador · plano": {
+      "main": [
+        [
+          {
+            "node": "Estado inicial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado inicial": {
+      "main": [
+        [
+          {
+            "node": "01 · Radar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 · Radar": {
+      "main": [
+        [
+          {
+            "node": "Estado · Radar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado · Radar": {
+      "main": [
+        [
+          {
+            "node": "Radar liberou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Radar liberou?": {
+      "main": [
+        [
+          {
+            "node": "02 · Headline Killer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 · Headline Killer": {
+      "main": [
+        [
+          {
+            "node": "Estado · Headline Killer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado · Headline Killer": {
+      "main": [
+        [
+          {
+            "node": "Headline Killer liberou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Headline Killer liberou?": {
+      "main": [
+        [
+          {
+            "node": "03 · Construtor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 · Construtor": {
+      "main": [
+        [
+          {
+            "node": "Estado · Construtor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado · Construtor": {
+      "main": [
+        [
+          {
+            "node": "Construtor liberou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construtor liberou?": {
+      "main": [
+        [
+          {
+            "node": "04 · Funil",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 · Funil": {
+      "main": [
+        [
+          {
+            "node": "Estado · Funil",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado · Funil": {
+      "main": [
+        [
+          {
+            "node": "Funil liberou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Funil liberou?": {
+      "main": [
+        [
+          {
+            "node": "05 · Claquete",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 · Claquete": {
+      "main": [
+        [
+          {
+            "node": "Estado · Claquete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado · Claquete": {
+      "main": [
+        [
+          {
+            "node": "Claquete liberou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claquete liberou?": {
+      "main": [
+        [
+          {
+            "node": "06 · Revisor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06 · Revisor": {
+      "main": [
+        [
+          {
+            "node": "Estado · Revisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado · Revisor": {
+      "main": [
+        [
+          {
+            "node": "Revisor liberou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revisor liberou?": {
+      "main": [
+        [
+          {
+            "node": "07 · Tráfego",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "07 · Tráfego": {
+      "main": [
+        [
+          {
+            "node": "Estado · Tráfego",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado · Tráfego": {
+      "main": [
+        [
+          {
+            "node": "Tráfego liberou?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tráfego liberou?": {
+      "main": [
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prazos e resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok (xAI) relatório": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coordenador · relatório",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prazos e resumo": {
+      "main": [
+        [
+          {
+            "node": "Coordenador · relatório",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordenador · relatório": {
+      "main": [
+        [
+          {
+            "node": "Progresso (lista numerada)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Progresso (lista numerada)": {
+      "main": [
+        [
+          {
+            "node": "Enviar no Telegram (opcional)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

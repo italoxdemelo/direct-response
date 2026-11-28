@@ -39,8 +39,10 @@ flowchart TD
   H05["H-20261126-italo-02 Plano de ação criado"]
   H06["H-20261127-italo-01 Plano vira especificação técnica do n8n"]
   H07["H-20261127-italo-02 Avaliação + divisão Claude × Grok"]
+  H08["H-20261127-italo-03 Gerador n8n no repositório"]
   H01 --> H02 --> H04 --> H05 --> H06
-  H06 --> H07
+  H06 --> H07 --> H08
+  H03 --> H08
   H03 --> H06
   C01 --> H03
 
@@ -114,6 +116,7 @@ flowchart TD
 | H-20261126-italo-02 | Plano de ação editável criado em `plano/PLANO-DE-ACAO.md` (fases 0 a 9, cobre P-01 a P-12 e E-01 a E-07). | H-20261126-italo-01 | — | — | — |
 | H-20261127-italo-01 | `plano/PLANO-DE-ACAO.md` reescrito como especificação técnica dos 8 workflows do n8n, com backlog D/T/V. | H-20261126-italo-02 | H-20261125-italo-03 | — | — |
 | H-20261127-italo-02 | Avaliação da estrutura e divisão de tarefas Claude (C-01..08) × Grok (G-01..06) × Italo (I-01..05) em `plano/DIVISAO-TAREFAS.md`. | H-20261127-italo-01 | — | — | — |
+| H-20261127-italo-03 | Gerador do fluxo n8n (`tools/`, `workflows/`) copiado para `n8n/` (T-01, V-01). | H-20261127-italo-02 | H-20261125-italo-03 | — | — |
 
 ### Pendências
 

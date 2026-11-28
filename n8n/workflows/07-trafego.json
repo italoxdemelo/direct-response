@@ -1,0 +1,613 @@
+{
+  "name": "Direct Response · 07 Tráfego (gestor, sempre PAUSADO)",
+  "nodes": [
+    {
+      "id": "3e2e1b42-2043-44e3-97ff-1261c15028c8",
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "6ec11153-b643-4760-b103-c6169bf370a7",
+      "name": "Pré-requisitos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const entrada = $('Entrada').first().json;\nconst cfg = entrada.config || {};\nconst estado = entrada.estado || {};\nconst ETAPA = 'trafego';\nconst ativas = cfg.etapas_ativas || [];\nif (ativas.length && !ativas.includes(ETAPA)) {\n  return [{ json: { ok: false, pulada: true, faltando: [] } }];\n}\nconst faltando = [];\nif (!(estado.revisor && estado.revisor.aprovado === true)) faltando.push('aprovação do Revisor nesta rodada');\nif (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');\nif (!cfg.pixel_id) faltando.push('pixel_id');\nif (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');\nreturn [{ json: { ok: faltando.length === 0, pulada: false, faltando } }];"
+      }
+    },
+    {
+      "id": "10c31de6-da08-4366-880b-3aaf95918472",
+      "name": "Pode rodar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e87b481c-7f2c-43a7-8102-f2a93fdeaf1a",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "81c70f92-c046-4623-b18c-8b2ca0400552",
+      "name": "Bloqueado / pulada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        520
+      ],
+      "parameters": {
+        "jsCode": "const p = $json;\nconst ETAPA = 'trafego';\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,\n  motivo: p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),\n  faltando: p.faltando, em: new Date().toISOString()\n} }];"
+      }
+    },
+    {
+      "id": "5a4f0b78-da5a-4975-8c2c-4d96483f62f8",
+      "name": "Sobre este agente",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -40
+      ],
+      "parameters": {
+        "content": "## Tráfego (gestor)\nSobe campanhas na conta de anúncios via API, sempre PAUSADAS. Nunca ativa nada.\n\n**Fluxo:** integração → GROK BOT orienta → Tráfego trabalha → verificações por código → GROK BOT supervisiona → saída para o Coordenador.\n\nO prompt completo com as regras está no nó **Agente · Tráfego** (System Message).",
+        "width": 520,
+        "height": 300,
+        "color": 4
+      }
+    },
+    {
+      "id": "54fc2e80-06b7-43d1-b6aa-1fdcfa05767b",
+      "name": "Dados da etapa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Entrada').first().json.config;\nreturn [{ json: { dados: {\n  pais: cfg.pais_destino, oferta: cfg.oferta_escolhida, url_pagina: cfg.url_pagina_publicada,\n  orcamento_diario_centavos: cfg.orcamento_diario_centavos, publico_sugerido: cfg.publico || null\n}, verificacoes: {}, avisos: {} } }];"
+      }
+    },
+    {
+      "id": "3797503d-a8c8-4f35-9579-5faa0cf50325",
+      "name": "Grok (xAI)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        560
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "e4547c78-5a4a-4dcb-8f16-ddd3ec7dfcf6",
+      "name": "Grok · briefing",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'CONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nESTADO DO PROJETO (resumo):\\n' + JSON.stringify($('Entrada').first().json.estado || {}).slice(0, 6000) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json).slice(0, 15000) }}",
+        "options": {
+          "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (campanhas pausadas na Meta) você orienta o agente Tráfego (gestor) antes de ele trabalhar.\nPapel do agente: Sobe campanhas na conta de anúncios via API, sempre PAUSADAS. Nunca ativa nada.\n\nCom base na configuração, no estado do projeto e nos dados da integração, escreva um briefing curto e objetivo para o agente: o que fazer agora, o que observar nos dados, o que é proibido nesta etapa e o critério de pronto. Aponte dados que estão faltando ou não verificados.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda em português, em no máximo 12 linhas numeradas.",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "5744a0c2-62db-498e-9233-f0250cfe17e3",
+      "name": "Agente · Tráfego",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'BRIEFING DO GROK BOT (supervisor):\\n' + $json.output + '\\n\\nCONFIGURAÇÃO:\\n' + JSON.stringify($('Entrada').first().json.config) + '\\n\\nDADOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 40000) }}",
+        "options": {
+          "systemMessage": "Você é o Tráfego, gestor de campanhas do time.\nMissão: propor a estrutura da campanha de vendas para o país de destino. O código sobe a campanha pela API da Meta sempre com status PAUSED.\n\nRegras do Tráfego:\n- Sempre PAUSADAS. Nunca ativa nada. Você não escolhe status: o código força PAUSED e confere pela API.\n- Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.\n- Público no país de destino; idade e gênero coerentes com a oferta.\n- Orçamento diário só o que estiver na configuração.\n- Nomes de campanha e conjunto padronizados: DR | <oferta> | <país> | <data>.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"campanha_nome\":\"\",\"conjuntos\":[{\"nome\":\"\",\"idade_min\":18,\"idade_max\":65,\"generos\":[1,2],\"observacao\":\"\"}],\"observacoes\":[]}",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "a7e069a7-639e-4dc4-84af-c88193fb2ec7",
+      "name": "Payload PAUSADO",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst cfg = $('Entrada').first().json.config;\nconst plano = parseJSON($json.output);\nconst hoje = new Date().toISOString().slice(0, 10);\nconst nomeBase = 'DR | ' + ((cfg.oferta_escolhida && cfg.oferta_escolhida.nome) || 'oferta') + ' | ' + cfg.pais_destino + ' | ' + hoje;\nconst campanha = {\n  name: plano.campanha_nome || nomeBase,\n  objective: 'OUTCOME_SALES', buying_type: 'AUCTION', special_ad_categories: [],\n  is_adset_budget_sharing_enabled: false,\n  status: 'PAUSED'\n};\nconst conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? plano.conjuntos : [{ nome: nomeBase + ' | aberto' }]).slice(0, 3).map(c => ({\n  name: c.nome || nomeBase,\n  status: 'PAUSED',\n  daily_budget: Number(cfg.orcamento_diario_centavos),\n  billing_event: 'IMPRESSIONS', optimization_goal: 'OFFSITE_CONVERSIONS', bid_strategy: 'LOWEST_COST_WITHOUT_CAP',\n  promoted_object: { pixel_id: String(cfg.pixel_id), custom_event_type: 'PURCHASE' },\n  targeting: {\n    geo_locations: { countries: [cfg.pais_destino] },\n    age_min: Number(c.idade_min) || 18, age_max: Number(c.idade_max) || 65,\n    genders: Array.isArray(c.generos) && c.generos.length === 1 ? c.generos : undefined,\n    targeting_automation: { advantage_audience: 0 }\n  }\n}));\n// Trava: nada pode sair com status diferente de PAUSED\nconst tudo = JSON.stringify({ campanha, conjuntos });\nif (/\"status\"\\s*:\\s*\"(?!PAUSED)/.test(tudo) || /ACTIVE/.test(tudo)) throw new Error('Trava do Tráfego: payload com status diferente de PAUSED. Nada foi enviado.');\nreturn [{ json: { plano, campanha, conjuntos } }];"
+      }
+    },
+    {
+      "id": "ecd60edf-49c6-43c8-a2ad-778c9f735d67",
+      "name": "Meta · criar campanha (PAUSED)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1700,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.ad_account_id }}/campaigns",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $json.campanha, { status: 'PAUSED' })) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "abe3fad7-f460-4ae9-be2a-a6ed47ec8d14",
+      "name": "Conjuntos → itens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const p = $('Payload PAUSADO').first().json;\nconst camp = $json;\nconst id = camp && camp.id ? camp.id : null;\nreturn p.conjuntos.map(c => ({ json: { campaign_id: id, body: Object.assign({}, c, { campaign_id: id, status: 'PAUSED' }) } }));"
+      }
+    },
+    {
+      "id": "9772e8eb-3382-42b3-85cd-d8be59673ae3",
+      "name": "Meta · criar conjunto (PAUSED)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2140,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('Entrada').first().json.config.ad_account_id }}/adsets",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $json.body, { status: 'PAUSED' })) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "ff1cc7d6-bfe0-41ec-b66d-d6c7364905fc",
+      "name": "IDs criados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2360,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst ids = [];\nif (camp && camp.id) ids.push({ json: { id: camp.id, tipo: 'campanha' } });\nfor (const r of $input.all()) if (r.json && r.json.id) ids.push({ json: { id: r.json.id, tipo: 'conjunto' } });\nif (!ids.length) return [{ json: { id: 'nenhum', tipo: 'nenhum' } }];\nreturn ids;"
+      }
+    },
+    {
+      "id": "945fcbe1-63ca-409c-85d2-822bf06805d6",
+      "name": "Meta · reforçar PAUSED",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2580,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $json.id }}",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: 'PAUSED' }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "db50dbdf-aade-48a7-a06b-793da4bfd39d",
+      "name": "Meta · conferir status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2800,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}/{{ $('IDs criados').all()[$itemIndex].json.id }}",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "qS4MswIcQLVPM874",
+          "name": "DR · Meta (token de sistema)"
+        }
+      }
+    },
+    {
+      "id": "4acd3eaa-f4b2-4c37-ab88-7cb1d1f2e8a0",
+      "name": "Conferência PAUSADO",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3020,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const plano = $('Payload PAUSADO').first().json.plano;\nconst camp = $('Meta · criar campanha (PAUSED)').first().json;\nconst conj = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json);\nconst st = $input.all().map(i => i.json).filter(s => s && s.id);\nconst naoPausados = st.filter(s => s.status !== 'PAUSED' || (s.effective_status && !['PAUSED', 'CAMPAIGN_PAUSED', 'ADSET_PAUSED'].includes(s.effective_status)));\nreturn [{ json: {\n  saida: { plano, campanha: camp && camp.id ? { id: camp.id } : { erro: camp && camp.error ? camp.error.message : 'não criada' },\n    conjuntos: conj.map(c => c.id ? { id: c.id } : { erro: c.error ? c.error.message : 'não criado' }), status_conferido: st },\n  verificacoes: {\n    campanha_criada: !!(camp && camp.id),\n    conjuntos_criados: conj.length > 0 && conj.every(c => !!c.id),\n    tudo_pausado_conferido_na_api: st.length > 0 && naoPausados.length === 0\n  },\n  avisos: { anuncios: 'Os anúncios (criativos) dentro dos conjuntos ainda não são criados por este fluxo; suba os criativos da Claquete e crie os anúncios também PAUSADOS.' }\n} }];"
+      }
+    },
+    {
+      "id": "aa3c183e-21b8-42b8-9553-7c6b0c44e8ad",
+      "name": "Trava PAUSADO",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        0
+      ],
+      "parameters": {
+        "content": "### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação forçam `status: PAUSED` no corpo.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.",
+        "width": 520,
+        "height": 240,
+        "color": 3
+      }
+    },
+    {
+      "id": "46470a76-d173-495a-b5c1-d6a714207131",
+      "name": "Grok · supervisão",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3240,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'DADOS BRUTOS DA INTEGRAÇÃO:\\n' + JSON.stringify($('Dados da etapa').first().json.dados).slice(0, 20000) + '\\n\\nVERIFICAÇÕES AUTOMÁTICAS (código):\\n' + JSON.stringify(Object.assign({}, $('Dados da etapa').first().json.verificacoes, $('Conferência PAUSADO').first().json.verificacoes)) + '\\n\\nSAÍDA DO AGENTE:\\n' + JSON.stringify($('Conferência PAUSADO').first().json.saida).slice(0, 25000) }}",
+        "options": {
+          "systemMessage": "Você é o GROK BOT, supervisor do time Direct Response. Nesta etapa (campanhas pausadas na Meta) você fiscaliza a entrega do agente Tráfego (gestor).\nPapel do agente: Sobe campanhas na conta de anúncios via API, sempre PAUSADAS. Nunca ativa nada.\n\nVocê recebe: os dados brutos da integração, as verificações automáticas feitas por código e a saída do agente.\nVerifique: (1) se a entrega cumpre o papel; (2) se algum número, data, preço, depoimento ou prova social NÃO aparece nos dados brutos (isso é dado inventado e reprova); (3) se alguma regra do time foi quebrada; (4) se as verificações automáticas falharam.\nSe qualquer verificação automática falhou, você não pode aprovar.\n\nRegras que valem para todo o time Direct Response:\n- Nunca inventar dados, números, datas, contagens de anúncios, depoimentos, preços ou prova social. O que não estiver verificado nos dados recebidos deve ser marcado como \"não verificado\".\n- Sem prova social falsa. Sem preço riscado (\"de X por Y\") que nunca foi praticado.\n- Respeitar as políticas de anúncios da Meta, em especial saúde: sem promessa de resultado físico ou de cura, sem antes/depois, sem afirmar atributos pessoais do leitor.\n- Campanhas sobem sempre PAUSADAS. Ninguém do time ativa campanha; quem ativa é o dono da conta.\n- Preço e copy só são publicados com aprovação explícita do dono (campos copy_aprovada e preco_aprovado da configuração).\n- Fale sempre em português do Brasil com o dono do projeto. O conteúdo para o público final sai no idioma do país de destino.\n\nResponda somente em JSON válido, sem markdown:\n{\"aprovado\":false,\"nota\":0,\"problemas\":[],\"orientacao_para_o_agente\":\"\",\"proximo_passo\":\"\"}",
+          "maxIterations": 4
+        }
+      }
+    },
+    {
+      "id": "29807d83-e3c7-4570-b245-42a503bb40ec",
+      "name": "Grok (xAI) supervisor",
+      "type": "@n8n/n8n-nodes-langchain.lmChatXAiGrok",
+      "typeVersion": 1,
+      "position": [
+        3280,
+        560
+      ],
+      "parameters": {
+        "model": "grok-4",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "xAiApi": {
+          "id": "pXsWtHnWwuFVwJnR",
+          "name": "DR · xAI Grok"
+        }
+      }
+    },
+    {
+      "id": "2c48d411-dcff-4b10-b8c6-b7ed0370a3c6",
+      "name": "Saída da etapa",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3540,
+        300
+      ],
+      "parameters": {
+        "jsCode": "function parseJSON(s) {\n  if (s && typeof s === 'object') return s;\n  if (typeof s !== 'string') return { erro_parse: true, bruto: s };\n  let t = s.trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/, '');\n  const a = t.indexOf('{'), b = t.lastIndexOf('}');\n  if (a >= 0 && b > a) t = t.slice(a, b + 1);\n  try { return JSON.parse(t); } catch (e) { return { erro_parse: true, bruto: s.slice(0, 4000) }; }\n}\nfunction textoDoHtml(html) {\n  return String(html || '')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|h\\d|li|div|section)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')\n    .replace(/[ \\t]+/g, ' ').replace(/\\n\\s*\\n+/g, '\\n').trim();\n}\nconst PRECO_RISCADO = /(<s>|<del>|line-through|\\bde\\s*:?\\s*(R\\$|€|EUR|US\\$|\\$)\\s?\\d[\\d.,]*\\s*(por|para|apenas|só)\\b)/i;\nconst CLAIMS_SAUDE = /(antes\\s+e\\s+depois|\\bperd(a|e|er)\\s+(até\\s+)?\\d+\\s*(kg|quilos)|\\bemagre[cç]a\\s+\\d|\\bcura(r|do|da)?\\b|resultado\\s+garantido|últimas\\s+vagas)/i;\n\nconst ETAPA = 'trafego';\nconst sup = parseJSON($json.output);\nconst dados = $('Dados da etapa').first().json;\nconst pos = $('Conferência PAUSADO').first().json;\nconst verificacoes = Object.assign({}, dados.verificacoes || {}, pos.verificacoes || {});\nconst falhas = Object.entries(verificacoes).filter(([k, v]) => v !== true).map(([k]) => k);\nconst aprovadoAgente = pos.saida && pos.saida.aprovado === false ? false : true; // o Revisor tem voto próprio\nconst aprovado = sup.aprovado === true && falhas.length === 0 && aprovadoAgente;\nreturn [{ json: {\n  etapa: ETAPA, agente: 'Tráfego',\n  aprovado, seguir: aprovado, pulada: false, bloqueado: false,\n  falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),\n  briefing_grok: $('Grok · briefing').first().json.output,\n  saida: pos.saida, supervisor: sup, em: new Date().toISOString()\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Pré-requisitos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pré-requisitos": {
+      "main": [
+        [
+          {
+            "node": "Pode rodar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pode rodar?": {
+      "main": [
+        [
+          {
+            "node": "Dados da etapa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bloqueado / pulada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados da etapa": {
+      "main": [
+        [
+          {
+            "node": "Grok · briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok · briefing": {
+      "main": [
+        [
+          {
+            "node": "Agente · Tráfego",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok (xAI)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Grok · briefing",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Agente · Tráfego",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload PAUSADO": {
+      "main": [
+        [
+          {
+            "node": "Meta · criar campanha (PAUSED)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · criar campanha (PAUSED)": {
+      "main": [
+        [
+          {
+            "node": "Conjuntos → itens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conjuntos → itens": {
+      "main": [
+        [
+          {
+            "node": "Meta · criar conjunto (PAUSED)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · criar conjunto (PAUSED)": {
+      "main": [
+        [
+          {
+            "node": "IDs criados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IDs criados": {
+      "main": [
+        [
+          {
+            "node": "Meta · reforçar PAUSED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · reforçar PAUSED": {
+      "main": [
+        [
+          {
+            "node": "Meta · conferir status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta · conferir status": {
+      "main": [
+        [
+          {
+            "node": "Conferência PAUSADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente · Tráfego": {
+      "main": [
+        [
+          {
+            "node": "Payload PAUSADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok (xAI) supervisor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Grok · supervisão",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conferência PAUSADO": {
+      "main": [
+        [
+          {
+            "node": "Grok · supervisão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grok · supervisão": {
+      "main": [
+        [
+          {
+            "node": "Saída da etapa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-03 — Trazer o código gerador do fluxo n8n para o repositório
+
+- **Data/hora:** 2026-11-27 22:30 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Copiado para `n8n/` o gerador que estava só no PC do Italo (`Downloads\claude\automacoes\direct-response-n8n`): `README.md`, `tools/` (`gerar.mjs`, `prompts.mjs`, `codigos.mjs`, `checar.mjs`, `testar-codigos.mjs`) e `workflows/` (os 8 JSON exportados em 26/11 + `ids.json`). Conferido antes que nenhum arquivo tem chave, token ou senha: as credenciais aparecem só pelo nome e pelo ID interno do n8n; `act_1234567890` é exemplo de formato.
+- **Por quê:** tarefa C-01 / T-01 de `plano/DIVISAO-TAREFAS.md` (risco R-2: o gerador não tinha versionamento e a outra máquina não tinha a fonte). O Italo pediu para o Claude começar as suas tarefas.
+- **Arquivos tocados:** `n8n/**`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`, `plano/PLANO-DE-ACAO.md`, `plano/DIVISAO-TAREFAS.md`
+- **Continua:** H-20261127-italo-02
+- **Depende de:** H-20261125-italo-03
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** `node n8n/tools/checar.mjs` (8 workflows ok) e `node n8n/tools/testar-codigos.mjs` ("TODOS OS TESTES PASSARAM") rodados na cópia do repositório em 2026-11-27 (V-01).
+- **Próximo passo:** a partir de agora, a fonte da verdade do gerador é `n8n/` neste repositório; a pasta do PC passa a ser só cópia de trabalho. Claude segue com C-02 a C-04.
+
 ### H-20261127-italo-02 — Avaliar a estrutura do projeto e dividir tarefas entre Claude e Grok
 
 - **Data/hora:** 2026-11-27 22:00 (America/Bahia UTC-3)
