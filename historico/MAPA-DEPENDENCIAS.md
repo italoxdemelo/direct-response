@@ -82,6 +82,8 @@ flowchart TD
   HG04 --> H16
   H17["H-20261127-italo-12 Fluxo completo publicado no n8n"]
   H16 --> H17
+  H18["H-20261127-italo-13 Relatório de status no repositório"]
+  H17 --> H18
   HG06 --> P15
   HG05 --> HG06
 
@@ -177,6 +179,7 @@ flowchart TD
 | H-20261127-italo-10 | Gerador com as correções do Grok republicado no n8n do PC: 9 workflows atualizados, `checar.mjs` ok, `errorWorkflow` do 99 Erros nos 8, Coordenador inativo. | H-20261127-italo-09 | — | — | — |
 | H-20261127-italo-11 | Decisões do produto viram entradas opcionais (fluxo não espera o Arthur); imagens da Claquete no disco; anúncios PAUSED no Tráfego; deploy opcional no Netlify; preço e moeda pela API de ofertas da Hotmart; `criativos_aprovados` + hash. | H-20261127-italo-10 | H-20261127-grok-02, -03, -04 | — | — |
 | H-20261127-italo-12 | Fluxo completo da -11 publicado no n8n do PC: 9 workflows atualizados, `checar.mjs` ok, credencial `DR · Netlify` criada como placeholder, Coordenador inativo, nada executado. | H-20261127-italo-11 | — | — | — |
+| H-20261127-italo-13 | Relatório de status do fluxo em `relatorios/RELATORIO-2026-11-27.md`. | H-20261127-italo-12 | — | — | — |
 
 ### Pendências
 

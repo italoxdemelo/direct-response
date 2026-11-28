@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-13 — Guardar no repositório o relatório de status do fluxo
+
+- **Data/hora:** 2026-11-27 23:45 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `relatorios/RELATORIO-2026-11-27.md`: o que foi feito no fluxo do n8n até hoje e o que falta (credenciais, IDs da configuração, primeiro teste real, aprovações por rodada). Sem dado pessoal nem segredo.
+- **Por quê:** o Italo pediu no chat do projeto "Faça um arquivo do relatorio", para repassar o status.
+- **Arquivos tocados:** `relatorios/RELATORIO-2026-11-27.md`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-italo-12
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** o conteúdo confere com as entradas H-20261127-italo-03 a -12 (9 workflows publicados, Coordenador inativo, testes offline ok, sem teste com credenciais reais).
+- **Próximo passo:** Italo preenche as credenciais da xAI e da Meta para o primeiro teste real (C-08).
+
 ### H-20261127-italo-12 — Publicar no n8n o fluxo completo (anúncios, Netlify, ofertas Hotmart)
 
 - **Data/hora:** 2026-11-27 23:16 (America/Bahia UTC-3)
