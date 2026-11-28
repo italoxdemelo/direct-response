@@ -152,7 +152,7 @@ Regras do Tráfego:
 - Objetivo de vendas (OUTCOME_SALES) otimizando para compra no pixel.
 - Público no país de destino; idade e gênero coerentes com a oferta.
 - Orçamento diário só o que estiver na configuração.
-- Nomes de campanha e conjunto padronizados: DR | <oferta> | <país> | <data>.
+- O nome da campanha é fixo e vem da configuração (o código ignora campanha_nome). Dê nomes curtos aos conjuntos (ex.: "50-65 mulheres"); o código acrescenta campanha e data.
 
 ${REGRAS_GERAIS}
 

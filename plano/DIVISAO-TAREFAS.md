@@ -76,9 +76,9 @@ Legenda: ⬜ a fazer · 🟡 em andamento · ✅ feito · ⛔ bloqueado. "Liga a
 | # | Tarefa | Liga a | Depende de | Status | Data | Entrada |
 |---|---|---|---|---|---|---|
 | C-01 | Trazer o gerador para `n8n/` neste repositório (sem credenciais; conferir que nenhum JSON tem valor de segredo) e registrar V-01 | T-01, V-01 | — | ✅ | 2026-11-27 | H-20261127-italo-03 |
-| C-02 | Workflow `99 Erros` + retries nos nós Agent e HTTP | T-02 | C-01 | ⬜ | | |
-| C-03 | Persistir estado entre rodadas e congelar a copy aprovada (hash + versão) | T-03 | C-01 | ⬜ | | |
-| C-04 | Idempotência do Tráfego (procurar campanha por nome) + paginação da Ad Library | T-07 | C-01 | ⬜ | | |
+| C-02 | Workflow `99 Erros` + retries nos nós Agent e HTTP | T-02 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-04 |
+| C-03 | Persistir estado entre rodadas e congelar a copy aprovada (hash + versão) | T-03 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-05 |
+| C-04 | Idempotência do Tráfego (procurar campanha por nome) + paginação da Ad Library | T-07 | C-01 | 🟡 código pronto; falta publicar no n8n | 2026-11-27 | H-20261127-italo-06 |
 | C-05 | `config.decisoes` e `criativos_aprovados` no gerador, usando os prompts revisados pelo Grok | T-04 | G-04, D-05 | ⛔ | | |
 | C-06 | Imagens da Claquete guardadas + `adimages` → `adcreative` → `ads` **PAUSED** no Tráfego | T-06 | G-02, D-02, D-04 | ⛔ | | |
 | C-07 | Nó de deploy da página | T-05 | G-03, D-07 | ⛔ | | |

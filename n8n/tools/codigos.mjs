@@ -21,6 +21,12 @@ function textoDoHtml(html) {
     .replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
 }
 const PRECO_RISCADO = /(<s>|<del>|line-through|\bde\s*:?\s*(R\$|€|EUR|US\$|\$)\s?\d[\d.,]*\s*(por|para|apenas|só)\b)/i;
+function hashTexto(t) {
+  // FNV-1a 32 bits: identifica a versão de uma entrega (ex.: a copy aprovada)
+  let h = 0x811c9dc5; const s = String(t);
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return 'v' + h.toString(16).padStart(8, '0');
+}
 const CLAIMS_SAUDE = /(antes\s+e\s+depois|\bperd(a|e|er)\s+(até\s+)?\d+\s*(kg|quilos)|\bemagre[cç]a\s+\d|\bcura(r|do|da)?\b|resultado\s+garantido|últimas\s+vagas)/i;
 `;
 
@@ -46,7 +52,7 @@ const ETAPA = '__ETAPA__';
 return [{ json: {
   etapa: ETAPA, agente: '__AGENTE__',
   aprovado: false, seguir: p.pulada === true, pulada: p.pulada === true, bloqueado: p.pulada !== true,
-  motivo: p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),
+  motivo: p.congelada ? 'copy aprovada congelada (' + p.versao + '); não foi gerada de novo' : p.pulada ? 'etapa fora de etapas_ativas nesta rodada' : 'faltando: ' + p.faltando.join('; '),
   faltando: p.faltando, em: new Date().toISOString()
 } }];`;
 
@@ -65,7 +71,20 @@ return [{ json: {
   aprovado, seguir: aprovado, pulada: false, bloqueado: false,
   falhas_automaticas: falhas, verificacoes, avisos: Object.assign({}, dados.avisos || {}, pos.avisos || {}),
   briefing_grok: $('Grok · briefing').first().json.output,
-  saida: pos.saida, supervisor: sup, em: new Date().toISOString()
+  saida: pos.saida, saida_hash: hashTexto(JSON.stringify(pos.saida || {})), supervisor: sup, em: new Date().toISOString()
+} }];`;
+
+// Falha do modelo (saída de erro dos nós Grok depois de 3 tentativas): a etapa reprova com motivo, sem derrubar a rodada
+export const FALHA_MODELO = String.raw`
+const ETAPA = '__ETAPA__';
+const e = $json.error || {};
+const msg = String((e && (e.message || e.description)) || (typeof e === 'string' ? e : '') || 'erro desconhecido').slice(0, 500);
+return [{ json: {
+  etapa: ETAPA, agente: '__AGENTE__',
+  aprovado: false, seguir: false, pulada: false, bloqueado: false,
+  motivo: 'falha do modelo (Grok/xAI) depois de 3 tentativas: ' + msg,
+  falhas_automaticas: ['modelo_respondeu'], verificacoes: { modelo_respondeu: false },
+  em: new Date().toISOString()
 } }];`;
 
 // ---------------- RADAR ----------------
@@ -90,12 +109,21 @@ return itens;`;
 export const RADAR_DADOS = String.raw`
 const cfg = $('Entrada').first().json.config;
 const pedidos = $('Consultas → itens').all().map(i => i.json);
-const resp = $input.all().map(i => i.json);
+// Com paginação, a API devolve várias páginas por consulta: agrupa pelo item de origem (pairedItem)
+const porPedido = pedidos.map(() => []);
+$input.all().forEach((it, i) => {
+  const pi = it.pairedItem;
+  let idx = pi && typeof pi.item === 'number' ? pi.item : (Array.isArray(pi) && pi[0] && typeof pi[0].item === 'number' ? pi[0].item : i);
+  if (idx >= porPedido.length) idx = porPedido.length - 1;
+  porPedido[idx].push(it.json || {});
+});
 const lib = (pais, extra) => 'https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=' + pais + extra;
 const consultas = pedidos.map((p, i) => {
-  const r = resp[i] || {};
-  if (r.error) return { tipo: p.tipo, chave: p.chave, erro: String(r.error.message || JSON.stringify(r.error)).slice(0, 300) };
-  const ads = Array.isArray(r.data) ? r.data : [];
+  const paginas_resp = porPedido[i].length ? porPedido[i] : [{}];
+  const comErro = paginas_resp.find(r => r && r.error);
+  if (comErro) return { tipo: p.tipo, chave: p.chave, erro: String(comErro.error.message || JSON.stringify(comErro.error)).slice(0, 300) };
+  const ads = [].concat(...paginas_resp.map(r => Array.isArray(r.data) ? r.data : []));
+  const r = paginas_resp[paginas_resp.length - 1] || {};
   const paginas = {}; let maisAntigo = null;
   for (const a of ads) {
     const k = a.page_id || '?';
@@ -106,6 +134,7 @@ const consultas = pedidos.map((p, i) => {
   return {
     tipo: p.tipo, chave: p.chave, nome: p.nome || null,
     anuncios_ativos_carregados: ads.length,
+    paginas_lidas: paginas_resp.length,
     contagem_e_minimo: !!(r.paging && r.paging.next),
     anuncio_mais_antigo_carregado: maisAntigo,
     anunciantes: Object.values(paginas).sort((a, b) => b.anuncios - a.anuncios).slice(0, 15),
@@ -127,7 +156,7 @@ return [{ json: {
   dados: {
     pais_origem: cfg.pais_origem, pais_destino: cfg.pais_destino,
     ofertas_br: ofertasBr, consultas_destino: consultas,
-    aviso: 'A API da Biblioteca de Anúncios só devolve anúncios comerciais de países da UE. Os números do Brasil vêm da configuração (prints) e, se não vierem, ficam como "não verificado". contagem_e_minimo=true quer dizer que há mais de 200 anúncios (só a primeira página foi lida).'
+    aviso: 'A API da Biblioteca de Anúncios só devolve anúncios comerciais de países da UE. Os números do Brasil vêm da configuração (prints) e, se não vierem, ficam como "não verificado". O Radar pagina a API (até 25 páginas de 200); contagem_e_minimo=true quer dizer que ainda havia mais anúncios depois do limite de páginas.'
   },
   verificacoes: { api_meta_destino_respondeu: consultas.length > 0 && erros.length === 0 },
   avisos: { erros_api: erros.map(e => e.chave + ': ' + e.erro) }
@@ -349,15 +378,16 @@ ${UTIL}
 const cfg = $('Entrada').first().json.config;
 const plano = parseJSON($json.output);
 const hoje = new Date().toISOString().slice(0, 10);
-const nomeBase = 'DR | ' + ((cfg.oferta_escolhida && cfg.oferta_escolhida.nome) || 'oferta') + ' | ' + cfg.pais_destino + ' | ' + hoje;
+// Nome fixo (não vem do modelo): é por ele que o fluxo acha a campanha numa segunda rodada e não duplica.
+const nomeBase = String(cfg.campanha_nome || ('DR | ' + ((cfg.oferta_escolhida && cfg.oferta_escolhida.nome) || 'oferta') + ' | ' + cfg.pais_destino));
 const campanha = {
-  name: plano.campanha_nome || nomeBase,
+  name: nomeBase,
   objective: 'OUTCOME_SALES', buying_type: 'AUCTION', special_ad_categories: [],
   is_adset_budget_sharing_enabled: false,
   status: 'PAUSED'
 };
-const conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? plano.conjuntos : [{ nome: nomeBase + ' | aberto' }]).slice(0, 3).map(c => ({
-  name: c.nome || nomeBase,
+const conjuntos = (Array.isArray(plano.conjuntos) && plano.conjuntos.length ? plano.conjuntos : [{ nome: 'aberto' }]).slice(0, 3).map((c, i) => ({
+  name: nomeBase + ' | ' + (c.nome || ('conjunto ' + (i + 1))) + ' | ' + hoje,
   status: 'PAUSED',
   daily_budget: Number(cfg.orcamento_diario_centavos),
   billing_event: 'IMPRESSIONS', optimization_goal: 'OFFSITE_CONVERSIONS', bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
@@ -388,8 +418,31 @@ for (const r of $input.all()) if (r.json && r.json.id) ids.push({ json: { id: r.
 if (!ids.length) return [{ json: { id: 'nenhum', tipo: 'nenhum' } }];
 return ids;`;
 
+export const TRAFEGO_REUSAR = String.raw`
+// A campanha com este nome já existe: não cria nada de novo e NÃO mexe no status (o Arthur pode já ter ativado).
+const camp = $('Meta · buscar campanha').first().json.data[0];
+const r = $json || {};
+const lista = Array.isArray(r.data) ? r.data : [];
+return [{ json: { id: camp.id, tipo: 'campanha', reutilizada: true } }].concat(lista.map(c => ({ json: { id: c.id, tipo: 'conjunto', reutilizada: true } })));`;
+
 export const TRAFEGO_POS = String.raw`
+const ran = n => { try { return $(n).isExecuted === true; } catch (e) { return false; } };
 const plano = $('Payload PAUSADO').first().json.plano;
+if (ran('Reusar campanha')) {
+  const ids = $('Reusar campanha').all().map(i => i.json);
+  const st0 = $input.all().map(i => i.json).filter(s => s && s.id);
+  const ativos = st0.filter(s => s.status !== 'PAUSED');
+  return [{ json: {
+    saida: { plano, campanha: { id: ids[0].id, reutilizada: true }, conjuntos: ids.slice(1).map(c => ({ id: c.id, reutilizado: true })), status_conferido: st0 },
+    verificacoes: {
+      campanha_criada: true,
+      conjuntos_criados: ids.length > 1,
+      tudo_pausado_conferido_na_api: st0.length > 0 && ativos.length === 0
+    },
+    avisos: { reutilizada: 'A campanha já existia com este nome: nada foi criado nem alterado nesta rodada (sem duplicar).',
+      ativos: ativos.length ? 'Itens já ativos (ativados fora do fluxo): ' + ativos.map(a => a.id + ' ' + a.status).join(', ') : '' }
+  } }];
+}
 const camp = $('Meta · criar campanha (PAUSED)').first().json;
 const conj = $('Meta · criar conjunto (PAUSED)').all().map(i => i.json);
 const st = $input.all().map(i => i.json).filter(s => s && s.id);
@@ -406,14 +459,45 @@ return [{ json: {
 } }];`;
 
 // ---------------- COORDENADOR ----------------
+export const COORD_ARQUIVO_ESTADO = String.raw`
+// Caminho do arquivo que guarda o estado entre rodadas: <pasta_saida>\<slug>\estado.json
+const cfg = $json;
+const slug = String(cfg.oferta_escolhida && cfg.oferta_escolhida.slug || 'oferta').replace(/[^a-z0-9-]/gi, '-');
+return [{ json: { arquivo_estado: String(cfg.pasta_saida || '').replace(/[\\/]+$/, '') + '\\' + slug + '\\estado.json' } }];`;
+
 export const COORD_ESTADO_INICIAL = String.raw`
 const config = $('⚙️ Configuração').first().json;
-return [{ json: { config, estado: { plano_do_coordenador: $json.output, inicio_rodada: new Date().toISOString() } } }];`;
+const ETAPAS = ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'];
+let salvo = {};
+try { const d = $('Estado salvo · extrair').first().json; salvo = d && d.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : {}; } catch (e) { salvo = {}; }
+const estado = { plano_do_coordenador: $json.output || '(plano indisponível: o modelo não respondeu)', inicio_rodada: new Date().toISOString() };
+// Etapas de rodadas anteriores entram marcadas: valem como entrega (ex.: copy congelada), nunca como aprovação "desta rodada"
+for (const k of ETAPAS) if (salvo[k] && typeof salvo[k] === 'object') estado[k] = Object.assign({}, salvo[k], { de_rodada_anterior: true });
+return [{ json: { config, estado, arquivo_estado: $('Arquivo de estado').first().json.arquivo_estado } }];`;
 
 export const COORD_ESTADO = String.raw`
 const base = JSON.parse(JSON.stringify($('__PREV__').first().json));
-base.estado['__ETAPA__'] = $json;
+const anterior = base.estado['__ETAPA__'];
+// Etapa pulada nesta rodada mantém a entrega salva da rodada anterior (não apaga a copy aprovada, por exemplo)
+if ($json.pulada === true && anterior && anterior.de_rodada_anterior) base.estado['__ETAPA__'] = Object.assign({}, anterior, { seguir: true, motivo_nesta_rodada: $json.motivo });
+else base.estado['__ETAPA__'] = $json;
 return [{ json: base }];`;
+
+export const COORD_SALVAR = String.raw`
+// Grava o estado da rodada para a próxima (sem o plano do coordenador, que é refeito a cada rodada)
+const p = $('Prazos e resumo').first().json;
+const ETAPAS = ['radar', 'headline', 'construtor', 'funil', 'claquete', 'revisor', 'trafego'];
+const guardar = { salvo_em: new Date().toISOString() };
+for (const k of ETAPAS) if (p.estado[k]) { guardar[k] = Object.assign({}, p.estado[k]); delete guardar[k].de_rodada_anterior; }
+return [{ json: { texto: JSON.stringify(guardar, null, 2), arquivo: $('Estado inicial').first().json.arquivo_estado } }];`;
+
+export const COORD_PROGRESSO = String.raw`
+const p = $('Prazos e resumo').first().json;
+const h = p.estado.headline;
+let texto = $json.output;
+if (!texto) texto = '(relatório do modelo indisponível)\n' + p.prazos.map(l => l.n + '. ' + l.agente + ': ' + l.status + (l.motivo ? ' (' + l.motivo + ')' : '')).join('\n');
+if (h && h.saida_hash) texto += '\n\nVersão da copy: ' + h.saida_hash + (p.config.copy_aprovada_hash === h.saida_hash ? ' (é a aprovada)' : ' (para aprovar esta versão, o Arthur confere a copy e o Italo põe este código em copy_aprovada_hash e copy_aprovada: true)');
+return [{ json: { progresso: texto, prazos: p.prazos, estado: p.estado } }];`;
 
 export const COORD_PRAZOS = String.raw`
 const { config, estado } = $json;
@@ -429,7 +513,7 @@ const linhas = Object.keys(nomes).map((k, i) => {
 const resumo = {};
 for (const k of Object.keys(nomes)) if (estado[k]) {
   const s = estado[k];
-  resumo[k] = { aprovado: s.aprovado, bloqueado: s.bloqueado, motivo: s.motivo, falhas: s.falhas_automaticas, avisos: s.avisos, supervisor: s.supervisor };
+  resumo[k] = { aprovado: s.aprovado, bloqueado: s.bloqueado, motivo: s.motivo, falhas: s.falhas_automaticas, avisos: s.avisos, supervisor: s.supervisor, versao: s.saida_hash || null, de_rodada_anterior: !!s.de_rodada_anterior };
 }
 return [{ json: { config, estado, prazos: linhas, resumo } }];`;
 
@@ -459,7 +543,8 @@ return [{ json: {
   oferta_escolhida: { nome: 'Desafio Pilates em Casa 50+', slug: 'pilates50-pt', url_pagina_original: 'https://pilates.laystrancoso.com/' },
 
   // Aprovações do dono (só você muda isto).
-  copy_aprovada: false,      // libera Construtor e Claquete
+  copy_aprovada: false,      // libera Construtor e Claquete (junto com copy_aprovada_hash)
+  copy_aprovada_hash: '',    // versão aprovada da copy (ex.: 'v1a2b3c4d', sai no relatório). Congela a copy: o Headline Killer não gera de novo
   preco_aprovado: '',        // ex.: '14,90 €' — libera o Funil
   entregaveis_confirmados: [],
 
@@ -476,6 +561,7 @@ return [{ json: {
 
   // TRÁFEGO (Meta Ads) — campanhas sempre PAUSADAS
   ad_account_id: '',         // formato act_1234567890
+  campanha_nome: '',         // vazio = 'DR | <oferta> | <país>'. É pelo nome que o fluxo evita duplicar campanha
   orcamento_diario_centavos: 1000,   // 10,00 na moeda da conta
   publico: 'mulheres 50+ em Portugal',
 
@@ -487,3 +573,20 @@ return [{ json: {
 
   graph_version: 'v23.0'
 } }];`;
+
+// ---------------- 99 ERROS ----------------
+export const ERROS_ALERTA = String.raw`
+const ex = $json.execution || {};
+const wf = $json.workflow || {};
+const err = ex.error || {};
+const quando = new Date().toISOString();
+const msg = String(err.message || err.description || 'sem mensagem').slice(0, 800);
+const texto = ['⚠️ Erro no fluxo Direct Response',
+  'Workflow: ' + (wf.name || '?'),
+  'Nó: ' + (ex.lastNodeExecuted || (err.node && err.node.name) || '?'),
+  'Erro: ' + msg,
+  'Execução: ' + (ex.url || ex.id || '?'),
+  'Quando: ' + quando].join('\n');
+const nome = 'erro-' + quando.replace(/[:.]/g, '-') + '.json';
+const registro = JSON.stringify({ quando, workflow: wf.name || null, workflow_id: wf.id || null, no: ex.lastNodeExecuted || null, erro: msg, execucao: ex.url || ex.id || null, modo: ex.mode || null }, null, 2);
+return [{ json: { texto, registro, nome_arquivo: nome, arquivo: '__PASTA__' + '\\' + nome } }];`;

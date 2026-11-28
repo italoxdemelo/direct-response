@@ -16,6 +16,10 @@ const SO_JSON = process.argv.includes('--so-json');
 const TAG = 'Direct Response';
 const PREFIXO = 'Direct Response · ';
 const MODELO_GROK = 'grok-4';
+// Onde o workflow 99 Erros grava um arquivo por erro (pasta que o n8n pode escrever)
+const PASTA_ERROS = process.env.DR_PASTA_ERROS || 'C:\\Users\\italo\\Downloads\\claude\\canal-dark-n8n\\data\\direct-response\\erros';
+// Repetições: nós Grok e leituras HTTP tentam 3 vezes, 5 s entre tentativas
+const RETRY = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 
 // ---------- API ----------
 async function api(method, path, body) {
@@ -58,7 +62,7 @@ async function garantirCredenciais() {
 
 // ---------- construtor de workflow ----------
 class WF {
-  constructor(name) { this.name = name; this.nodes = []; this.connections = {}; this.x = 0; }
+  constructor(name) { this.name = name; this.nodes = []; this.connections = {}; this.x = 0; this.errorWorkflow = null; }
   add(name, type, typeVersion, parameters, pos, extra = {}) {
     this.nodes.push({ id: randomUUID(), name, type, typeVersion, position: pos, parameters, ...extra });
     return name;
@@ -70,19 +74,24 @@ class WF {
     this.connections[a][kind][out].push({ node: b, type: kind, index: inIdx });
   }
   json() {
-    return { name: this.name, nodes: this.nodes, connections: this.connections, settings: { executionOrder: 'v1', saveManualExecutions: true, callerPolicy: 'workflowsFromSameOwner' } };
+    const settings = { executionOrder: 'v1', saveManualExecutions: true, callerPolicy: 'workflowsFromSameOwner' };
+    if (this.errorWorkflow) settings.errorWorkflow = this.errorWorkflow;
+    return { name: this.name, nodes: this.nodes, connections: this.connections, settings };
   }
 }
 
 const code = (wf, name, js, pos, extra) => wf.add(name, 'n8n-nodes-base.code', 2, { jsCode: js.trim() }, pos, extra);
 const grokModel = (wf, name, pos) => wf.add(name, '@n8n/n8n-nodes-langchain.lmChatXAiGrok', 1,
   { model: MODELO_GROK, options: { temperature: 0.2 } }, pos, { credentials: { xAiApi: credRef.xai } });
-const agente = (wf, name, sistema, texto, pos) => wf.add(name, '@n8n/n8n-nodes-langchain.agent', 2.2,
-  { promptType: 'define', text: '=' + texto, options: { systemMessage: sistema, maxIterations: 4 } }, pos);
+// onError: 'continueErrorOutput' cria a saída 1 (erro), ligada ao nó "Falha do modelo" da etapa;
+// no coordenador usa 'continueRegularOutput' para a rodada seguir até o relatório.
+const agente = (wf, name, sistema, texto, pos, onError = 'continueErrorOutput') => wf.add(name, '@n8n/n8n-nodes-langchain.agent', 2.2,
+  { promptType: 'define', text: '=' + texto, options: { systemMessage: sistema, maxIterations: 4 } }, pos, { ...RETRY, onError });
 const sticky = (wf, name, content, pos, w = 420, h = 260, color = 5) =>
   wf.add(name, 'n8n-nodes-base.stickyNote', 1, { content, width: w, height: h, color }, pos);
 
-function http(wf, name, pos, { method = 'GET', url, cred, qsJson, headers, bodyJson, texto = false, full = false }) {
+// retry: por padrão só leituras (GET). POST de criação na Meta NUNCA repete (evita duplicar; regra 4 da seção 13 do plano).
+function http(wf, name, pos, { method = 'GET', url, cred, qsJson, headers, bodyJson, texto = false, full = false, retry = method === 'GET', paginarCursor = false }) {
   const p = { method, url: '=' + url, options: {} };
   if (cred === 'meta') { p.authentication = 'predefinedCredentialType'; p.nodeCredentialType = 'facebookGraphApi'; }
   if (cred === 'xai') { p.authentication = 'predefinedCredentialType'; p.nodeCredentialType = 'xAiApi'; }
@@ -92,7 +101,17 @@ function http(wf, name, pos, { method = 'GET', url, cred, qsJson, headers, bodyJ
   if (bodyJson) { p.sendBody = true; p.specifyBody = 'json'; p.jsonBody = '=' + bodyJson; }
   if (texto || full) p.options.response = { response: { fullResponse: full, neverError: true, responseFormat: texto ? 'text' : 'json' } };
   p.options.timeout = 60000;
-  const extra = { onError: 'continueRegularOutput', alwaysOutputData: true };
+  if (paginarCursor) {
+    // Graph API: segue paging.cursors.after até não haver paging.next (no máximo 25 páginas)
+    p.options.pagination = { pagination: {
+      paginationMode: 'updateAParameterInEachRequest',
+      parameters: { parameters: [{ type: 'qs', name: 'after', value: '={{ $response.body.paging && $response.body.paging.cursors ? $response.body.paging.cursors.after : "" }}' }] },
+      paginationCompleteWhen: 'other',
+      completeExpression: '={{ !$response.body.paging || !$response.body.paging.next }}',
+      limitPagesFetched: true, maxRequests: 25
+    } };
+  }
+  const extra = { onError: 'continueRegularOutput', alwaysOutputData: true, ...(retry ? RETRY : {}) };
   if (cred === 'meta') extra.credentials = { facebookGraphApi: credRef.meta };
   if (cred === 'xai') extra.credentials = { xAiApi: credRef.xai };
   if (cred === 'hotmart') extra.credentials = { httpCustomAuth: credRef.hotmart };
@@ -152,6 +171,9 @@ function fechamento(wf, chave, x0, montarPos) {
   wf.link(ultimo, 'Grok · supervisão');
   code(wf, 'Saída da etapa', sub(C.SAIDA, { __ETAPA__: chave, __AGENTE__: a.nome, __POS__: ultimo }), [xFim + 300, y]);
   wf.link('Grok · supervisão', 'Saída da etapa');
+  // Falha do modelo: depois de 3 tentativas, a etapa reprova com motivo (a rodada segue até o relatório)
+  code(wf, 'Falha do modelo', sub(C.FALHA_MODELO, { __ETAPA__: chave, __AGENTE__: a.nome }), [xFim + 300, y + 300]);
+  for (const n of ['Grok · briefing', agenteNome, 'Grok · supervisão']) wf.link(n, 'Falha do modelo', 1);
 }
 
 const posSimples = (wf, nomePos, js) => (x, y) => { code(wf, nomePos, js, [x, y]); return { primeiro: nomePos, ultimo: nomePos, xFim: x + 260 }; };
@@ -162,7 +184,7 @@ function wfRadar() {
   const ok = abertura(wf, 'radar', `if (!(cfg.termos_busca || []).length && !(cfg.ofertas_br || []).length) faltando.push('termos_busca ou ofertas_br');
 if (!cfg.pais_destino) faltando.push('pais_destino');`);
   code(wf, 'Consultas → itens', C.RADAR_ITENS, [660, 300]);
-  http(wf, 'Meta Ad Library · país de destino', [880, 300], { url: '{{ $json.url }}', cred: 'meta', qsJson: '{{ JSON.stringify($json.qs) }}' });
+  http(wf, 'Meta Ad Library · país de destino', [880, 300], { url: '{{ $json.url }}', cred: 'meta', qsJson: '{{ JSON.stringify($json.qs) }}', paginarCursor: true });
   code(wf, 'Dados da etapa', C.RADAR_DADOS, [1100, 300]);
   wf.link(ok, 'Consultas → itens', 0); wf.link('Consultas → itens', 'Meta Ad Library · país de destino'); wf.link('Meta Ad Library · país de destino', 'Dados da etapa');
   fechamento(wf, 'radar', 1320, posSimples(wf, 'Conferência pós-agente', C.POS_SIMPLES));
@@ -171,7 +193,8 @@ if (!cfg.pais_destino) faltando.push('pais_destino');`);
 
 function wfHeadline() {
   const wf = new WF(PREFIXO + '02 Headline Killer (copywriter)');
-  const ok = abertura(wf, 'headline', `if (!(cfg.oferta_escolhida && cfg.oferta_escolhida.url_pagina_original)) faltando.push('oferta_escolhida.url_pagina_original (o dono escolhe a oferta)');
+  const ok = abertura(wf, 'headline', `if (cfg.copy_aprovada === true && cfg.copy_aprovada_hash && estado.headline && estado.headline.saida_hash === cfg.copy_aprovada_hash) return [{ json: { ok: false, pulada: true, congelada: true, versao: cfg.copy_aprovada_hash, faltando: [] } }];
+if (!(cfg.oferta_escolhida && cfg.oferta_escolhida.url_pagina_original)) faltando.push('oferta_escolhida.url_pagina_original (o dono escolhe a oferta)');
 if (!cfg.idioma) faltando.push('idioma');`);
   http(wf, 'Página original · baixar', [660, 300], { url: "{{ $('Entrada').first().json.config.oferta_escolhida.url_pagina_original }}", texto: true });
   code(wf, 'Dados da etapa', C.HEADLINE_DADOS, [880, 300]);
@@ -184,6 +207,7 @@ function wfConstrutor() {
   const wf = new WF(PREFIXO + '03 Construtor (página)');
   const ok = abertura(wf, 'construtor', `if (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (aprovação do dono)');
 if (!(estado.headline && estado.headline.saida)) faltando.push('entrega do Headline Killer');
+else if (!cfg.copy_aprovada_hash || estado.headline.saida_hash !== cfg.copy_aprovada_hash) faltando.push('copy_aprovada_hash igual à versão da copy (' + (estado.headline.saida_hash || 'sem versão') + '): só a versão aprovada vira página');
 if (!cfg.pixel_id) faltando.push('pixel_id');
 if (!cfg.pasta_saida) faltando.push('pasta_saida');`);
   code(wf, 'Dados da etapa', C.CONSTRUTOR_DADOS, [660, 300]);
@@ -228,7 +252,8 @@ if (!cfg.hotmart_product_id) faltando.push('hotmart_product_id');`);
 function wfClaquete() {
   const wf = new WF(PREFIXO + '05 Claquete (criativos)');
   const ok = abertura(wf, 'claquete', `if (cfg.copy_aprovada !== true) faltando.push('copy_aprovada = true (roteiros aprovados)');
-if (!(estado.headline && estado.headline.saida)) faltando.push('roteiros do Headline Killer');`);
+if (!(estado.headline && estado.headline.saida)) faltando.push('roteiros do Headline Killer');
+else if (!cfg.copy_aprovada_hash || estado.headline.saida_hash !== cfg.copy_aprovada_hash) faltando.push('copy_aprovada_hash igual à versão da copy (' + (estado.headline.saida_hash || 'sem versão') + ')');`);
   code(wf, 'Dados da etapa', C.CLAQUETE_DADOS, [660, 300]);
   wf.link(ok, 'Dados da etapa', 0);
   fechamento(wf, 'claquete', 880, (x, y) => {
@@ -259,7 +284,7 @@ if (!cfg.pixel_id) faltando.push('pixel_id');`);
 
 function wfTrafego() {
   const wf = new WF(PREFIXO + '07 Tráfego (gestor, sempre PAUSADO)');
-  const ok = abertura(wf, 'trafego', `if (!(estado.revisor && estado.revisor.aprovado === true)) faltando.push('aprovação do Revisor nesta rodada');
+  const ok = abertura(wf, 'trafego', `if (!(estado.revisor && estado.revisor.aprovado === true && !estado.revisor.de_rodada_anterior)) faltando.push('aprovação do Revisor nesta rodada');
 if (!/^act_\\d+$/.test(String(cfg.ad_account_id || ''))) faltando.push('ad_account_id no formato act_123');
 if (!cfg.pixel_id) faltando.push('pixel_id');
 if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diario_centavos');`);
@@ -267,9 +292,16 @@ if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diari
   wf.link(ok, 'Dados da etapa', 0);
   const g = "https://graph.facebook.com/{{ $('Entrada').first().json.config.graph_version }}";
   fechamento(wf, 'trafego', 880, (x, y) => {
-    code(wf, 'Payload PAUSADO', C.TRAFEGO_PAYLOAD, [x, y]);
+    code(wf, 'Payload PAUSADO', C.TRAFEGO_PAYLOAD, [x, y - 200]);
+    // Idempotência: procura a campanha pelo nome antes de criar
+    http(wf, 'Meta · buscar campanha', [x, y], { url: g + "/{{ $('Entrada').first().json.config.ad_account_id }}/campaigns", cred: 'meta',
+      qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status', filtering: JSON.stringify([{ field: 'name', operator: 'EQUAL', value: $json.campanha.name }]), limit: 50 }) }}" });
+    ifTrue(wf, 'Campanha já existe?', '{{ Array.isArray($json.data) && $json.data.length > 0 }}', [x + 110, y + 150]);
+    http(wf, 'Meta · conjuntos existentes', [x + 330, y + 400], { url: g + "/{{ $json.data[0].id }}/adsets", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status', limit: 100 }) }}" });
+    code(wf, 'Reusar campanha', C.TRAFEGO_REUSAR, [x + 550, y + 400]);
+    http(wf, 'Meta · conferir status (existente)', [x + 770, y + 400], { url: g + '/{{ $json.id }}', cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}" });
     http(wf, 'Meta · criar campanha (PAUSED)', [x + 220, y], { method: 'POST', url: g + "/{{ $('Entrada').first().json.config.ad_account_id }}/campaigns", cred: 'meta',
-      bodyJson: "{{ JSON.stringify(Object.assign({}, $json.campanha, { status: 'PAUSED' })) }}" });
+      bodyJson: "{{ JSON.stringify(Object.assign({}, $('Payload PAUSADO').first().json.campanha, { status: 'PAUSED' })) }}" });
     code(wf, 'Conjuntos → itens', C.TRAFEGO_CONJUNTOS, [x + 440, y]);
     http(wf, 'Meta · criar conjunto (PAUSED)', [x + 660, y], { method: 'POST', url: g + "/{{ $('Entrada').first().json.config.ad_account_id }}/adsets", cred: 'meta',
       bodyJson: "{{ JSON.stringify(Object.assign({}, $json.body, { status: 'PAUSED' })) }}" });
@@ -277,10 +309,13 @@ if (!(Number(cfg.orcamento_diario_centavos) > 0)) faltando.push('orcamento_diari
     http(wf, 'Meta · reforçar PAUSED', [x + 1100, y], { method: 'POST', url: g + '/{{ $json.id }}', cred: 'meta', bodyJson: "{{ JSON.stringify({ status: 'PAUSED' }) }}" });
     http(wf, 'Meta · conferir status', [x + 1320, y], { url: g + "/{{ $('IDs criados').all()[$itemIndex].json.id }}", cred: 'meta', qsJson: "{{ JSON.stringify({ fields: 'id,name,status,effective_status' }) }}" });
     code(wf, 'Conferência PAUSADO', C.TRAFEGO_POS, [x + 1540, y]);
-    wf.link('Payload PAUSADO', 'Meta · criar campanha (PAUSED)'); wf.link('Meta · criar campanha (PAUSED)', 'Conjuntos → itens');
+    wf.link('Payload PAUSADO', 'Meta · buscar campanha'); wf.link('Meta · buscar campanha', 'Campanha já existe?');
+    wf.link('Campanha já existe?', 'Meta · conjuntos existentes', 0); wf.link('Meta · conjuntos existentes', 'Reusar campanha');
+    wf.link('Reusar campanha', 'Meta · conferir status (existente)'); wf.link('Meta · conferir status (existente)', 'Conferência PAUSADO');
+    wf.link('Campanha já existe?', 'Meta · criar campanha (PAUSED)', 1); wf.link('Meta · criar campanha (PAUSED)', 'Conjuntos → itens');
     wf.link('Conjuntos → itens', 'Meta · criar conjunto (PAUSED)'); wf.link('Meta · criar conjunto (PAUSED)', 'IDs criados');
     wf.link('IDs criados', 'Meta · reforçar PAUSED'); wf.link('Meta · reforçar PAUSED', 'Meta · conferir status'); wf.link('Meta · conferir status', 'Conferência PAUSADO');
-    sticky(wf, 'Trava PAUSADO', '### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação forçam `status: PAUSED` no corpo.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.', [x + 200, y - 300], 520, 240, 3);
+    sticky(wf, 'Trava PAUSADO', '### Nunca ativa nada\n1. O nó **Payload PAUSADO** quebra a execução se qualquer status for diferente de PAUSED.\n2. Os nós de criação forçam `status: PAUSED` no corpo.\n3. **Reforçar PAUSED** manda PAUSED de novo para cada ID criado.\n4. **Conferir status** lê da API e a etapa só aprova se tudo estiver pausado.\n5. **Buscar campanha** procura pelo nome antes de criar: se já existe, reutiliza e não mexe em nada (sem duplicar).\nQuem ativa é sempre o dono, no Gerenciador de Anúncios.', [x + 200, y - 300], 520, 240, 3);
     return { primeiro: 'Payload PAUSADO', ultimo: 'Conferência PAUSADO', xFim: x + 1760 };
   });
   return wf;
@@ -293,14 +328,19 @@ function wfCoordenador(ids) {
   const wf = new WF(PREFIXO + '00 Coordenador (GROK BOT)');
   wf.add('Iniciar rodada', 'n8n-nodes-base.manualTrigger', 1, {}, [0, 300]);
   code(wf, '⚙️ Configuração', C.CONFIG_PADRAO, [220, 300]);
-  grokModel(wf, 'Grok (xAI)', [480, 560]);
-  agente(wf, 'Coordenador · plano', COORDENADOR_PLANO, "{{ 'CONFIGURAÇÃO DA RODADA:\\n' + JSON.stringify($json) }}", [440, 300]);
+  // Estado entre rodadas: <pasta_saida>\<slug>\estado.json (se não existir, começa vazio)
+  code(wf, 'Arquivo de estado', C.COORD_ARQUIVO_ESTADO, [220, 520]);
+  wf.add('Estado salvo · ler', 'n8n-nodes-base.readWriteFile', 1, { operation: 'read', fileSelector: '={{ $json.arquivo_estado }}', options: {} }, [440, 520], { onError: 'continueRegularOutput', alwaysOutputData: true });
+  wf.add('Estado salvo · extrair', 'n8n-nodes-base.extractFromFile', 1, { operation: 'fromJson', binaryPropertyName: 'data', options: {} }, [660, 520], { onError: 'continueRegularOutput', alwaysOutputData: true });
+  grokModel(wf, 'Grok (xAI)', [920, 560]);
+  agente(wf, 'Coordenador · plano', COORDENADOR_PLANO, "{{ 'CONFIGURAÇÃO DA RODADA:\\n' + JSON.stringify($('⚙️ Configuração').first().json) }}", [880, 300], 'continueRegularOutput');
   wf.link('Grok (xAI)', 'Coordenador · plano', 0, 'ai_languageModel');
-  code(wf, 'Estado inicial', C.COORD_ESTADO_INICIAL, [700, 300]);
-  wf.link('Iniciar rodada', '⚙️ Configuração'); wf.link('⚙️ Configuração', 'Coordenador · plano'); wf.link('Coordenador · plano', 'Estado inicial');
+  code(wf, 'Estado inicial', C.COORD_ESTADO_INICIAL, [1100, 300]);
+  wf.link('Iniciar rodada', '⚙️ Configuração'); wf.link('⚙️ Configuração', 'Arquivo de estado'); wf.link('Arquivo de estado', 'Estado salvo · ler');
+  wf.link('Estado salvo · ler', 'Estado salvo · extrair'); wf.link('Estado salvo · extrair', 'Coordenador · plano'); wf.link('Coordenador · plano', 'Estado inicial');
   sticky(wf, 'Como usar', `## Time Direct Response — Coordenador (GROK BOT)\n1. Cole as chaves nas credenciais **DR · xAI Grok**, **DR · Meta (token de sistema)** e **DR · Hotmart**.\n2. Edite **⚙️ Configuração** (país, oferta, aprovações, pixel, conta de anúncios).\n3. Clique em **Execute workflow**.\n\nCada etapa chama um sub-workflow: integração → GROK BOT orienta → agente → verificações → GROK BOT supervisiona. Se uma etapa não for aprovada, o fluxo para e o relatório numerado diz o que falta.\n\n**Campanhas: sempre PAUSADAS.** Nada é ativado por este fluxo.`, [-60, -60], 640, 320, 4);
 
-  let prev = 'Estado inicial', x = 940;
+  let prev = 'Estado inicial', x = 1340;
   const falsos = [];
   for (const [k, n] of ORDEM) {
     const a = AGENTES[k];
@@ -326,15 +366,34 @@ function wfCoordenador(ids) {
   grokModel(wf, 'Grok (xAI) relatório', [x + 260, 860]);
   agente(wf, 'Coordenador · relatório', COORDENADOR_RELATORIO,
     "{{ 'PRAZOS E STATUS:\\n' + JSON.stringify($json.prazos) + '\\n\\nRESUMO POR ETAPA:\\n' + JSON.stringify($json.resumo).slice(0, 30000) + '\\n\\nPLANO DO INÍCIO DA RODADA:\\n' + ($json.estado.plano_do_coordenador || '') }}",
-    [x + 220, 600]);
+    [x + 220, 600], 'continueRegularOutput');
   wf.link('Grok (xAI) relatório', 'Coordenador · relatório', 0, 'ai_languageModel');
   wf.link('Prazos e resumo', 'Coordenador · relatório');
-  code(wf, 'Progresso (lista numerada)', String.raw`return [{ json: { progresso: $json.output, prazos: $('Prazos e resumo').first().json.prazos, estado: $('Prazos e resumo').first().json.estado } }];`, [x + 520, 600]);
+  code(wf, 'Progresso (lista numerada)', C.COORD_PROGRESSO, [x + 520, 600]);
   wf.link('Coordenador · relatório', 'Progresso (lista numerada)');
+  code(wf, 'Estado → salvar', C.COORD_SALVAR, [x + 760, 820]);
+  wf.add('Estado → arquivo', 'n8n-nodes-base.convertToFile', 1.1, { operation: 'toText', sourceProperty: 'texto', options: { fileName: 'estado.json' } }, [x + 980, 820]);
+  wf.add('Gravar estado.json', 'n8n-nodes-base.readWriteFile', 1, { operation: 'write', fileName: "={{ $('Estado → salvar').first().json.arquivo }}", dataPropertyName: 'data', options: {} }, [x + 1200, 820], { onError: 'continueRegularOutput' });
+  wf.link('Progresso (lista numerada)', 'Estado → salvar'); wf.link('Estado → salvar', 'Estado → arquivo'); wf.link('Estado → arquivo', 'Gravar estado.json');
   wf.add('Enviar no Telegram (opcional)', 'n8n-nodes-base.telegram', 1.2, {
     chatId: 'COLE_AQUI_O_CHAT_ID', text: '={{ $json.progresso }}', additionalFields: { appendAttribution: false }
   }, [x + 760, 600], { disabled: true, credentials: { telegramApi: { id: 'HhIgeNHoT7zTSUiM', name: 'Telegram account' } } });
   wf.link('Progresso (lista numerada)', 'Enviar no Telegram (opcional)');
+  return wf;
+}
+
+// ---------- 99 Erros ----------
+function wfErros() {
+  const wf = new WF(PREFIXO + '99 Erros');
+  wf.add('Erro em workflow DR', 'n8n-nodes-base.errorTrigger', 1, {}, [0, 300]);
+  code(wf, 'Montar alerta', C.ERROS_ALERTA.split('__PASTA__').join(PASTA_ERROS.replace(/\\/g, '\\\\')), [220, 300]);
+  wf.add('Alerta → arquivo', 'n8n-nodes-base.convertToFile', 1.1, { operation: 'toText', sourceProperty: 'registro', options: { fileName: '={{ $json.nome_arquivo }}' } }, [440, 300]);
+  wf.add('Gravar erro no disco', 'n8n-nodes-base.readWriteFile', 1, { operation: 'write', fileName: "={{ $('Montar alerta').first().json.arquivo }}", dataPropertyName: 'data', options: {} }, [660, 300], { onError: 'continueRegularOutput' });
+  wf.add('Enviar alerta no Telegram (opcional)', 'n8n-nodes-base.telegram', 1.2, {
+    chatId: 'COLE_AQUI_O_CHAT_ID', text: "={{ $('Montar alerta').first().json.texto }}", additionalFields: { appendAttribution: false }
+  }, [880, 300], { disabled: true, credentials: { telegramApi: { id: 'HhIgeNHoT7zTSUiM', name: 'Telegram account' } } });
+  wf.link('Erro em workflow DR', 'Montar alerta'); wf.link('Montar alerta', 'Alerta → arquivo'); wf.link('Alerta → arquivo', 'Gravar erro no disco'); wf.link('Gravar erro no disco', 'Enviar alerta no Telegram (opcional)');
+  sticky(wf, 'Sobre os erros', '## 99 Erros\nRecebe o erro de qualquer workflow Direct Response (configurado como *Error workflow* em todos).\nGrava um arquivo por erro na pasta `erros` e, se ligado, avisa no Telegram (ative o nó e ponha o chat ID).\nNão guarda chave nem token: só workflow, nó, mensagem e link da execução.', [-40, -40], 520, 240, 3);
   return wf;
 }
 
@@ -359,8 +418,14 @@ async function main() {
   const construir = { radar: wfRadar, headline: wfHeadline, construtor: wfConstrutor, funil: wfFunil, claquete: wfClaquete, revisor: wfRevisor, trafego: wfTrafego };
   const existentes = SO_JSON ? [] : await listarTudo('/workflows');
   const ids = {};
+  // 99 Erros primeiro: os outros apontam para ele (settings.errorWorkflow)
+  const erros = wfErros();
+  writeFileSync(join(RAIZ, 'workflows', '99-erros.json'), JSON.stringify(erros.json(), null, 2));
+  // Error workflow não precisa estar ativo (o gatilho de erro não é ativável)
+  const idErros = SO_JSON ? 'ID_erros' : await publicar(erros, existentes);
   for (const [k, n] of ORDEM) {
     const wf = construir[k]();
+    wf.errorWorkflow = idErros;
     writeFileSync(join(RAIZ, 'workflows', `${n}-${k}.json`), JSON.stringify(wf.json(), null, 2));
     ids[k] = SO_JSON ? 'ID_' + k : await publicar(wf, existentes);
     // No n8n 2.x o sub-workflow precisa estar publicado (ativo) para ser chamado.
@@ -368,9 +433,11 @@ async function main() {
     if (!SO_JSON) await api('POST', `/workflows/${ids[k]}/activate`);
   }
   const coord = wfCoordenador(ids);
+  coord.errorWorkflow = idErros;
   writeFileSync(join(RAIZ, 'workflows', '00-coordenador.json'), JSON.stringify(coord.json(), null, 2));
   if (SO_JSON) return console.log('JSON gerado em workflows/');
   ids.coordenador = await publicar(coord, existentes);
+  ids.erros = idErros;
 
   // tag "Direct Response"
   const tags = await listarTudo('/tags');

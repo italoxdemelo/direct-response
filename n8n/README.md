@@ -2,6 +2,8 @@
 
 Time de direct response para levar ofertas low ticket que escalaram no Brasil para outro país (começando por Portugal), montado no n8n local (`http://localhost:5678`) com o **GROK BOT** (xAI) orientando e supervisionando cada etapa.
 
+Este diretório é a **fonte da verdade** do fluxo (veio do PC do Italo em 27/11/2026, `H-20261127-italo-03`). Os JSON em `workflows/` são a exportação de 26/11 e são regravados pelo `gerar.mjs` ao publicar.
+
 Todos os workflows têm a tag **Direct Response** e o prefixo `Direct Response ·`.
 
 | Workflow | Integração da etapa | O que o código confere |
@@ -32,11 +34,20 @@ Limites conhecidos (honestos):
 - O Construtor grava o HTML em `canal-dark-n8n/data/direct-response/<slug>/index.html` (pasta que o n8n pode escrever). Publicar no domínio é com você; depois preencha `url_pagina_publicada`.
 - O Tráfego cria campanha e conjuntos (PAUSED). Os anúncios dentro dos conjuntos ainda não são criados.
 
+## Robustez (desde 27/11/2026)
+
+- **Erros:** o workflow `99 Erros` é o *Error workflow* de todos; grava um arquivo por erro em `canal-dark-n8n/data/direct-response/erros/` (Telegram opcional, desativado). Os nós Grok tentam 3 vezes; se ainda falharem, a etapa reprova com motivo e a rodada chega ao relatório.
+- **Estado entre rodadas:** o coordenador lê e grava `<pasta_saida>/<slug>/estado.json`. Uma etapa pulada mantém a entrega da rodada anterior.
+- **Copy congelada:** o relatório mostra a versão da copy (`v1a2b3c4d`). Com `copy_aprovada: true` e `copy_aprovada_hash` igual a essa versão, o Headline Killer não gera de novo, e Construtor e Claquete só usam essa versão.
+- **Sem duplicar campanha:** o Tráfego procura a campanha pelo nome (`campanha_nome` ou `DR | <oferta> | <país>`) antes de criar; se existe, reutiliza e não altera nada.
+- **Radar paginado:** lê até 25 páginas de 200 anúncios por consulta.
+
 ## Manutenção
 
 ```powershell
 node tools/testar-codigos.mjs   # testa a lógica dos nós Code com dados simulados
 node tools/gerar.mjs            # regenera e republica (atualiza pelo nome; precisa de N8N_API_KEY)
+node tools/gerar.mjs --so-json  # só gera os JSON (sem publicar), para conferir com checar.mjs
 node tools/checar.mjs           # confere sintaxe e referências dos JSON em workflows/
 ```
 
