@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-italo-02 — Avaliar a estrutura do projeto e dividir tarefas entre Claude e Grok
+
+- **Data/hora:** 2026-11-27 22:00 (America/Bahia UTC-3)
+- **Autor:** italo — Claude
+- **Tipo:** decisão
+- **O que mudou:** Criado `plano/DIVISAO-TAREFAS.md` com a avaliação da estrutura (o que existe, 9 riscos R-1 a R-9) e a divisão do trabalho: Claude fica com o código e o n8n (C-01 a C-08), o Grok (assistente que o Italo usa no PC) com pesquisa de APIs, prompts e textos para o Arthur (G-01 a G-06), e o Italo com acessos e decisões (I-01 a I-05). Define regras de convivência: IDs `H-AAAAMMDD-grok-NN` para o Grok, dono de cada pasta, Grok não mexe no n8n nem no gerador.
+- **Por quê:** o Italo pediu uma avaliação da estrutura, registrada no GitHub, e a divisão de tarefas com o Grok para acelerar.
+- **Arquivos tocados:** `plano/DIVISAO-TAREFAS.md`, `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-italo-01
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** no PC do Italo, em 2026-11-27, `node tools/checar.mjs` deu ok nos 8 workflows e `node tools/testar-codigos.mjs` terminou em "TODOS OS TESTES PASSARAM" (lógica dos nós Code com dados simulados; nada testado com credencial real). Notado que a pasta do gerador está dentro de um repositório git de outro projeto, sem versionamento próprio (risco R-2).
+- **Próximo passo:** Grok começa por G-05 (perguntas para o Arthur) e G-01; Claude por C-01 (trazer o gerador para `n8n/`); Italo por I-01 e I-02.
+
 ### H-20261127-italo-01 — Reescrever o plano de ação como especificação técnica do fluxo no n8n
 
 - **Data/hora:** 2026-11-27 00:30 (America/Bahia UTC-3)
