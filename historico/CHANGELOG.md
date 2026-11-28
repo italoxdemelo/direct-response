@@ -7,6 +7,96 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-06 — Revisar os prompts dos agentes (G-04)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/rascunhos/prompts-revisados.md`: achados por agente (14), blocos novos `REGRAS_PT_PT` e `REGRAS_SAUDE_META`, prompt completo do Headline Killer que recebe `config.decisoes`, acréscimos para Construtor, Revisor, Funil, Claquete, Radar e Tráfego, contrato dos campos de `config.decisoes` e lista de mudanças de código (para a C-05). Proposta de nova pendência P-15 (consentimento de cookies e pixel). **Nenhum arquivo de `n8n/` foi alterado.** G-04 estava marcada "espera C-01": a C-01 foi cumprida com a entrada `H-20261127-italo-03` (o `prompts.mjs` entrou no `main`).
+- **Por quê:** Tarefa G-04 de `plano/DIVISAO-TAREFAS.md` (T-04, C-05).
+- **Arquivos tocados:** `plano/rascunhos/prompts-revisados.md`, `plano/DIVISAO-TAREFAS.md` (status G-04), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-05
+- **Depende de:** H-20261127-italo-03
+- **Resolve:** —
+- **Abre:** P-15
+- **Verificação:** Li `n8n/tools/prompts.mjs` e `codigos.mjs` (commit 3354704) e rodei a lógica dos nós com dados simulados (`plano/rascunhos/simular-revisor.mjs`). Políticas da Meta de atributos pessoais (27/06/2024) e de saúde e bem-estar (27/12/2024) lidas no site oficial; documentação do pixel da Meta sobre consentimento lida. **Não verificado:** efeito dos textos no modelo (sem chave da xAI, I-01), lista de brasileirismos (conhecimento linguístico meu), obrigatoriedade do consentimento (Termos da Meta não abriram), regra do direito de livre resolução na UE. Sem segredo, `pixel_id` real nem dado pessoal.
+- **Próximo passo:** Claude (C-05) cola os blocos no `prompts.mjs`, cria `config.decisoes` e corrige as regex (seção 5 do arquivo); Arthur e um jurista decidem P-15; o Arthur responde as perguntas de `plano/rascunhos/perguntas-arthur.md` antes de a C-05 ter o que preencher.
+
+### H-20261127-grok-05 — Roteiro de testes do Revisor (G-06)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/rascunhos/testes-revisor.md`: para cada um dos 7 itens do checklist do Revisor (§11 do plano), as quebras de propósito, o que o Revisor deve responder e onde o código atual provavelmente deixa passar (lacunas). Inclui três itens que o plano ainda não cobre (UTM e `xcod`, copy, campanhas e anúncios PAUSADOS), testes da saída do agente e da aprovação a 100%, e tabela de execução.
+- **Por quê:** Tarefa G-06 de `plano/DIVISAO-TAREFAS.md` (V-02). A seção 11 do plano manda "quebrar de propósito cada item" e não dizia como.
+- **Arquivos tocados:** `plano/rascunhos/testes-revisor.md`, `plano/rascunhos/simular-revisor.mjs`, `plano/DIVISAO-TAREFAS.md` (status G-06), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-04
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Como `n8n/tools/codigos.mjs` já está no `main` (3354704), rodei os nós Code do Revisor, da regex de claims e do Tráfego com dados simulados (sem rede, sem n8n, sem credencial) com o script novo `plano/rascunhos/simular-revisor.mjs` (`node plano/rascunhos/simular-revisor.mjs`); o resultado está na seção 1A do arquivo. Lacunas **confirmadas em código**: PageView dentro de comentário passa; `lang="pt-BR"` passa no item 6; "de 29,90 € por" (símbolo depois do número) passa como preço normal; "114,90" casa com o preço "14,90"; link sem `utm`/`xcod` passa; botão para domínio fora do filtro `hotmart|pay.|checkout` não é conferido; pixel que disparou há anos passa; URL de criativo não é checada; "Perca 10 kg", "Só hoje" e "Últimas 10 vagas" passam na regex de claims; e a lista `removido_por_risco` do Headline Killer **dispara** a regex (falso positivo). A trava de PAUSED funciona (payload com "ACTIVE" lança erro e nada é enviado). **Não verificado:** comportamento no n8n real (HTTP, `neverError`) e o item 8.3 (cruzamento do checklist com o agente, que fica em outro nó); nada foi chamado na Meta nem na Hotmart. Os itens do checklist do plano diferem da lista citada na conversa: UTM, copy e PAUSADAS ficaram como propostas B1 a B3. Sem segredo, `pixel_id` real nem dado pessoal (só `PIXEL_DE_TESTE` e domínios `.invalid`).
+- **Próximo passo:** Claude abre T-xx para cada lacuna da seção 1A (resumo na seção 5 de `plano/rascunhos/prompts-revisados.md`); Italo roda a tabela da seção 6 na V-02 com credencial real. Decidir se B1 a B3 entram no checklist (§11).
+
+### H-20261127-grok-04 — Comparar hospedagens para a página (G-03)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/pesquisa/hospedagem.md`: comparação de Netlify, Render, Cloudflare (Workers com arquivos estáticos e Pages) e Vercel por custo, domínio próprio com HTTPS, deploy por API a partir do n8n e tempo até ir ao ar. Recomendação: Netlify (deploy por zip em uma chamada), com aviso do limite duro do plano grátis; Cloudflare como plano B; Render em terceiro; Vercel Hobby descartado (Termos proíbem uso comercial).
+- **Por quê:** Tarefa G-03 de `plano/DIVISAO-TAREFAS.md` (D-07, T-05). Só preços e documentação oficial de cada serviço.
+- **Arquivos tocados:** `plano/pesquisa/hospedagem.md`, `plano/DIVISAO-TAREFAS.md` (status G-03), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-03
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Nenhuma conta criada, nenhum deploy feito. Preços em dólar, conforme as páginas oficiais em 2026-11-27. Termos da Vercel lidos na fonte. Contas de visitas por mês são estimativas e dizem as suposições. Ficaram **não verificado**: excedente de banda do Render, rota de deploy da API do Render, envio de arquivos do Pages por API, Pages com DNS externo, registros DNS do Netlify (página de domínios deu 404) e se o nó `Execute Command` está ligado no n8n (seção 9 do arquivo). Sem segredo nem dado pessoal.
+- **Próximo passo:** Arthur aprova a escolha de hospedagem e o domínio (gasto: só com ok dele); Italo cria a conta, o token e a credencial `DR · Netlify` no n8n; Claude implementa o T-05.
+
+### H-20261127-grok-03 — Pesquisar a Meta Marketing API para anúncios pausados e a Ad Library (G-02)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/pesquisa/meta-ads-api.md`: passo a passo `adimages` → `adcreatives` (com `url_tags` `utm_content={{ad.id}}` e `xcod={{ad.id}}`) → `ads` com `status=PAUSED`, campos obrigatórios, ensaio com `validate_only`, conferência por API, busca de campanha por nome, limites de taxa, limites da Ad Library API fora da UE e 10 propostas de ajuste no plano. Também ajustados: pergunta 10 de `plano/rascunhos/perguntas-arthur.md` e a pendência P-14 (agora inclui pagador e beneficiário DSA).
+- **Por quê:** Tarefa G-02 de `plano/DIVISAO-TAREFAS.md` (T-06, T-07, risco R-6). Só documentação oficial da Meta.
+- **Arquivos tocados:** `plano/pesquisa/meta-ads-api.md`, `plano/rascunhos/perguntas-arthur.md`, `plano/DIVISAO-TAREFAS.md` (status G-02), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-02
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Nenhuma chamada real (sem credencial, P-12). Achados da leitura da documentação: (1) `graph_version` do plano (`v23.0`) expirou em 2026-06-09; (2) conjuntos que miram a UE exigem `dsa_payor` e `dsa_beneficiary`, e o payload do Tráfego não tem; (3) anúncio exige `conversion_domain` com pixel; (4) a conferência `effective_status` do plano reprovaria anúncio recém-criado (fica em `PENDING_REVIEW`); (5) a Ad Library API não devolve anúncio comercial só do Brasil. Filtro por nome de campanha, upload multipart de imagem, permissões do token e retenção/token da Ad Library ficaram **não verificado** (seção 9 do arquivo). Sem segredo, `pixel_id`, `ad_account_id`, `page_id` nem dado pessoal: só marcadores. O plano **não foi alterado**.
+- **Conferido também contra o código do `main` (3354704):** o Tráfego usa o filtro `filtering` por nome, que não está na documentação oficial que li, e reaproveita o 1.º resultado sem comparar o nome (seção 5, item 7 do arquivo); `v23.0` continua em três lugares do código. **Próximo passo:** Claude (C-06, C-07) aplica as propostas 1 a 8 no workflow 07 Tráfego depois de o Italo confirmar a versão. Arthur responde a pergunta 10 (Página, moeda, pagador e beneficiário).
+
+### H-20261127-grok-02 — Pesquisar a API da Hotmart na documentação oficial (G-01)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/pesquisa/hotmart-api.md`: OAuth `client_credentials` (URL, headers, resposta), `GET /products/api/v1/products` (confirmado, sem preço), `GET /products/{ucode}/offers` (preço, moeda, `payment_mode`), API de Payment Link (cria checkout em EUR e ofertas extras), histórico de vendas (traz `src`, `sck` e `xcod`), rate limit, paginação, sandbox, o que a API não faz e 7 propostas de ajuste no plano.
+- **Por quê:** Tarefa G-01 de `plano/DIVISAO-TAREFAS.md` (risco R-3: o endpoint de produtos estava "a confirmar"). Só documentação oficial, <https://developers.hotmart.com/docs/en/>.
+- **Arquivos tocados:** `plano/pesquisa/hotmart-api.md`, `plano/DIVISAO-TAREFAS.md` (status G-01), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-01
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** —
+- **Verificação:** Nenhuma chamada real (não há credencial, P-12): tudo vem da leitura da documentação. Exemplos de resposta com valores fictícios. Sem segredo, `pixel_id`, `ad_account_id` nem dado pessoal. Itens que a documentação não confirma ficaram como **não verificado**, com o link (seção 8 do arquivo). Achado importante: o plano diz que a API "não cria checkout"; a API de Payment Link cria, mas é para quem entrega o conteúdo fora da Hotmart. O `dr-utm` do plano não repassa `xcod`. O plano **não foi alterado**: as mudanças estão só como proposta (seção 7).
+- **Próximo passo:** Claude (C-02/C-05) decide quais propostas da seção 7 entram no plano e no workflow 04. Arthur decide se usa produto normal ou Payment Link (seção 5). Teste real no sandbox quando houver credencial (D-03).
+
+### H-20261127-grok-01 — Preparar as perguntas para o Arthur (G-05)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/rascunhos/perguntas-arthur.md` com a mensagem pronta (PT-BR, 12 perguntas em múltipla escolha) que cobre P-01 a P-08 e D-08, mais bumps e upsell, pixel, Página do Facebook, moeda da conta de anúncios e domínio. Cada pergunta diz o que a resposta destrava. Abertas duas pendências novas no mapa: P-13 (bumps e upsell) e P-14 (Página e moeda da conta).
+- **Por quê:** Tarefa G-05 de `plano/DIVISAO-TAREFAS.md`: as decisões do Arthur são o maior gargalo (risco R-1). O Italo pediu ao Grok para assumir as tarefas na ordem sugerida.
+- **Arquivos tocados:** `plano/rascunhos/perguntas-arthur.md`, `plano/DIVISAO-TAREFAS.md` (status G-05), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-italo-07
+- **Depende de:** —
+- **Resolve:** —
+- **Abre:** P-13, P-14
+- **Verificação:** Perguntas conferidas contra `contexto/00-LEIA-PRIMEIRO.md` §5 e `historico/MAPA-DEPENDENCIAS.md` (P-01 a P-09, D-07, D-08). Nenhuma senha, token, `pixel_id` ou `ad_account_id` no arquivo. A mensagem **ainda não foi enviada** ao Arthur. A copy do Método EIXO 7 não está no repositório (só a primeira adaptação, em `contexto/`), então o Italo precisa anexá-la. Sobre garantia e 14 dias, o texto da Diretiva 2011/83/UE **não foi aberto** (EUR-Lex bloqueou a leitura): ficou como **não verificado**, com a fonte.
+- **Próximo passo:** Italo (I-03) envia a mensagem ao Arthur, anexa a copy do Método EIXO 7 e registra as respostas em nova entrada, fechando P-01 a P-08 conforme o caso.
+
 ### H-20261127-italo-07 — Publicar no n8n o gerador com 99 Erros, estado e Tráfego sem duplicar
 
 - **Data/hora:** 2026-11-27 22:16 (America/Bahia UTC-3)
