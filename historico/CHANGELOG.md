@@ -7,6 +7,21 @@ Log de tudo o que muda no projeto, **entrada mais recente no topo**. Toda IA lê
 
 <!-- NOVAS ENTRADAS AQUI (logo abaixo desta linha) -->
 
+### H-20261127-grok-06 — Revisar os prompts dos agentes (G-04)
+
+- **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)
+- **Autor:** italo — Grok
+- **Tipo:** mudança de arquivo
+- **O que mudou:** Criado `plano/rascunhos/prompts-revisados.md`: achados por agente (14), blocos novos `REGRAS_PT_PT` e `REGRAS_SAUDE_META`, prompt completo do Headline Killer que recebe `config.decisoes`, acréscimos para Construtor, Revisor, Funil, Claquete, Radar e Tráfego, contrato dos campos de `config.decisoes` e lista de mudanças de código (para a C-05). Proposta de nova pendência P-15 (consentimento de cookies e pixel). **Nenhum arquivo de `n8n/` foi alterado.** G-04 estava marcada "espera C-01": a C-01 foi cumprida com a entrada `H-20261127-italo-03` (o `prompts.mjs` entrou no `main`).
+- **Por quê:** Tarefa G-04 de `plano/DIVISAO-TAREFAS.md` (T-04, C-05).
+- **Arquivos tocados:** `plano/rascunhos/prompts-revisados.md`, `plano/DIVISAO-TAREFAS.md` (status G-04), `historico/CHANGELOG.md`, `historico/MAPA-DEPENDENCIAS.md`
+- **Continua:** H-20261127-grok-05
+- **Depende de:** H-20261127-italo-03
+- **Resolve:** —
+- **Abre:** P-15
+- **Verificação:** Li `n8n/tools/prompts.mjs` e `codigos.mjs` (commit 3354704) e rodei a lógica dos nós com dados simulados (`plano/rascunhos/simular-revisor.mjs`). Políticas da Meta de atributos pessoais (27/06/2024) e de saúde e bem-estar (27/12/2024) lidas no site oficial; documentação do pixel da Meta sobre consentimento lida. **Não verificado:** efeito dos textos no modelo (sem chave da xAI, I-01), lista de brasileirismos (conhecimento linguístico meu), obrigatoriedade do consentimento (Termos da Meta não abriram), regra do direito de livre resolução na UE. Sem segredo, `pixel_id` real nem dado pessoal.
+- **Próximo passo:** Claude (C-05) cola os blocos no `prompts.mjs`, cria `config.decisoes` e corrige as regex (seção 5 do arquivo); Arthur e um jurista decidem P-15; o Arthur responde as perguntas de `plano/rascunhos/perguntas-arthur.md` antes de a C-05 ter o que preencher.
+
 ### H-20261127-grok-05 — Roteiro de testes do Revisor (G-06)
 
 - **Data/hora:** 2026-11-27 22:34 (America/Bahia UTC-3)

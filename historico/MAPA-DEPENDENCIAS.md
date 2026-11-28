@@ -69,6 +69,10 @@ flowchart TD
   HG05["H-20261127-grok-05 G-06 testes do Revisor"]
   HG04 --> HG05
 
+  HG06["H-20261127-grok-06 G-04 prompts revisados"]
+  HG06 --> P15
+  HG05 --> HG06
+
   %% Pendências abertas
   P01{{"P-01 Formato das aulas"}}
   P02{{"P-02 Preço em euro"}}
@@ -84,6 +88,7 @@ flowchart TD
   P12{{"P-12 Preencher credenciais DR no n8n"}}
   P13{{"P-13 Bumps e upsell: conteúdo e preços"}}
   P14{{"P-14 Página, moeda da conta e pagador/beneficiário DSA"}}
+  P15{{"P-15 Consentimento de cookies e pixel (UE)"}}
   H02 --> P10
   H04 --> P10
   H04 --> P11
@@ -112,6 +117,7 @@ flowchart TD
   E05 --> E06 --> E07
   P13 --> E03
   P14 --> E06
+  P15 --> E01
 ```
 
 > O GitHub renderiza este bloco como diagrama. Num editor sem Mermaid, use a tabela abaixo, que tem a mesma informação.
@@ -153,6 +159,7 @@ flowchart TD
 | H-20261127-grok-03 | G-02: pesquisa da Meta Marketing API e da Ad Library em `plano/pesquisa/meta-ads-api.md`; ajusta P-14 (inclui DSA). | H-20261127-grok-02 | — | — | — |
 | H-20261127-grok-04 | G-03: comparação de hospedagens em `plano/pesquisa/hospedagem.md` (recomendação: Netlify; plano B Cloudflare). | H-20261127-grok-03 | — | — | — |
 | H-20261127-grok-05 | G-06: roteiro de testes do Revisor em `plano/rascunhos/testes-revisor.md` e simulação local em `plano/rascunhos/simular-revisor.mjs`. | H-20261127-grok-04 | — | — | — |
+| H-20261127-grok-06 | G-04: revisão dos prompts em `plano/rascunhos/prompts-revisados.md`, com prompt do Headline Killer que recebe `config.decisoes`. | H-20261127-grok-05 | H-20261127-italo-03 | — | P-15 |
 
 ### Pendências
 
@@ -172,6 +179,7 @@ flowchart TD
 | P-12 | Preencher no n8n as credenciais `DR · xAI Grok`, `DR · Meta (token de sistema)` e `DR · Hotmart` (valores nunca no Git). | ⏳ aberta | Italo / Arthur | workflows do n8n (E-01 a E-06 automatizados) | H-20261125-italo-03 |
 | P-13 | Conteúdo e preço em euro de 2 a 3 order bumps e 1 upsell (contexto: o Arthur pediu "front, bumps e upsell" na conversa; os valores não vieram). | ⏳ aberta | Arthur | E-03 | `plano/rascunhos/perguntas-arthur.md` (H-20261127-grok-01) |
 | P-14 | Página do Facebook (e conta do Instagram) que assina os anúncios, moeda da conta de anúncios e pagador e beneficiário (DSA, anúncios na UE). Hipótese para confirmar: a Marketing API exige `page_id` no criativo e `daily_budget` na moeda da conta; conjuntos que miram a UE pedem `dsa_payor` e `dsa_beneficiary`. | ⏳ aberta | Arthur / Italo | E-06 | `plano/rascunhos/perguntas-arthur.md` (H-20261127-grok-01) |
+| P-15 | Consentimento de cookies para o pixel na página (UE): banner próprio ou ferramenta, e como o Revisor prova o PageView. A documentação do pixel da Meta traz o modo de consentimento; se o consentimento é obrigatório para este caso é **não verificado** (decisão do Arthur e de um jurista). | ⏳ aberta | Arthur / Italo | E-01, E-02 | `plano/rascunhos/prompts-revisados.md` (H-20261127-grok-06) |
 
 Ao fechar uma pendência: troque `⏳ aberta` por `✅ resolvida em H-...` e, no grafo, adicione a seta `Hxx --> Pxx`.
 
@@ -179,7 +187,7 @@ Ao fechar uma pendência: troque `⏳ aberta` por `✅ resolvida em H-...` e, no
 
 | Nó | Etapa | Agente | Depende de | Regra crítica |
 |---|---|---|---|---|
-| E-01 | Montar e publicar página com pixel e UTM | Construtor | P-08, P-09, E-03 (link do checkout) | Só copy aprovada pelo Arthur. |
+| E-01 | Montar e publicar página com pixel e UTM | Construtor | P-08, P-09, P-15, E-03 (link do checkout) | Só copy aprovada pelo Arthur. |
 | E-02 | Conferir que o PageView dispara | Construtor / Revisor | E-01 | Antes de qualquer anúncio. |
 | E-03 | Produto, checkout em €, bumps e upsells na Hotmart | Funil | P-02, P-03, P-07, P-09, P-13 | Preço só com ok do Arthur. |
 | E-04 | Criativos (vídeo e imagem) | Claquete | P-08 | Sem prova social falsa nem claims proibidos. |
